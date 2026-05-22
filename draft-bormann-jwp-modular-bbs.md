@@ -4,14 +4,7 @@ abbrev = "JWP-BBS"
 ipr = "trust200902"
 area = "Security"
 workgroup = "JOSE Working Group"
-keyword = [
-  "zero-knowledge proofs",
-  "multi-message signatures",
-  "BBS",
-  "JWP",
-  "selective disclosure",
-  "device binding"
-]
+keyword = ["zero-knowledge proofs", "multi-message signatures", "BBS", "JWP"]
 
 [seriesInfo]
 name = "Internet-Draft"
@@ -37,6 +30,12 @@ The format supports selective disclosure of signed attributes, predicate sub-pro
 {mainmatter}
 
 # Introduction
+
+TODO
+
+# IANA Considerations
+
+TODO
 
 {backmatter}
 
