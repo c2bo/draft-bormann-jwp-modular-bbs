@@ -26,7 +26,8 @@ fullname = "Christian Bormann"
 organization = "SPRIND GmbH"
   [author.address]
   email = "chris.bormann@gmx.de"
-+++
+
+%%%
 
 .# Abstract
 
