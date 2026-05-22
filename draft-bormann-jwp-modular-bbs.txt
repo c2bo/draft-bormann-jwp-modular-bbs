@@ -1,0 +1,79 @@
+
+
+
+
+JOSE Working Group                                            C. Bormann
+Internet-Draft                                               SPRIND GmbH
+Intended status: Standards Track                             22 May 2026
+Expires: 23 November 2026
+
+
+        JSON Web Proofs with BBS and Optional ECDSA Key Binding
+                  draft-bormann-jwp-modular-bbs-latest
+
+Abstract
+
+   This document specifies a digital credential format that combines
+   JSON Web Proofs (JWP) with the BBS signature scheme and a modular
+   sub-proof framework supporting committed disclosure.  The format
+   supports selective disclosure of signed attributes, predicate sub-
+   proofs (such as range, equality, and set-membership proofs) over
+   undisclosed attributes, and optional device binding through a sub-
+   proof of knowledge of an ECDSA P-256 signature under a device public
+   key embedded in the BBS messages.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 23 November 2026.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  IANA Considerations
+   Appendix A.  Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   TODO
+
+2.  IANA Considerations
+
+   TODO
+
+Appendix A.  Acknowledgments
+
+   TODO
+
+Author's Address
+
+   Christian Bormann
+   SPRIND GmbH
+   Email: chris.bormann@gmx.de
