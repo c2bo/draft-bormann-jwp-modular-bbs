@@ -1,0 +1,7 @@
+<note title="Discussion Venues" removeInRFC="true">
+<t>Discussion of this document takes place on the
+    JSON Web Proofs Working Group mailing list (jose@ietf.org),
+    which is archived at <eref target="https://mailarchive.ietf.org/arch/browse/jose/"/>.</t>
+<t>Source for this draft and an issue tracker can be found at
+    <eref target="https://github.com/c2bo/draft-bormann-jwp-modular-bbs"/>.</t>
+</note>
