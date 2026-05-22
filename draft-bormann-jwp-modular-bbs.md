@@ -39,6 +39,6 @@ TODO
 
 {backmatter}
 
-.# Acknowledgments
+# Acknowledgments
 
 TODO
