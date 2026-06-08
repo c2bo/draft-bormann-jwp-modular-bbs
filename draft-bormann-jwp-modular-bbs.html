@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>JSON Web Proofs with BBS and Optional ECDSA Key Binding</title>
+<title>BBS and Modular Sub-proofs with JSON Web Proofs</title>
 <meta content="Christian Bormann" name="author">
 <meta content="
-       This document specifies a digital credential format that combines JSON Web Proofs (JWP) with the BBS signature scheme and a modular sub-proof framework supporting committed disclosure.
-The format supports selective disclosure of signed attributes, predicate sub-proofs (such as range, equality, and set-membership proofs) over undisclosed attributes, and optional device binding through a sub-proof of knowledge of an ECDSA P-256 signature under a device public key embedded in the BBS messages. 
+       This document specifies a digital credential format that combines JSON Web Proofs (JWP) as a container format with the Blind BBS signature scheme and a modular sub-proof framework supporting committed disclosure. It re-uses the existing credential data model of SD-JWT Verifiable Credentials (SD-JWT VC) and aims to keep some level of compatibility with existing deployments. 
+       The format supports selective disclosure of signed attributes, predicate sub-proofs (such as range, equality, and set-membership proofs) over undisclosed attributes, and optional device binding through a sub-proof of knowledge of an ECDSA P-256 signature under a device public key embedded in the BBS messages. 
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="zero-knowledge proofs" name="keyword">
@@ -295,16 +295,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -324,10 +327,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -338,59 +341,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -428,26 +431,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -463,20 +465,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -512,9 +516,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -524,17 +528,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -584,25 +590,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -622,13 +620,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -639,18 +630,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -709,9 +698,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -801,23 +790,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -828,19 +821,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -861,54 +856,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -927,26 +922,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -962,12 +957,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1029,17 +1025,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1049,11 +1047,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">JWP-BBS</td>
-<td class="right">May 2026</td>
+<td class="right">June 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Bormann</td>
-<td class="center">Expires 23 November 2026</td>
+<td class="center">Expires 10 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1061,17 +1059,17 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <div id="internal-metadata" class="document-information">
 <dl id="identifiers">
 <dt class="label-workgroup">Workgroup:</dt>
-<dd class="workgroup">JOSE Working Group</dd>
+<dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
 <dd class="internet-draft">draft-bormann-jwp-modular-bbs-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-22" class="published">22 May 2026</time>
+<time datetime="2026-06-08" class="published">8 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-23">23 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-10">10 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1081,11 +1079,22 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </dd>
 </dl>
 </div>
-<h1 id="title">JSON Web Proofs with BBS and Optional ECDSA Key Binding</h1>
+<h1 id="title">BBS and Modular Sub-proofs with JSON Web Proofs</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document specifies a digital credential format that combines JSON Web Proofs (JWP) with the BBS signature scheme and a modular sub-proof framework supporting committed disclosure.
-The format supports selective disclosure of signed attributes, predicate sub-proofs (such as range, equality, and set-membership proofs) over undisclosed attributes, and optional device binding through a sub-proof of knowledge of an ECDSA P-256 signature under a device public key embedded in the BBS messages.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document specifies a digital credential format that combines JSON Web Proofs (JWP) as a container format with the Blind BBS signature scheme and a modular sub-proof framework supporting committed disclosure. It re-uses the existing credential data model of SD-JWT Verifiable Credentials (SD-JWT VC) and aims to keep some level of compatibility with existing deployments.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">The format supports selective disclosure of signed attributes, predicate sub-proofs (such as range, equality, and set-membership proofs) over undisclosed attributes, and optional device binding through a sub-proof of knowledge of an ECDSA P-256 signature under a device public key embedded in the BBS messages.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">Discussion of this document takes place on the
+    JSON Web Proofs Working Group mailing list (jose@ietf.org),
+    which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/jose/">https://mailarchive.ietf.org/arch/browse/jose/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+    <span><a href="https://github.com/c2bo/draft-bormann-jwp-modular-bbs">https://github.com/c2bo/draft-bormann-jwp-modular-bbs</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1106,7 +1115,7 @@ The format supports selective disclosure of signed attributes, predicate sub-pro
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 23 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 10 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1137,15 +1146,158 @@ The format supports selective disclosure of signed attributes, predicate sub-pro
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-requirements-notation-and-c" class="internal xref">Requirements Notation and Conventions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-terms-and-definitions" class="internal xref">Terms and Definitions</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-data-model" class="internal xref">Data Model</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
+                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-issued-credential" class="internal xref">Issued Credential</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
+                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-issuer-header" class="internal xref">Issuer Header</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3">
+                <p id="section-toc.1-1.2.2.3.1"><a href="#section-2.3" class="auto internal xref">2.3</a>.  <a href="#name-claims-mapping" class="internal xref">Claims Mapping</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4">
+                <p id="section-toc.1-1.2.2.4.1"><a href="#section-2.4" class="auto internal xref">2.4</a>.  <a href="#name-example-issuance" class="internal xref">Example: Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.5">
+                <p id="section-toc.1-1.2.2.5.1"><a href="#section-2.5" class="auto internal xref">2.5</a>.  <a href="#name-message-derivation" class="internal xref">Message Derivation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.6">
+                <p id="section-toc.1-1.2.2.6.1"><a href="#section-2.6" class="auto internal xref">2.6</a>.  <a href="#name-scalar-encoding" class="internal xref">Scalar Encoding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.7">
+                <p id="section-toc.1-1.2.2.7.1"><a href="#section-2.7" class="auto internal xref">2.7</a>.  <a href="#name-temporal-claims" class="internal xref">Temporal Claims</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.8">
+                <p id="section-toc.1-1.2.2.8.1"><a href="#section-2.8" class="auto internal xref">2.8</a>.  <a href="#name-device-binding-header" class="internal xref">Device Binding Header</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.9">
+                <p id="section-toc.1-1.2.2.9.1"><a href="#section-2.9" class="auto internal xref">2.9</a>.  <a href="#name-structural-layout" class="internal xref">Structural Layout</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.10">
+                <p id="section-toc.1-1.2.2.10.1"><a href="#section-2.10" class="auto internal xref">2.10</a>. <a href="#name-decoys" class="internal xref">Decoys</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-issuance" class="internal xref">Issuance</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-issuer-key-generation" class="internal xref">Issuer Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-credential-issuance" class="internal xref">Credential Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-holder-verification" class="internal xref">Holder Verification</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-presentation" class="internal xref">Presentation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-presented-form" class="internal xref">Presented Form</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-presentation-header" class="internal xref">Presentation Header</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-core-proof" class="internal xref">Core Proof</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-sub-proofs" class="internal xref">Sub-Proofs</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.1">
+                    <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-ecdsa-device-binding-sub-pr" class="internal xref">ECDSA Device-Binding Sub-Proof</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.2">
+                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-range-proof-sub-proof" class="internal xref">Range Proof Sub-Proof</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.3">
+                    <p id="section-toc.1-1.4.2.4.2.3.1"><a href="#section-4.4.3" class="auto internal xref">4.4.3</a>.  <a href="#name-equality-proof-sub-proof" class="internal xref">Equality Proof Sub-Proof</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-example-presentation" class="internal xref">Example Presentation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-reconstructed-json-payload" class="internal xref">Reconstructed JSON Payload</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-cipher-suite" class="internal xref">Cipher Suite</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-identifier" class="internal xref">Identifier</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-parameters" class="internal xref">Parameters</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-hash-to-scalar-bypass" class="internal xref">Hash-to-Scalar Bypass</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-issuer-header-correlation" class="internal xref">Issuer Header Correlation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-cipher-suite-and-algorithm-" class="internal xref">Cipher Suite and Algorithm Identifiers</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-jpa-alg-value" class="internal xref">JPA <code>alg</code> Value</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-header-parameter-registrati" class="internal xref">Header Parameter Registrations</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-sub-proof-algorithms-regist" class="internal xref">Sub-Proof Algorithms Registry</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1156,23 +1308,1006 @@ The format supports selective disclosure of signed attributes, predicate sub-pro
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">TODO<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-1">The BBS signature scheme as defined in <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span> is a multi-message signature (MMS) scheme: the signer produces a single signature over a vector of messages (m<em>0, ..., m</em>{n-1}) and a holder of the signature can prove, in zero knowledge, knowledge of a valid signature while disclosing only a subset of the messages.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The Blind BBS Signatures extension <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> extends this scheme with Pedersen commitments to messages and defines blind signing and proof operations over them. This document uses that extension's proof generation with committed messages: at proof time the Holder marks each message as disclosed, hidden, or committed, and the resulting proof carries fresh Pedersen commitments to the committed messages so that those commitments can be reused as inputs to further proofs.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">[Editor's Note: This profile uses the committed-message proof extension of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> proposed in (PR #13): <a href="https://github.com/cfrg/draft-irtf-cfrg-bbs-blind-signatures/pull/13">https://github.com/cfrg/draft-irtf-cfrg-bbs-blind-signatures/pull/13</a>]<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">This document defines a digital credential format that:<a href="#section-1-4" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-1-5.1">Uses JSON Web Proofs <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span> as the container format for both issuance and presentation, with a new JSON Proof Algorithm <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span> profile based on Blind BBS.<a href="#section-1-5.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-5.2">Uses the committed-message proof generation of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> as the core proof, so that fresh Pedersen commitments to undisclosed messages are carried within the core proof and used as inputs to sub-proofs.<a href="#section-1-5.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-5.3">Defines a sub-proof container that contains zero or more sub-proofs (e.g., range proofs, equality proofs, set-membership proofs) that are attached to the core proof via commitments<a href="#section-1-5.3" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-5.4">Optionally supports device binding to an ECDSA P-256 key by encoding the device public key into eight messages of the BBS signature vector (using a public key limb decomposition)<a href="#section-1-5.4" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-1-6">The design is informed by the modular architecture for MMS-based ZKP credentials proposed in <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> and <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>, and re-uses the core data-model elements (like credential types, type metadata, claim metadata) from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<div id="requirements-notation-and-conventions">
+<section id="section-1.1">
+        <h3 id="name-requirements-notation-and-c">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-requirements-notation-and-c" class="section-name selfRef">Requirements Notation and Conventions</a>
+        </h3>
+<p id="section-1.1-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span>
+when, and only when, they appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="iana-considerations">
+<div id="terms-and-definitions">
+<section id="section-1.2">
+        <h3 id="name-terms-and-definitions">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-terms-and-definitions" class="section-name selfRef">Terms and Definitions</a>
+        </h3>
+<p id="section-1.2-1">This document uses the Issuer-Holder-Verifier model and terminology as defined in Section 1 of <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<p id="section-1.2-2">Additional terminology used is:<a href="#section-1.2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-1.2-3">
+          <dt id="section-1.2-3.1">BBS:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.2">The BBS signature scheme as specified in <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>.<a href="#section-1.2-3.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.3">Core proof:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.4">The zero-knowledge proof that establishes knowledge of a blind BBS signature on a message vector, with selective disclosure of a subset of messages and committed disclosure of others.<a href="#section-1.2-3.4" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.5">Sub-proof:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.6">A zero-knowledge proof, distinct from the core proof, that proves a predicate over a message committed in the core proof.
+Examples include range proofs, equality proofs, set-membership proofs, and the ECDSA device-binding proof defined in this document.<a href="#section-1.2-3.6" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.7">Committed disclosure:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.8">The disclosure of a commitment that corresponds to a signed message of the message vector.<a href="#section-1.2-3.8" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.9">Device binding:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.10">A cryptographic mechanism that ties a credential presentation to possession of a private key held by the Holder, by requiring a fresh proof of possession of that key for every presentation.<a href="#section-1.2-3.10" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="data-model">
 <section id="section-2">
-      <h2 id="name-iana-considerations">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      <h2 id="name-data-model">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-data-model" class="section-name selfRef">Data Model</a>
       </h2>
-<p id="section-2-1">TODO<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-1">This section specifies the credential and presentation data model.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<div id="issued-credential">
+<section id="section-2.1">
+        <h3 id="name-issued-credential">
+<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-issued-credential" class="section-name selfRef">Issued Credential</a>
+        </h3>
+<p id="section-2.1-1">A credential is issued in the Issued Form (Section 6.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) consisting of:<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-2.1-2">
+<li id="section-2.1-2.1">An Issuer Header as defined in (Section 6.1.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>)<a href="#section-2.1-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-2.1-2.2">n Issuer Payloads as defined in (Section 6.1.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>).
+The payload at position i (0 &lt;= i &lt; n) is the octet encoding of the credential attribute value at index i, as specified in <a href="#message-derivation" class="auto internal xref">Section 2.5</a>.<a href="#section-2.1-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-2.1-2.3">An Issuer Proof (Section 6.1.3 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) consisting of a single octet string carrying the blind BBS signature computed over <code>header_octets</code> (as the BBS <code>header</code> input) and the prepared scalar message vector <code>(m_0, ..., m_{n-1})</code> (see <a href="#message-derivation" class="auto internal xref">Section 2.5</a>, <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>).<a href="#section-2.1-2.3" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-2.1-3"><code>header_octets</code> denotes the octet string carrying the Issuer Header as transmitted: the octets obtained by base64url-decoding the Issuer Header component of the Compact Serialization. Issuers, Holders, and Verifiers MUST use the octets as received and MUST NOT re-encode the header.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">The Issued Form is serialized using the Compact Serialization defined in (Section 7.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>). Serialization of this profile under the CBOR Serialization (Section 7.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) is (currently) out of scope.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="issuer-header">
+<section id="section-2.2">
+        <h3 id="name-issuer-header">
+<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-issuer-header" class="section-name selfRef">Issuer Header</a>
+        </h3>
+<p id="section-2.2-1">The Issuer Header is a JWP Issuer Header as defined in (Section 6.1.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) represented as a JSON object with the following Header Parameters.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-2.2-2">
+          <dt id="section-2.2-2.1">
+<code>alg</code> (REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-2.2-2.2">The Algorithm Header Parameter as defined in Section 5.2.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>.
+This document defines the JPA value <code>BBS-MOD</code> (see <a href="#cipher-suite" class="auto internal xref">Section 5</a>), which corresponds to a cipher suite identifier <code>BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>.<a href="#section-2.2-2.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-2.2-2.3">
+<code>vct</code> (string, REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-2.2-2.4">The credential type identifier as defined in Section 3.2.2.1 of <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.
+The associated type metadata applies to this credential format.<a href="#section-2.2-2.4" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-2.2-2.5">
+<code>claims</code> (JSON object, REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-2.2-2.6">A mapping from credential attribute names / claim names to their position in the message vector and whether each is hashed to a scalar or supplied directly as a scalar; see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>.<a href="#section-2.2-2.6" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-2.2-2.7">
+<code>kb</code> (string, OPTIONAL):</dt>
+          <dd style="margin-left: 1.5em" id="section-2.2-2.8">The device-binding identifier specifying both the device public key type and its encoding into the BBS messages; see <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>.
+When absent, the credential is not device-bound and presentations of this credential MUST NOT include a key binding proof.<a href="#section-2.2-2.8" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-2.2-3">Temporal validity claims such as <code>exp</code>, <code>nbf</code>, <code>iat</code> MUST NOT appear as values in the Issuer Header. When present in a credential, they are carried as messages in the message vector and referenced via the <code>claims</code> Header Parameter - see <a href="#temporal-claims" class="auto internal xref">Section 2.7</a>.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
+<p id="section-2.2-4">The JWP <code>iek</code> (Issuer Ephemeral Key), <code>hpk</code> (Holder Presentation Key), and <code>hpa</code> (Holder Presentation Algorithm) Header Parameters (Sections 5.2.5–5.2.7 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) are not used by this profile.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="claims-mapping">
+<section id="section-2.3">
+        <h3 id="name-claims-mapping">
+<a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-claims-mapping" class="section-name selfRef">Claims Mapping</a>
+        </h3>
+<p id="section-2.3-1">The <code>claims</code> Header Parameter of the Issuer Header is a JSON object that mirrors the credential's attribute tree structurally. Leaf positions in the tree are replaced by an index annotation.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-2">An index annotation is a JSON array of exactly two elements:<a href="#section-2.3-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-2.3-3.1">element 0: a non-negative integer <code>i</code> giving the 0-based index in the payload vector of the leaf value.<a href="#section-2.3-3.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-2.3-3.2">element 1: a boolean <code>scalar</code>. When <code>scalar</code> is <code>false</code>, the leaf value is first encoded to an octet string and then mapped to a scalar via the hash-to-scalar primitive of the cipher suite (see <a href="#message-derivation" class="auto internal xref">Section 2.5</a>).
+When <code>scalar</code> is <code>true</code>, the leaf value MUST itself be a scalar in the BBS scalar field and is used directly as the message - see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a> for more details.<a href="#section-2.3-3.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-2.3-4">Let <code>N</code> be the number of payload slots reserved for the device-key encoding as determined by the <code>kb</code> Header Parameter (see <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>), or 0 when <code>kb</code> is absent. Let <code>n</code> be the length of the message vector.
+Every index in the closed range <code>[N, n-1]</code> (i.e., every index that is not part of the device-key encoding) MUST appear in exactly one annotation in <code>claims</code>.
+Where the credential type permits optional attributes, the corresponding payload slot MUST be filled with a decoy message (see <a href="#decoys" class="auto internal xref">Section 2.10</a>). Similarly, arrays SHOULD contain decoy messages to avoid fingerprinting based on the number of array elements.<a href="#section-2.3-4" class="pilcrow">¶</a></p>
+<p id="section-2.3-5">When a <code>kb</code> Header Parameter is present, the indices reserved for device-key encoding (indices 0 through <code>N - 1</code>) MUST NOT appear in <code>claims</code>.<a href="#section-2.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="example-issuer-header">
+<section id="section-2.4">
+        <h3 id="name-example-issuance">
+<a href="#section-2.4" class="section-number selfRef">2.4. </a><a href="#name-example-issuance" class="section-name selfRef">Example: Issuance</a>
+        </h3>
+<p id="section-2.4-1">The examples in this and the following sections are non-normative.<a href="#section-2.4-1" class="pilcrow">¶</a></p>
+<p id="section-2.4-2">The Issuer starts from an SD-JWT VC style claim set <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>. This example uses the attributes of the example identity credential of that document:<a href="#section-2.4-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-2.4-3">
+<pre>{
+  "vct": "https://credentials.example.com/identity_credential",
+  "given_name": "Erika",
+  "family_name": "Mustermann",
+  "email": "erika@example.com",
+  "phone_number": "+49 123456789",
+  "address": {
+    "street_address": "Heidestraße 17",
+    "locality": "Köln",
+    "region": "Nordrhein-Westfalen",
+    "country": "DE"
+  },
+  "birthdate": "19630812",
+  "is_over_18": true,
+  "is_over_21": true,
+  "is_over_65": false,
+  "iat": 1683000000,
+  "exp": 1786000000
+}
+
+</pre><a href="#section-2.4-3" class="pilcrow">¶</a>
+</div>
+<p id="section-2.4-4">The <code>vct</code> value becomes the <code>vct</code> Header Parameter and every other attribute becomes a leaf in the <code>claims</code> Header Parameter, with the nested <code>address</code> object mirrored per <a href="#layout" class="auto internal xref">Section 2.9</a>. No device binding is used (<code>kb</code> is absent), so <code>N = 0</code> and the fourteen claims occupy indices 0 through 13. Following <a href="#temporal-claims" class="auto internal xref">Section 2.7</a>, the <code>iat</code> and <code>exp</code> temporal claims are not Header Parameters but <code>claims</code> leaves carried as NumericDate scalars (<code>scalar</code> = true), so that a Verifier can create sub-proofs over them. The resulting Issuer Header is:<a href="#section-2.4-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-2.4-5">
+<pre>{
+  "alg": "BBS-MOD",
+  "vct": "https://credentials.example.com/identity_credential",
+  "claims": {
+    "given_name":   [0, false],
+    "family_name":  [1, false],
+    "email":        [2, false],
+    "phone_number": [3, false],
+    "address": {
+      "street_address": [4, false],
+      "locality":       [5, false],
+      "region":         [6, false],
+      "country":        [7, false]
+    },
+    "birthdate":  [8, false],
+    "is_over_18": [9, false],
+    "is_over_21": [10, false],
+    "is_over_65": [11, false],
+    "iat": [12, true],
+    "exp": [13, true]
+  }
+}
+
+</pre><a href="#section-2.4-5" class="pilcrow">¶</a>
+</div>
+<p id="section-2.4-6">The claims at indices 0 through 11 use <code>scalar</code> = false: their values are mapped to BBS messages via hash-to-scalar (see <a href="#message-derivation" class="auto internal xref">Section 2.5</a>). The temporal claims <code>iat</code> and <code>exp</code> (indices 12 and 13) use <code>scalar</code> = true: they are NumericDate integers as defined in <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> (no fractional component) used directly as scalars (see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>), which makes them valid range-proof targets. A presentation may then mark <code>iat</code> and/or <code>exp</code> as <code>COMMIT</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) and attach one or two <code>bp-range</code> sub-proofs (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) to establish that the credential is currently valid without disclosing the timestamps themselves.<a href="#section-2.4-6" class="pilcrow">¶</a></p>
+<p id="section-2.4-7">For a real-world deployment, the credential type would fix a structural layout covering every optional attribute and every maximum-length array slot, with absent slots filled by decoys (see <a href="#decoys" class="auto internal xref">Section 2.10</a>).<a href="#section-2.4-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="message-derivation">
+<section id="section-2.5">
+        <h3 id="name-message-derivation">
+<a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-message-derivation" class="section-name selfRef">Message Derivation</a>
+        </h3>
+<p id="section-2.5-1">For an annotation <code>[i, false]</code> with leaf value <code>v</code>:<a href="#section-2.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-2.5-2">
+<li id="section-2.5-2.1">Let <code>o</code> be the octet encoding of <code>v</code> that the Issuer carries as Issuer Payload i. This profile does not mandate a specific encoding of <code>v</code> to octets (for example, the UTF-8 octets of a string value) and the raw received payload values must be used by the Holder during presentation.<a href="#section-2.5-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-2.5-2.2">Compute m_i = <code>hash_to_scalar(o, map_dst)</code> where <code>hash_to_scalar</code> is the BBS primitive of <a href="#cipher-suite" class="auto internal xref">Section 5</a> and <code>map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"</code>, with <code>api_id</code> the Interface identifier of this profile defined in <a href="#cipher-suite" class="auto internal xref">Section 5</a>. This matches the per-message derivation that <code>BBS.messages_to_scalars</code> (Section 4.1.2 of <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>) would apply to <code>o</code>.<a href="#section-2.5-2.2" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-2.5-3">For an annotation <code>[i, true]</code> with leaf value <code>v</code> (a JSON integer per <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>):<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-2.5-4">
+<li id="section-2.5-4.1">Let <code>o</code> be the canonical decimal octet encoding of <code>v</code> per <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>, which the Issuer carries as Issuer Payload i.<a href="#section-2.5-4.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-2.5-4.2">Set m_i to the integer denoted by <code>o</code>, interpreted as an element of the BBS scalar field.<a href="#section-2.5-4.2" class="pilcrow">¶</a>
+</li>
+        </ol>
+</section>
+</div>
+<div id="scalar-encoding">
+<section id="section-2.6">
+        <h3 id="name-scalar-encoding">
+<a href="#section-2.6" class="section-number selfRef">2.6. </a><a href="#name-scalar-encoding" class="section-name selfRef">Scalar Encoding</a>
+        </h3>
+<p id="section-2.6-1">A leaf with <code>scalar</code> = true MUST be a JSON number whose value is an integer in the range [0, r - 1], where r is the order of the BBS scalar field. Implementations MUST reject leaves with <code>scalar</code> = true that are not JSON integers or whose value lies outside of the allowed range.<a href="#section-2.6-1" class="pilcrow">¶</a></p>
+<p id="section-2.6-2">The Issuer Payload for such a value is the aforementioned JSON number itself.<a href="#section-2.6-2" class="pilcrow">¶</a></p>
+<p id="section-2.6-3">Future extensions MAY define additional scalar encodings (e.g., for fixed-point or string-keyed enumerations) provided that the encoding deterministically maps a JSON value to an element of [0, r - 1].<a href="#section-2.6-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="temporal-claims">
+<section id="section-2.7">
+        <h3 id="name-temporal-claims">
+<a href="#section-2.7" class="section-number selfRef">2.7. </a><a href="#name-temporal-claims" class="section-name selfRef">Temporal Claims</a>
+        </h3>
+<p id="section-2.7-1">The JWT temporal claims <code>exp</code>, <code>nbf</code>, and <code>iat</code> (Section 4.1 of <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>) MUST NOT appear in the Issuer Header as values.
+When a credential type uses any of these claims, the corresponding NumericDate values MUST be carried as scalar messages in the message vector.
+Each such claim is declared as a leaf in <code>claims</code> (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>) with <code>scalar</code> = true and contributes one payload slot.<a href="#section-2.7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="device-binding-header">
+<section id="section-2.8">
+        <h3 id="name-device-binding-header">
+<a href="#section-2.8" class="section-number selfRef">2.8. </a><a href="#name-device-binding-header" class="section-name selfRef">Device Binding Header</a>
+        </h3>
+<p id="section-2.8-1">When present, the <code>kb</code> Header Parameter of the Issuer Header is a string identifier specifying both the type of device public key used for device binding and how it is embedded in the BBS messages. This document defines the single value <code>ecdsa-p256-limb4-64</code> (the NIST P-256 curve, encoded as four 64-bit little-endian limbs per coordinate as defined below).<a href="#section-2.8-1" class="pilcrow">¶</a></p>
+<p id="section-2.8-2">Note: the <code>kb</code> parameter defined here identifies a <em>public-key encoding layout</em> for embedding into the BBS message vector. It is distinct from the SD-JWT "Key Binding JWT" mechanism (Section 4.3 of <span>[<a href="#RFC9901" class="cite xref">RFC9901</a>]</span>).
+The Holder proof of possession is conveyed by a sub-proof, not by a separate JWT. The choice of 4 64 bit limbs is a performance optimization to make the required public key reconstruction easier in the sub-proof.<a href="#section-2.8-2" class="pilcrow">¶</a></p>
+<p id="section-2.8-3">The value of <code>kb</code> fixes both the number of payload slots reserved for the device public key and their position: the reserved slots are the first N indices of the payload vector, i.e., indices 0 through N-1. Attribute messages declared in <code>claims</code> occupy indices N and above.<a href="#section-2.8-3" class="pilcrow">¶</a></p>
+<p id="section-2.8-4">For <code>kb = "ecdsa-p256-limb4-64"</code>, N = 8 and the layout used to encode the P-256 public key is:<a href="#section-2.8-4" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-2.8-5.1">m_0, m_1, m_2, m_3 encode the x-coordinate of the device public key as four 64-bit limbs, with m_0 the least significant 64 bits.<a href="#section-2.8-5.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-2.8-5.2">m_4, m_5, m_6, m_7 encode the y-coordinate of the device public key in the same way.<a href="#section-2.8-5.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-2.8-6">Each limb is treated as a scalar in [0, 2^64) and signed with the hash-to-scalar step bypassed (as if <code>scalar</code> = true). Each limb is the canonical decimal octet encoding (see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>).<a href="#section-2.8-6" class="pilcrow">¶</a></p>
+<p id="section-2.8-7">The Issuer MUST verify, before computing the message vector, that the device public key <code>(x, y)</code> is a valid point on P-256 <span>[<a href="#FIPS186-5" class="cite xref">FIPS186-5</a>]</span>: both <code>x</code> and <code>y</code> MUST be integers in [0, p - 1] where p is the P-256 base field prime, <code>(x, y)</code> MUST satisfy the P-256 curve equation, and <code>(x, y)</code> MUST NOT be the point at infinity.<a href="#section-2.8-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="layout">
+<section id="section-2.9">
+        <h3 id="name-structural-layout">
+<a href="#section-2.9" class="section-number selfRef">2.9. </a><a href="#name-structural-layout" class="section-name selfRef">Structural Layout</a>
+        </h3>
+<p id="section-2.9-1">For claims that are JSON objects, <code>claims</code> mirrors the object structure unless the whole object should be encoded and disclosed in one message - in that case the whole object is JSON encoded and treated as a leaf in the structure.<a href="#section-2.9-1" class="pilcrow">¶</a></p>
+<p id="section-2.9-2">For claims that are JSON arrays of bounded length, <code>claims</code> contains a JSON array of index annotations of the maximum length supported by the credential type. All index annotations of such an array SHOULD share the same <code>scalar</code> flag, so that every payload slot of the array uses the same encoding and the same decoy octets (see <a href="#decoys" class="auto internal xref">Section 2.10</a>). Array entries beyond the actual array length present in the issued credential SHOULD be filled with decoys.<a href="#section-2.9-2" class="pilcrow">¶</a></p>
+<p id="section-2.9-3">For claims that are optional (per the credential type's metadata), <code>claims</code> MUST contain an entry, and the corresponding payload slot MUST be filled with a decoy when the attribute is absent.<a href="#section-2.9-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="decoys">
+<section id="section-2.10">
+        <h3 id="name-decoys">
+<a href="#section-2.10" class="section-number selfRef">2.10. </a><a href="#name-decoys" class="section-name selfRef">Decoys</a>
+        </h3>
+<p id="section-2.10-1">A decoy message is a payload slot that is reserved by the credential type's fixed structural layout but not in use for a specific issued credential.
+Decoy values MUST be supplied for all optional claims that are not being populated for a specific credential, and arrays SHOULD be padded with decoys to the maximum length declared by the credential type, so that the message-vector length and the <code>claims</code> structure do not vary with the specific credential contents.<a href="#section-2.10-1" class="pilcrow">¶</a></p>
+<p id="section-2.10-2">The purpose of decoys is to ensure that the Issuer Header and allocation of indices in the message vector is identical across the entire population of credentials of a given type, so that header disclosure does not narrow the anonymity set (see <a href="#anonymity" class="auto internal xref">Section 7.1</a>).<a href="#section-2.10-2" class="pilcrow">¶</a></p>
+<p id="section-2.10-3">Every decoy slot in every credential MUST carry the same fixed scalar, derived once per cipher suite:<a href="#section-2.10-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-2.10-4">
+<pre>m_decoy = hash_to_scalar("JWP-BBS-DECOY", map_dst)
+
+</pre><a href="#section-2.10-4" class="pilcrow">¶</a>
+</div>
+<p id="section-2.10-5">where <code>hash_to_scalar</code> and <code>map_dst</code> are as defined in <a href="#message-derivation" class="auto internal xref">Section 2.5</a> and <code>"JWP-BBS-DECOY"</code> is the literal ASCII string.<a href="#section-2.10-5" class="pilcrow">¶</a></p>
+<p id="section-2.10-6">The Issuer Payload carried for a decoy slot depends on the <code>scalar</code> flag of that slot's <code>claims</code> annotation (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>), so that the same scalar <code>m_decoy</code> is recovered through <a href="#message-derivation" class="auto internal xref">Section 2.5</a> in both cases:<a href="#section-2.10-6" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-2.10-7.1">For a slot with <code>scalar = false</code>, the Issuer Payload MUST be the 13 ASCII octets of <code>"JWP-BBS-DECOY"</code>. The Holder recovers m_decoy by applying the <code>scalar = false</code> step of <a href="#message-derivation" class="auto internal xref">Section 2.5</a>, i.e., <code>hash_to_scalar</code> over those octets with the same <code>map_dst</code> as above.<a href="#section-2.10-7.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-2.10-7.2">For a slot with <code>scalar = true</code>, the Issuer Payload MUST be the canonical decimal octet encoding (per <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>) of the integer m_decoy. The Holder recovers m_decoy by applying the <code>scalar = true</code> step of <a href="#message-derivation" class="auto internal xref">Section 2.5</a>.<a href="#section-2.10-7.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-2.10-8">Both encodings are fixed per cipher suite: the <code>scalar = false</code> decoy octets are the literal <code>"JWP-BBS-DECOY"</code> and are independent of the cipher suite, while the <code>scalar = true</code> decoy octets depend on the cipher suite via <code>m_decoy</code> and the order of its scalar field, and are computed once for the cipher suite identified by <code>alg</code>.<a href="#section-2.10-8" class="pilcrow">¶</a></p>
+<p id="section-2.10-9">A Verifier detects a disclosed decoy by byte-comparing the disclosed Presentation Payload to the precomputed decoy octets for the cipher suite of <code>alg</code> and the slot's <code>scalar</code> flag.<a href="#section-2.10-9" class="pilcrow">¶</a></p>
+<p id="section-2.10-10">This allows for detection of decoy payloads in cases where the presentation of a decoy value is necessary, e.g., a proof over all array members. Decoys SHOULD NOT be revealed unless explicitly required by the use-case.<a href="#section-2.10-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="issuance">
+<section id="section-3">
+      <h2 id="name-issuance">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-issuance" class="section-name selfRef">Issuance</a>
+      </h2>
+<div id="issuer-key-generation">
+<section id="section-3.1">
+        <h3 id="name-issuer-key-generation">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-issuer-key-generation" class="section-name selfRef">Issuer Key Generation</a>
+        </h3>
+<p id="section-3.1-1">The Issuer key pair is a BBS key pair as specified in Section 3.4 of <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>, using the cipher suite of <a href="#cipher-suite" class="auto internal xref">Section 5</a>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="credential-issuance">
+<section id="section-3.2">
+        <h3 id="name-credential-issuance">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-credential-issuance" class="section-name selfRef">Credential Issuance</a>
+        </h3>
+<p id="section-3.2-1">To issue a credential:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-3.2-2">
+<li id="section-3.2-2.1">Construct the Issuer Header per <a href="#issuer-header" class="auto internal xref">Section 2.2</a> and <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>.<a href="#section-3.2-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-3.2-2.2">Derive the message vector (m<em>0, ..., m</em>{n-1}) per <a href="#message-derivation" class="auto internal xref">Section 2.5</a> and <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>. Fill decoys per <a href="#decoys" class="auto internal xref">Section 2.10</a>.<a href="#section-3.2-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-3.2-2.3">Compute the blind BBS signature over <code>header_octets</code> (as defined in <a href="#issued-credential" class="auto internal xref">Section 2.1</a>) and the prepared scalar message vector <code>(m_0, ..., m_{n-1})</code>.<a href="#section-3.2-2.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-3.2-2.4">Assemble the Issued Form (Section 6.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) with the Issuer Header from step 1, n Issuer Payloads carrying (m<em>0, ..., m</em>{n-1}) in order, and an Issuer Proof equal to the blind BBS signature octets. Serialize per <a href="#issued-credential" class="auto internal xref">Section 2.1</a>.<a href="#section-3.2-2.4" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-3.2-3">The following is a non-normative example of an issued Credential in compact form:<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.2-4">
+<pre>&lt;base64url(Issuer Header)&gt;
+.
+&lt;m_0&gt;~&lt;m_1&gt;~ ... ~&lt;m_13&gt;
+.
+&lt;base64url(blind BBS signature)&gt;
+
+</pre><a href="#section-3.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-3.2-5">Each <code>&lt;m_i&gt;</code> is the base64url-encoded Issuer Payload for index <code>i</code>: for <code>scalar</code> = false leaves, the octets of the attribute value (e.g., m_1 is the octets of "Mustermann"); for <code>scalar</code> = true leaves, the canonical decimal octets of the integer (e.g., m_13 is the octets <code>1786000000</code>).<a href="#section-3.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="holder-verification">
+<section id="section-3.3">
+        <h3 id="name-holder-verification">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-holder-verification" class="section-name selfRef">Holder Verification</a>
+        </h3>
+<p id="section-3.3-1">Upon receiving an issued credential, the Holder verifies by:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-3.3-2">
+<li id="section-3.3-2.1">Parsing the Issued Form into the Issuer Header, Issuer Payloads, and Issuer Proof<a href="#section-3.3-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-3.3-2.2">Verifying the blind BBS signature over <code>header_octets</code> and the prepared scalar message vector <code>(m_0, ..., m_{n-1})</code>. If verification fails, the credential MUST be rejected.<a href="#section-3.3-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-3.3-2.3">For every claim declared with <code>scalar</code> = true in <code>claims</code> (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>), re-parsing the corresponding Issuer Payload per <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a> and rejecting the credential if the recovered integer is not in <code>[0, r - 1]</code>.<a href="#section-3.3-2.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-3.3-2.4">If <code>kb</code> is present, the Holder repeats the P-256 validation of <a href="#device-binding-header" class="auto internal xref">Section 2.8</a> on the point reconstructed from the limb messages, and rejects the credential if the validation fails or if the reconstructed point does not match the device public key the Holder controls. How the Holder obtains the corresponding device key pair (e.g., as part of an issuance request prior to receiving the credential) is out of scope of this profile.<a href="#section-3.3-2.4" class="pilcrow">¶</a>
+</li>
+        </ol>
+</section>
+</div>
+</section>
+</div>
+<div id="presentation">
+<section id="section-4">
+      <h2 id="name-presentation">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-presentation" class="section-name selfRef">Presentation</a>
+      </h2>
+<div id="presented-form">
+<section id="section-4.1">
+        <h3 id="name-presented-form">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-presented-form" class="section-name selfRef">Presented Form</a>
+        </h3>
+<p id="section-4.1-1">A presentation is a Presented Form as defined in (Section 6.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) consisting of:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.1-2">
+<li id="section-4.1-2.1">A Presentation Header as defined in (Section 6.2.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) with the concrete structure being specified in <a href="#presentation-header" class="auto internal xref">Section 4.2</a>.<a href="#section-4.1-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.1-2.2">The Issuer Header from issuance, presented as the same Header Parameter set with identical values. The core proof is bound to <code>header_octets</code> as defined in <a href="#issued-credential" class="auto internal xref">Section 2.1</a>; Verifiers obtain <code>header_octets</code> from the received Issuer Header component, using the octets as received.<a href="#section-4.1-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.1-2.3">n Presentation Payloads (Section 6.2.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>). Disclosed positions carry the corresponding Issuer Payload octet string and undisclosed positions MUST be omitted as defined by the Compact Serialization (Section 7.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>).<a href="#section-4.1-2.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.1-2.4">A Presentation Proof (Section 6.2.4 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) consisting of one or more octet strings. The first octet string is the encoded core proof (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>). Each subsequent octet string, if present, is the UTF-8 encoding of a JSON-serialized sub-proof object (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>), in any order. The Compact Serialization base64url-encodes each octet string of the Presentation Proof for transmission.<a href="#section-4.1-2.4" class="pilcrow">¶</a>
+</li>
+        </ol>
+</section>
+</div>
+<div id="presentation-header">
+<section id="section-4.2">
+        <h3 id="name-presentation-header">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-presentation-header" class="section-name selfRef">Presentation Header</a>
+        </h3>
+<p id="section-4.2-1">The Presentation Header is a JWP Presentation Header (Section 6.2.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) represented as a JSON object. It MUST contain the following Header Parameters:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.2-2">
+          <dt id="section-4.2-2.1">
+<code>nonce</code> (REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.2">The Nonce Header Parameter as defined in Section 5.2.10 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>.<a href="#section-4.2-2.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-2.3">
+<code>aud</code> (REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.4">The Audience Header Parameter as defined in Section 5.2.9 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>.<a href="#section-4.2-2.4" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.2-3"><code>presentation_header_octets</code> denotes the octet string carrying the Presentation Header as transmitted: the octets obtained by base64url-decoding the Presentation Header component of the Compact Serialization. It MUST be bound into the core proof challenge (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>). Verifiers MUST use the octets as received and MUST NOT re-encode the header.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="core-proof">
+<section id="section-4.3">
+        <h3 id="name-core-proof">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-core-proof" class="section-name selfRef">Core Proof</a>
+        </h3>
+<p id="section-4.3-1">The Holder generates the core proof by invoking <code>CoreProofGen</code>. At the profile level, the Holder first builds a per-message disclosure map that assigns each index <code>i</code> in <code>[N, n-1]</code> (with <code>N</code> as defined in <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>) one of <code>DISCLOSE</code>, <code>HIDE</code>, or <code>COMMIT</code>, subject to the following constraints:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.3-2.1">The indices assigned <code>DISCLOSE</code> MUST be a subset of <code>[N, n-1]</code> (i.e., MUST NOT include any device-key indices, see <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>) and their values match the disclosed Presentation Payloads.<a href="#section-4.3-2.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-2.2">The indices assigned <code>COMMIT</code> MUST include every index referenced by any sub-proof attached to this presentation (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>). For each such index the proof carries a fresh Pedersen commitment to the corresponding message, together with its proof of correctness and its index, using the commitment generators fixed in <a href="#cipher-suite" class="auto internal xref">Section 5</a>.<a href="#section-4.3-2.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-2.3">All remaining indices MUST be assigned <code>HIDE</code>.<a href="#section-4.3-2.3" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-4.3-3">This map is translated into the <code>CoreProofGen</code> inputs as follows: <code>disclosed_indexes</code> is the set of indices marked <code>DISCLOSE</code>, <code>commits_indexes</code> is the set of indices marked <code>COMMIT</code>, and indices marked <code>HIDE</code> appear in neither set. The full set of <code>CoreProofGen</code> inputs is:<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.3-4.1">
+            <code>PK</code>: the Issuer public key.<a href="#section-4.3-4.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-4.2">
+            <code>signature</code>: the blind BBS signature recovered from the Issuer Proof of the issued credential.<a href="#section-4.3-4.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-4.3">
+            <code>header</code>: <code>header_octets</code> as defined in <a href="#issued-credential" class="auto internal xref">Section 2.1</a>.<a href="#section-4.3-4.3" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-4.4">
+            <code>ph</code>: <code>presentation_header_octets</code> (see <a href="#presentation-header" class="auto internal xref">Section 4.2</a>), bound into the proof challenge so that the proof is non-malleable with respect to <code>nonce</code> and <code>aud</code>.<a href="#section-4.3-4.4" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-4.5">
+            <code>messages</code>: the full message vector <code>(m_0, ..., m_{n-1})</code>.<a href="#section-4.3-4.5" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-4.6">
+            <code>disclosed_indexes</code>: the indices marked <code>DISCLOSE</code> in the disclosure map above.<a href="#section-4.3-4.6" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-4.7">
+            <code>commits_indexes</code>: the indices marked <code>COMMIT</code> in the disclosure map above.<a href="#section-4.3-4.7" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-4.3-5">The core proof establishes that:<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.3-6.1">The Holder knows a blind BBS signature under the Issuer's public key on a message vector whose values at the disclosed indices match the disclosed Presentation Payloads.<a href="#section-4.3-6.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-4.3-6.2">For every committed index <code>i</code>, the commitment carried in the proof for <code>i</code> is a Pedersen commitment to the message at index <code>i</code> of the same message vector.<a href="#section-4.3-6.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-4.3-7">The Verifier verifies the core proof by invoking <code>CoreProofVerify</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>, passing <code>PK</code>, the core proof, the generator set, <code>header_octets</code>, <code>presentation_header_octets</code>, and the disclosed scalar messages recovered from the disclosed Presentation Payloads per <a href="#message-derivation" class="auto internal xref">Section 2.5</a>, obtaining <code>header_octets</code> from the received Issuer Header and <code>presentation_header_octets</code> from the received Presentation Header, using the octets as received. On success, the Verifier recovers from the proof the committed indices and their Pedersen commitments, which are the inputs to the sub-proofs (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>).<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sub-proofs">
+<section id="section-4.4">
+        <h3 id="name-sub-proofs">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-sub-proofs" class="section-name selfRef">Sub-Proofs</a>
+        </h3>
+<p id="section-4.4-1">A sub-proof is a JSON object with the following members. Each sub-proof appears as an additional octet string in the Presentation Proof (see <a href="#presented-form" class="auto internal xref">Section 4.1</a>), carrying the UTF-8 encoding of that JSON object.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4-2">
+          <dt id="section-4.4-2.1">
+<code>alg</code> (string, REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.4-2.2">The sub-proof algorithm identifier registered in the Sub-Proof Algorithms registry (see <a href="#iana" class="auto internal xref">Section 8</a>).<a href="#section-4.4-2.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.4-2.3">
+<code>input</code> (JSON object, REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.4-2.4">Public inputs to the sub-proof. The input MUST include:<a href="#section-4.4-2.4" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<ul class="compact">
+<li class="compact" id="section-4.4-3.1">
+            <code>i</code>: A non-empty JSON array of non-negative integers, giving the message-vector index (or indices) to which this sub-proof is bound. Every value MUST be a committed index of the core proof (i.e., a message marked <code>COMMIT</code> - see <a href="#core-proof" class="auto internal xref">Section 4.3</a>), so that the core proof carries a commitment for it. Each sub-proof algorithm fixes the required length of <code>i</code> and the role of each entry.<a href="#section-4.4-3.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-4.4-4">Additional members are defined per sub-proof type.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4-5">
+          <dt id="section-4.4-5.1">
+<code>proof</code> (string, REQUIRED):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.4-5.2">The base64url <span>[<a href="#RFC4648" class="cite xref">RFC4648</a>]</span> encoding of the sub-proof bytes, as specified by <code>alg</code>.<a href="#section-4.4-5.2" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.4-6">The Verifier MUST run the following validation steps for each sub-proof:<a href="#section-4.4-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.4-7">
+<li id="section-4.4-7.1">For every index value in <code>i</code>, confirm that it appears among the committed indices recovered from the verified core proof.<a href="#section-4.4-7.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.4-7.2">Obtain the commitment(s) for those indices from the verified core proof and pass them, together with the sub-proof's additional inputs and <code>proof</code>, to the verification routine defined for <code>alg</code>.<a href="#section-4.4-7.2" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-4.4-8">A presentation that includes a sub-proof whose <code>i</code> references an index for which the core proof carries no commitment MUST be rejected.<a href="#section-4.4-8" class="pilcrow">¶</a></p>
+<p id="section-4.4-9">Sub-proof freshness is inherited from the core proof: for every committed index, the <code>CoreProofGen</code> operation of <a href="#core-proof" class="auto internal xref">Section 4.3</a> MUST produce a freshly randomized Pedersen commitment <code>C_i</code> (with an independent blinding scalar <code>gamma</code> sampled per presentation), and the core proof's challenge MUST bind to <code>presentation_header_octets</code>.<a href="#section-4.4-9" class="pilcrow">¶</a></p>
+<p id="section-4.4-10">Algorithms whose proof object does not bind to <code>C_i</code> (for example, <code>ecdsa-p256-db</code>, which creates a proof of knowledge over an ECDSA signature) MUST establish freshness another way. The <code>ecdsa-p256-db</code> sub-proof does so by signing <code>db_msg</code> (see <a href="#ecdsa-db" class="auto internal xref">Section 4.4.1</a>).<a href="#section-4.4-10" class="pilcrow">¶</a></p>
+<div id="ecdsa-db">
+<section id="section-4.4.1">
+          <h4 id="name-ecdsa-device-binding-sub-pr">
+<a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-ecdsa-device-binding-sub-pr" class="section-name selfRef">ECDSA Device-Binding Sub-Proof</a>
+          </h4>
+<p id="section-4.4.1-1">This sub-proof MUST be present for any presentation of a device-bound credential where <code>kb = "ecdsa-p256-limb4-64"</code> in the Issuer Header, and MUST NOT be present otherwise.<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4.1-2">
+            <dt id="section-4.4.1-2.1">Algorithm identifier:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.1-2.2">
+              <code>ecdsa-p256-db</code><a href="#section-4.4.1-2.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.4.1-3">Inputs:<a href="#section-4.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-4">None - This sub-proof always uses the first 8 messages in the message vector to convey the public key information, hence no explicit input is required.<a href="#section-4.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-5">The message signed by the device under <code>dpk</code> is not transmitted in the sub-proof object. It is fixed as the concatenation:<a href="#section-4.4.1-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.4.1-6">
+<pre>db_msg = "JWP-BBS-DB-CHAL" || presentation_header_octets
+
+</pre><a href="#section-4.4.1-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4.1-7">where <code>"JWP-BBS-DB-CHAL"</code> is the literal ASCII string (15 octets) and <code>presentation_header_octets</code> is defined in <a href="#presentation-header" class="auto internal xref">Section 4.2</a>. The device signs <code>db_msg</code> with standard ECDSA-P256 (the ECDSA signing operation hashes <code>db_msg</code> with SHA-256 internally); implementations MUST pass <code>db_msg</code> to the ECDSA signing/verification routine as the message input, not as a pre-computed digest. Holders and Verifiers MUST compute <code>db_msg</code> from the Presentation Header rather than accepting it as an input.<a href="#section-4.4.1-7" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-8">Binding <code>db_msg</code> to <code>presentation_header_octets</code> is sufficient for freshness: that octet string carries both the Verifier-supplied <code>nonce</code> and the target <code>aud</code> (see <a href="#presentation-header" class="auto internal xref">Section 4.2</a>), so the same device signature cannot be replayed against a different Verifier or in a different protocol run. This is the same binding the core proof's challenge uses, so the ECDSA sub-proof and the core proof are bound to the same presentation context.<a href="#section-4.4.1-8" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-9">The proof bytes encode a non-interactive zero-knowledge proof of knowledge of <code>(dpk, (r, s))</code> such that:<a href="#section-4.4.1-9" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.4.1-10">
+<li id="section-4.4.1-10.1">The 8 commitments obtained from the core proof at the indices in <code>i</code> are Pedersen commitments (under the commitment generators <code>(G, H)</code> of <a href="#cipher-suite" class="auto internal xref">Section 5</a>) to the 64-bit little-endian limbs of the x- and y-coordinates of <code>dpk</code>, in the layout fixed by <code>kb</code>.<a href="#section-4.4.1-10.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.4.1-10.2">
+              <code>(r, s)</code> is a valid ECDSA P-256 signature on <code>db_msg</code> under <code>dpk</code>.<a href="#section-4.4.1-10.2" class="pilcrow">¶</a>
+</li>
+          </ol>
+<p id="section-4.4.1-11">[Editor's Note: TODO - select and describe concrete mechanism]<a href="#section-4.4.1-11" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-12">The Verifier accepts the sub-proof if and only if:<a href="#section-4.4.1-12" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.4.1-13">
+<li id="section-4.4.1-13.1">The 8 indices in <code>i</code> all appear among the committed indices recovered from the verified core proof.<a href="#section-4.4.1-13.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-4.4.1-13.2">The proof verifies, as a proof of the statement above against the 8 commitments obtained from the core proof and the locally recomputed <code>db_msg</code>, under the parameters of the concrete construction once specified.<a href="#section-4.4.1-13.2" class="pilcrow">¶</a>
+</li>
+          </ol>
+</section>
+</div>
+<div id="range-proof">
+<section id="section-4.4.2">
+          <h4 id="name-range-proof-sub-proof">
+<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-range-proof-sub-proof" class="section-name selfRef">Range Proof Sub-Proof</a>
+          </h4>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4.2-1">
+            <dt id="section-4.4.2-1.1">Algorithm identifier:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.2-1.2">
+              <code>bp-range</code> (Bulletproofs over Pedersen commitments <span>[<a href="#BBBP18" class="cite xref">BBBP18</a>]</span>)<a href="#section-4.4.2-1.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.4.2-2">Inputs (in addition to the base sub-proof fields of <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>): the lower bound <code>l</code> and upper bound <code>u</code> (both JSON integers) and the encoded Bulletproof in the <code>proof</code> field. The <code>i</code> field MUST be a single-element JSON array <code>[idx]</code> naming the message-vector index <code>idx</code> whose committed value is range-checked.
+The sub-proof attests that the message m_idx committed by the core proof for index <code>idx</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) satisfies <code>l &lt;= m_idx &lt; u</code>, taking as its input the Pedersen commitment <code>C_idx</code> to m_idx carried by the core proof.<a href="#section-4.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-3">The bounds MUST satisfy <code>l &lt; u</code>, and implementations MUST reject <code>bp-range</code> sub-proofs whose width exceeds <code>u - l &lt;= 2^64</code> unless a deployment profile explicitly permits a larger width. The <code>2^64</code> bound matches the natural Bulletproofs range for a single 64-bit limb decomposition and accommodates NumericDate temporal claims (Section 4.1 of <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>), whose maximum value is <code>2^63 - 1</code>. Both <code>l</code> and <code>u</code> are arbitrary-precision JSON integers; implementations MUST parse them as bigints rather than as IEEE-754 doubles.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-4">The construction operates in G1 of BLS12-381 using the same commitment generators <code>(G, H)</code> as the core proof (see <a href="#cipher-suite" class="auto internal xref">Section 5</a>), so the commitment carried by the core proof can be used directly as the Bulletproof input. Any additional generators, the transcript hash, and the Fiat-Shamir domain separation are derived from the cipher-suite identifier and are pinned by the concrete construction.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-5">[Editor's Note: TODO - select and describe concrete construction]<a href="#section-4.4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="equality-proof">
+<section id="section-4.4.3">
+          <h4 id="name-equality-proof-sub-proof">
+<a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-equality-proof-sub-proof" class="section-name selfRef">Equality Proof Sub-Proof</a>
+          </h4>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4.3-1">
+            <dt id="section-4.4.3-1.1">Algorithm identifier:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.3-1.2">
+              <code>schnorr-eq</code><a href="#section-4.4.3-1.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-4.4.3-2">Inputs (in addition to the base sub-proof fields of <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>): the <code>i</code> field, which MUST be a single-element JSON array <code>[idx]</code> naming the message-vector index <code>idx</code> whose committed value is compared, and an external commitment <code>c_ext</code> (a base64url-encoded BLS12-381 G1 point).
+The sub-proof attests that the commitment <code>C_idx</code> carried by the core proof for index <code>idx</code> and the external commitment <code>c_ext</code> are Pedersen commitments to the same scalar, under the same generators <code>(G, H)</code> of <a href="#cipher-suite" class="auto internal xref">Section 5</a>.<a href="#section-4.4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-3">It uses the <code>pedersen_commitment_dleq</code> statement of <span>[<a href="#I-D.irtf-cfrg-sigma-protocols" class="cite xref">I-D.irtf-cfrg-sigma-protocols</a>]</span> (Appendix A.5), realized as a proof of knowledge of the preimage of a linear map and made non-interactive with the Fiat-Shamir transform of <span>[<a href="#I-D.irtf-cfrg-fiat-shamir" class="cite xref">I-D.irtf-cfrg-fiat-shamir</a>]</span>. The <code>proof</code> field carries the resulting serialized sigma-protocol proof.<a href="#section-4.4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-4">This algorithm identifier is defined only for the case where <code>c_ext</code> is in the same group, and uses the same generators, as the core proof's Pedersen commitments. Cross-group equality (e.g., between a BLS12-381 G1 commitment and a commitment over a different elliptic curve) is out of scope.<a href="#section-4.4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-5">The construction operates in G1 of BLS12-381 using the commitment generators <code>(G, H)</code> of <a href="#cipher-suite" class="auto internal xref">Section 5</a> for both <code>C_idx</code> and <code>c_ext</code>, with <code>presentation_header_octets</code> (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>) absorbed into the Fiat-Shamir transcript. The protocol and instance identifiers (Sections 5 and 6 of <span>[<a href="#I-D.irtf-cfrg-sigma-protocols" class="cite xref">I-D.irtf-cfrg-sigma-protocols</a>]</span>) and any further domain separation are pinned by the concrete construction.<a href="#section-4.4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-6">[Editor's Note: TODO - pin protocol / instance identifiers and serialization]<a href="#section-4.4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-7">The freshness of <code>C_idx</code> (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>) prevents replay of a stale <code>(C_idx, c_ext)</code> pair. Replay of a stale <code>c_ext</code> against a freshly committed <code>C_idx</code> is prevented only by the deployment's own binding of <code>c_ext</code> to the presentation context; Verifiers MUST therefore ensure that <code>c_ext</code> is associated with the current presentation (e.g., generated freshly per presentation, or delivered under a Verifier-supplied challenge bound to the presentation).<a href="#section-4.4.3-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="example-presentation">
+<section id="section-4.5">
+        <h3 id="name-example-presentation">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-example-presentation" class="section-name selfRef">Example Presentation</a>
+        </h3>
+<p id="section-4.5-1">Continuing the example of <a href="#example-issuer-header" class="auto internal xref">Section 2.4</a>, a Verifier requests <code>family_name</code> and asks the Holder to prove the credential is unexpired without revealing <code>exp</code>. The Verifier supplies a fresh <code>nonce</code> and its own identifier as <code>aud</code>, which the Holder echoes in the Presentation Header:<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.5-2">
+<pre>{
+  "nonce": "f4Oa3wT0r8m2Vn1pQ7sKdA",
+  "aud": "https://verifier.example.com"
+}
+
+</pre><a href="#section-4.5-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5-3">The Holder generates the core proof (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) with this per-message disclosure map: index 1 (<code>family_name</code>) is <code>DISCLOSE</code>, index 13 (<code>exp</code>) is <code>COMMIT</code>, and all other indices are <code>HIDE</code>. The core proof therefore carries a fresh Pedersen commitment to m_13. The Holder attaches one <code>bp-range</code> sub-proof (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) over index 13, proving <code>now &lt;= exp &lt; 2^63</code> for the Verifier-supplied current time <code>now</code> = 1779926400:<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.5-4">
+<pre>{
+  "alg": "bp-range",
+  "input": { "i": [13], "l": 1779926400, "u": 9223372036854775808 },
+  "proof": "..."
+}
+
+</pre><a href="#section-4.5-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5-5">In the Compact Serialization (Section 7.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>), the Presented Form concatenates, separated by <code>.</code>: the base64url-encoded Presentation Header, the base64url-encoded Issuer Header, the Presentation Payloads, and the Presentation Proof. Only the <code>family_name</code> payload (index 1) is disclosed; the other thirteen slots are omitted (empty), leaving a run of <code>~</code> separators with the single disclosed value in position 1. The Presentation Proof is the core proof followed by the sub-proof object, joined with <code>~</code>:<a href="#section-4.5-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.5-6">
+<pre>&lt;base64url(Presentation Header)&gt;
+.
+&lt;base64url(Issuer Header)&gt;
+.
+~TXVzdGVybWFubg~~~~~~~~~~~~
+.
+&lt;core proof&gt;~&lt;bp-range sub-proof&gt;
+
+</pre><a href="#section-4.5-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5-7">The Verifier verifies the core proof, recovers the commitment to m_13, recomputes <code>now</code> and the bounds, and checks the <code>bp-range</code> sub-proof against that commitment (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>). It learns <code>family_name</code> and that the credential is unexpired, but nothing else about the Holder's attributes, <code>iat</code>, or <code>exp</code>.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reconstructed-payload">
+<section id="section-4.6">
+        <h3 id="name-reconstructed-json-payload">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-reconstructed-json-payload" class="section-name selfRef">Reconstructed JSON Payload</a>
+        </h3>
+<p id="section-4.6-1">After successfully verifying the core proof (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) and any sub-proofs (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>), the Verifier MAY hand the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of <span>[<a href="#RFC9901" class="cite xref">RFC9901</a>]</span>.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.6-2">The reconstructed payload is built as follows:<a href="#section-4.6-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-4.6-3">
+<li id="section-4.6-3.1">Start from an empty JSON object and add the <code>vct</code> from the Issuer Header.<a href="#section-4.6-3.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-4.6-3.2">
+            <p id="section-4.6-3.2.1">Walk the <code>claims</code> Header Parameter (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>). For each leaf at index <code>i</code>:<a href="#section-4.6-3.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.6-3.2.2.1">
+                <p id="section-4.6-3.2.2.1.1">If <code>i</code> is among the disclosed indices recovered from the verified core proof:<a href="#section-4.6-3.2.2.1.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.6-3.2.2.1.2.1">If the disclosed Presentation Payload at index <code>i</code> is byte-equal to the fixed decoy octets defined for the leaf's <code>scalar</code> flag (see <a href="#decoys" class="auto internal xref">Section 2.10</a>), omit the leaf from the reconstructed object.<a href="#section-4.6-3.2.2.1.2.1" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-4.6-3.2.2.1.2.2">Otherwise, set the leaf's value in the reconstructed object to the value decoded from the corresponding Presentation Payload (per <a href="#message-derivation" class="auto internal xref">Section 2.5</a>).<a href="#section-4.6-3.2.2.1.2.2" class="pilcrow">¶</a>
+</li>
+                </ul>
+</li>
+              <li class="compact" id="section-4.6-3.2.2.2">Otherwise, omit the leaf from the reconstructed object.<a href="#section-4.6-3.2.2.2" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li id="section-4.6-3.3">Preserve the nested object and array structure of the <code>claims</code> Header Parameter for the leaves that remain. For an array attribute, the reconstructed payload contains only the surviving entries, in the same relative order as their corresponding <code>claims</code> annotations; omitted entries are not represented, so reconstructed array indices do not in general match the index annotations of <code>claims</code>.<a href="#section-4.6-3.3" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-4.6-4">The reconstructed payload omits attributes that were hidden or committed but not disclosed; the Verifier MUST NOT infer values for these from outside the proof. Predicates established by sub-proofs over committed indices are statements about hidden values and are not represented as concrete leaf values in this payload.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
+<p id="section-4.6-5">For the example of <a href="#example-presentation" class="auto internal xref">Section 4.5</a>, in which only <code>family_name</code> is disclosed, the reconstructed JSON Payload is:<a href="#section-4.6-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.6-6">
+<pre>{
+  "vct": "https://credentials.example.com/identity_credential",
+  "family_name": "Mustermann"
+}
+
+</pre><a href="#section-4.6-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6-7">together with the application-conveyed fact that <code>exp</code> lies in <code>[1779926400, 2^63)</code>.<a href="#section-4.6-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="cipher-suite">
+<section id="section-5">
+      <h2 id="name-cipher-suite">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-cipher-suite" class="section-name selfRef">Cipher Suite</a>
+      </h2>
+<p id="section-5-1">This document defines a single JPA cipher suite.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="identifier">
+<section id="section-5.1">
+        <h3 id="name-identifier">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-identifier" class="section-name selfRef">Identifier</a>
+        </h3>
+<p id="section-5.1-1">The JPA Algorithm JSON Label is:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-2">
+<pre>BBS-MOD
+
+</pre><a href="#section-5.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-3">denoting the cipher suite identifier:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-4">
+<pre>BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_
+
+</pre><a href="#section-5.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-5"><code>BBS-MOD</code> is the JPA value carried in the <code>alg</code> Header Parameter (Section 5.2.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) of the Issuer Header. The cipher suite identifier above is used internally as the BBS Interface identifier (the <code>api_id</code> for hash-to-scalar and generator derivation), and as the root of the domain separation tags consumed by sub-proofs (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>).<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">The cipher suite is distinct from:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-5.1-7.1">the base BBS JPA identifier (<code>BBS</code> in Section 9.1.2.4 of <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span>, corresponding to the BBS cipher suite identifier <code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_HM2S_</code>), because this profile uses the blind BBS Interface of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> rather than the base BBS Interface; and<a href="#section-5.1-7.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.1-7.2">the base blind BBS Interface identifier <code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>, because this profile uses a profile-specific Interface identifier (with the <code>BBS-MOD_</code> prefix) so that BBS-layer hash-to-scalar and generator derivation are domain-separated from any other use of the blind BBS Interface under the same key.<a href="#section-5.1-7.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.1-8">The <code>BBS-MOD</code> algorithm signals that this profile uses the committed-message proof generation of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> at presentation time, exposes per-message hash-to-scalar bypass via the <code>scalar</code> flag in <code>claims</code>, and reserves the sub-proof attachment mechanism of <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameters">
+<section id="section-5.2">
+        <h3 id="name-parameters">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-parameters" class="section-name selfRef">Parameters</a>
+        </h3>
+<ul class="compact">
+<li class="compact" id="section-5.2-1.1">Signature scheme: this profile invokes the <em>core</em> operations of the blind BBS Interface of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly per, rather than the <code>BlindSign</code>/<code>VerifyBlindSign</code> entry points, so that the per-leaf <code>scalar</code> flag of <a href="#claims-mapping" class="auto internal xref">Section 2.3</a> is honored. The blind BBS Interface is instantiated over the base BBS ciphersuite <code>BLS12-381-SHA-256</code> (Section 7.2.2 of <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>), whose ciphersuite identifier is <code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_</code>. The Interface identifier used by this profile (the <code>api_id</code> for hash-to-scalar, generator derivation, and domain-separation tags) is the cipher suite identifier defined above, <code>BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>; the <code>BBS-MOD_</code> prefix domain-separates this profile from the base blind BBS Interface at the BBS layer.<a href="#section-5.2-1.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.2-1.2">Elliptic curve: BLS12-381, G1 subgroup.<a href="#section-5.2-1.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.2-1.3">Hash-to-curve: SHA-256 SSWU random oracle as in <span>[<a href="#RFC9380" class="cite xref">RFC9380</a>]</span>, with the cipher-suite-specific domain separation tag derived from the Interface identifier above.<a href="#section-5.2-1.3" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.2-1.4">Hash-to-scalar: as defined for the BBS cipher suite, with domain separation tag derived from the Interface identifier above.<a href="#section-5.2-1.4" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.2-1.5">Core proof: this profile invokes <code>CoreProofGen</code> and <code>CoreProofVerify</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly, with <code>commits_indexes</code> corresponding to the <code>COMMIT</code>-marked messages of the per-message disclosure map of <a href="#core-proof" class="auto internal xref">Section 4.3</a>. The resulting proof carries fresh Pedersen commitments to those messages, together with their proofs of correctness and their indices.<a href="#section-5.2-1.5" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.2-1.6">Pedersen commitment generators: the commitments carried by the core proof for the <code>COMMIT</code>-marked indices, and consumed by sub-proofs (e.g., <code>bp-range</code> <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>), use the fixed commitment generator pair <code>(G, H)</code> returned by the committed-message proof mechanism of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>. For every committed index <code>i</code>, the commitment has the form <code>C_i = m_i * G + s_i * H</code> where <code>s_i</code> is the per-commitment blinding scalar sampled inside <code>CoreProofGen</code>. The exact instantiation of <code>(G, H)</code> is taken from the blind BBS Interface generators identified above and is not re-derived here.<a href="#section-5.2-1.6" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-5.2-1.7">Per-message hash-to-scalar bypass: each message slot's <code>scalar</code> flag, as declared in <code>claims</code> (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>), determines whether the corresponding message is derived via hash-to-scalar (<code>scalar</code> = false) or is supplied directly as a scalar (<code>scalar</code> = true).<a href="#section-5.2-1.7" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<div id="hash-to-scalar-bypass">
+<section id="section-6.1">
+        <h3 id="name-hash-to-scalar-bypass">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-hash-to-scalar-bypass" class="section-name selfRef">Hash-to-Scalar Bypass</a>
+        </h3>
+<p id="section-6.1-1">[Editor's Note: TODO - Check what exactly the attack scenarios are]<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-7">
+      <h2 id="name-privacy-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<div id="anonymity">
+<section id="section-7.1">
+        <h3 id="name-issuer-header-correlation">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-issuer-header-correlation" class="section-name selfRef">Issuer Header Correlation</a>
+        </h3>
+<p id="section-7.1-1">The Issuer Header is presented in clear to the Verifier as part of the Presented Form (Section 6.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>). This can create a correlation factor unless the Header does not differ between different credentials of the same type.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">Implementations SHOULD construct the Issuer Header so that it is identical across the entire population of credentials of the same <code>vct</code>, by:<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-7.1-3.1">Using a fixed layout for <code>claims</code> of each credential type, including all optional attributes, all maximum-length array slots, and a constant serialization.<a href="#section-7.1-3.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-7.1-3.2">Filling unused or absent attribute slots with decoys per <a href="#decoys" class="auto internal xref">Section 2.10</a>.<a href="#section-7.1-3.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-7.1-3.3">Carrying any per-credential metadata (issuance time, expiry, identifiers) only as messages in the message vector rather than in the Issuer Header.<a href="#section-7.1-3.3" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-7.1-4">The byte-identicality requirement applies within a single JWP serialization. The <code>header_octets</code> bound by the BBS signature and the core proof are the Issuer Header octets as transmitted in that serialization (see <a href="#issued-credential" class="auto internal xref">Section 2.1</a>), and Verifiers use the octets as received.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="cipher-suite-and-algorithm-identifiers">
+<section id="section-7.2">
+        <h3 id="name-cipher-suite-and-algorithm-">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-cipher-suite-and-algorithm-" class="section-name selfRef">Cipher Suite and Algorithm Identifiers</a>
+        </h3>
+<p id="section-7.2-1">The <code>alg</code> Header Parameter in the Issuer Header narrows the anonymity set whenever it varies across Holders of the same credential type. Implementations SHOULD use a single cipher suite across all Holders of a credential type.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The <code>kb</code> Header Parameter has the same effect: presentations of device-bound and non-device-bound credentials of the same <code>vct</code> form separate anonymity sets, as do credentials using different <code>kb</code> values. Implementations SHOULD use a single <code>kb</code> value (or omit <code>kb</code> entirely) across the entire population of credentials of a given <code>vct</code>, and SHOULD NOT mix device-bound and non-device-bound credentials under the same <code>vct</code>.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iana">
+<section id="section-8">
+      <h2 id="name-iana-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-8-1">This document requests the following registrations and registry creations.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<div id="jpa-alg-value">
+<section id="section-8.1">
+        <h3 id="name-jpa-alg-value">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-jpa-alg-value" class="section-name selfRef">JPA <code>alg</code> Value</a>
+        </h3>
+<p id="section-8.1-1">IANA is requested to register the following JSON Proof Algorithm in the "JSON Web Proof Algorithms" registry established by <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span>:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-2.1">Algorithm Name: BBS-MOD using SHA-256<a href="#section-8.1-2.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.2">Algorithm JSON Label: <code>BBS-MOD</code><a href="#section-8.1-2.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.3">Algorithm CBOR Label: (to be assigned by IANA)<a href="#section-8.1-2.3" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.4">Algorithm Description: Corresponds to a cipher suite identifier of <code>BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>. Uses the blind BBS Interface of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> and extends the base BBS JPA with its committed-message proof generation, per-message hash-to-scalar bypass via the <code>scalar</code> flag, and the sub-proof attachment mechanism of <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-8.1-2.4" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.5">Algorithm Usage Location(s): Issued, Presented<a href="#section-8.1-2.5" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.6">JWP Implementation Requirements: Optional<a href="#section-8.1-2.6" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.7">Change Controller: IETF<a href="#section-8.1-2.7" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.8">Specification Document(s): <a href="#cipher-suite" class="auto internal xref">Section 5</a> of this document.<a href="#section-8.1-2.8" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-2.9">Algorithm Analysis Document(s): <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>, <span>[<a href="#CT25" class="cite xref">CT25</a>]</span><a href="#section-8.1-2.9" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="header-parameter-registrations">
+<section id="section-8.2">
+        <h3 id="name-header-parameter-registrati">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-header-parameter-registrati" class="section-name selfRef">Header Parameter Registrations</a>
+        </h3>
+<p id="section-8.2-1">IANA is requested to register the following Header Parameters in the "JSON Web Proof Header Parameters" registry established by <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-2.1">Header Parameter Name: <code>claims</code><a href="#section-8.2-2.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.2-2.2">Header Parameter Description: Mapping from credential attribute names to their position in the BBS message vector and whether each is hashed to a scalar or supplied directly as a scalar.<a href="#section-8.2-2.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.2-2.3">Header Parameter Usage Location(s): Issued, Presented<a href="#section-8.2-2.3" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.2-2.4">Change Controller: IETF<a href="#section-8.2-2.4" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.2-2.5">
+            <p id="section-8.2-2.5.1">Specification Document(s): <a href="#claims-mapping" class="auto internal xref">Section 2.3</a> of this document.<a href="#section-8.2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.6">
+            <p id="section-8.2-2.6.1">Header Parameter Name: <code>kb</code><a href="#section-8.2-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.7">
+            <p id="section-8.2-2.7.1">Header Parameter Description: Device public key encoding identifier for BBS-based device binding. Identifies both the public key type and the layout of its encoding into the BBS message vector.<a href="#section-8.2-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.8">
+            <p id="section-8.2-2.8.1">Header Parameter Usage Location(s): Issued, Presented<a href="#section-8.2-2.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.9">
+            <p id="section-8.2-2.9.1">Change Controller: IETF<a href="#section-8.2-2.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.10">
+            <p id="section-8.2-2.10.1">Specification Document(s): <a href="#device-binding-header" class="auto internal xref">Section 2.8</a> of this document.<a href="#section-8.2-2.10.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.2-3">This document does not register <code>vct</code>; its registration is requested by <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sub-proof-algorithms-registry">
+<section id="section-8.3">
+        <h3 id="name-sub-proof-algorithms-regist">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-sub-proof-algorithms-regist" class="section-name selfRef">Sub-Proof Algorithms Registry</a>
+        </h3>
+<p id="section-8.3-1">IANA is requested to create a new registry titled "Sub-Proof Algorithms" with the following structure and policy (TODO).<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.3-2">Allocation policy: Specification Required (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>). The designated experts SHOULD verify that the specification pins the underlying group, generators, transcript hash, and Fiat-Shamir domain separation, and that the sub-proof is bound to a commitment attested by the core proof per <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
+<p id="section-8.3-3">Registry fields:<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-4.1">Identifier: a string used as the value of the <code>alg</code> member of a sub-proof object <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-8.3-4.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.3-4.2">Description: short description.<a href="#section-8.3-4.2" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.3-4.3">Reference: a stable specification.<a href="#section-8.3-4.3" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.3-4.4">Change Controller.<a href="#section-8.3-4.4" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-8.3-5">Initial entries:<a href="#section-8.3-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.3-6.1">Identifier: <code>ecdsa-p256-db</code><a href="#section-8.3-6.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.3-6.2">Description: ECDSA P-256 device-binding sub-proof.<a href="#section-8.3-6.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.3-6.3">Reference: This document, <a href="#ecdsa-db" class="auto internal xref">Section 4.4.1</a>.<a href="#section-8.3-6.3" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-8.3-6.4">
+            <p id="section-8.3-6.4.1">Change Controller: IETF.<a href="#section-8.3-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.5">
+            <p id="section-8.3-6.5.1">Identifier: <code>bp-range</code><a href="#section-8.3-6.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.6">
+            <p id="section-8.3-6.6.1">Description: Bulletproofs range proof over a committed scalar message<a href="#section-8.3-6.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.7">
+            <p id="section-8.3-6.7.1">Reference: This document, <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>.<a href="#section-8.3-6.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.8">
+            <p id="section-8.3-6.8.1">Change Controller: IETF.<a href="#section-8.3-6.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.9">
+            <p id="section-8.3-6.9.1">Identifier: <code>schnorr-eq</code><a href="#section-8.3-6.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.10">
+            <p id="section-8.3-6.10.1">Description: Schnorr proof of equality between a committed message and an external commitment.<a href="#section-8.3-6.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.11">
+            <p id="section-8.3-6.11.1">Reference: This document, <a href="#equality-proof" class="auto internal xref">Section 4.4.3</a>.<a href="#section-8.3-6.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-6.12">
+            <p id="section-8.3-6.12.1">Change Controller: IETF.<a href="#section-8.3-6.12.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<section id="section-9">
+      <h2 id="name-references">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-9.1">
+        <h3 id="name-normative-references">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="BBBP18">[BBBP18]</dt>
+        <dd>
+<span class="refAuthor">Bünz, B.</span>, <span class="refAuthor">Bootle, J.</span>, <span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Poelstra, A.</span>, <span class="refAuthor">Wuille, P.</span>, and <span class="refAuthor">G. Maxwell</span>, <span class="refTitle">"Bulletproofs: Short Proofs for Confidential Transactions and More"</span>, <span class="refContent">Proceedings of the 2018 IEEE Symposium on Security and Privacy (S&amp;P), pp. 315-334. Full version: IACR ePrint 2017/1066, https://eprint.iacr.org/2017/1066.</span>, <span class="seriesInfo">DOI 10.1109/SP.2018.00020</span>, <time datetime="2018-05" class="refDate">May 2018</time>, <span>&lt;<a href="https://doi.org/10.1109/SP.2018.00020">https://doi.org/10.1109/SP.2018.00020</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FIPS186-5">[FIPS186-5]</dt>
+        <dd>
+<span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Digital Signature Standard (DSS)"</span>, <span class="seriesInfo">FIPS PUB 186-5</span>, <span class="seriesInfo">DOI 10.6028/NIST.FIPS.186-5</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.186-5">https://doi.org/10.6028/NIST.FIPS.186-5</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-jose-json-proof-algorithms">[I-D.ietf-jose-json-proof-algorithms]</dt>
+        <dd>
+<span class="refAuthor">Jones, M. B.</span>, <span class="refAuthor">Waite, D.</span>, and <span class="refAuthor">J. Miller</span>, <span class="refTitle">"JSON Proof Algorithms"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-jose-json-proof-algorithms-13</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-proof-algorithms-13">https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-proof-algorithms-13</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-jose-json-web-proof">[I-D.ietf-jose-json-web-proof]</dt>
+        <dd>
+<span class="refAuthor">Waite, D.</span>, <span class="refAuthor">Jones, M. B.</span>, and <span class="refAuthor">J. Miller</span>, <span class="refTitle">"JSON Web Proof"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-jose-json-web-proof-13</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-web-proof-13">https://datatracker.ietf.org/doc/html/draft-ietf-jose-json-web-proof-13</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-oauth-sd-jwt-vc">[I-D.ietf-oauth-sd-jwt-vc]</dt>
+        <dd>
+<span class="refAuthor">Terbu, O.</span>, <span class="refAuthor">Fett, D.</span>, and <span class="refAuthor">B. Campbell</span>, <span class="refTitle">"SD-JWT-based Verifiable Digital Credentials (SD-JWT VC)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-oauth-sd-jwt-vc-16</span>, <time datetime="2026-04-24" class="refDate">24 April 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc-16">https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc-16</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.irtf-cfrg-bbs-blind-signatures">[I-D.irtf-cfrg-bbs-blind-signatures]</dt>
+        <dd>
+<span class="refAuthor">Kalos, V.</span> and <span class="refAuthor">G. M. Bernstein</span>, <span class="refTitle">"Blind BBS Signatures"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-bbs-blind-signatures-02</span>, <time datetime="2025-09-03" class="refDate">3 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bbs-blind-signatures-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bbs-blind-signatures-02</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.irtf-cfrg-bbs-signatures">[I-D.irtf-cfrg-bbs-signatures]</dt>
+        <dd>
+<span class="refAuthor">Looker, T.</span>, <span class="refAuthor">Kalos, V.</span>, <span class="refAuthor">Whitehead, A.</span>, and <span class="refAuthor">M. Lodder</span>, <span class="refTitle">"The BBS Signature Scheme"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-bbs-signatures-10</span>, <time datetime="2026-01-08" class="refDate">8 January 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bbs-signatures-10">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-bbs-signatures-10</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.irtf-cfrg-fiat-shamir">[I-D.irtf-cfrg-fiat-shamir]</dt>
+        <dd>
+<span class="refAuthor">Orrù, M.</span>, <span class="refTitle">"Fiat-Shamir Transformation"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-fiat-shamir-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-02</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.irtf-cfrg-sigma-protocols">[I-D.irtf-cfrg-sigma-protocols]</dt>
+        <dd>
+<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Interactive Sigma Proofs"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4648">[RFC4648]</dt>
+        <dd>
+<span class="refAuthor">Josefsson, S.</span>, <span class="refTitle">"The Base16, Base32, and Base64 Data Encodings"</span>, <span class="seriesInfo">RFC 4648</span>, <span class="seriesInfo">DOI 10.17487/RFC4648</span>, <time datetime="2006-10" class="refDate">October 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4648">https://www.rfc-editor.org/info/rfc4648</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7519">[RFC7519]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7519">https://www.rfc-editor.org/info/rfc7519</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8126">https://www.rfc-editor.org/info/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9380">[RFC9380]</dt>
+      <dd>
+<span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc9380">https://www.rfc-editor.org/info/rfc9380</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<section id="section-9.2">
+        <h3 id="name-informative-references">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="CT25">[CT25]</dt>
+        <dd>
+<span class="refAuthor">Chairattana-Apirom, R.</span> and <span class="refAuthor">S. Tessaro</span>, <span class="refTitle">"On the Concrete Security of BBS/BBS+ Signatures"</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://eprint.iacr.org/2025/1093.pdf">https://eprint.iacr.org/2025/1093.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="LSZ25">[LSZ25]</dt>
+        <dd>
+<span class="refAuthor">Lehmann, A.</span>, <span class="refAuthor">Sidorenko, A.</span>, and <span class="refAuthor">A. Zacharakis</span>, <span class="refTitle">"Vision: A Modular Framework for Anonymous Credential Systems"</span>, <span class="seriesInfo">IACR ePrint 2025/1981</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://eprint.iacr.org/2025/1981.pdf">https://eprint.iacr.org/2025/1981.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9901">[RFC9901]</dt>
+        <dd>
+<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Yasuda, K.</span>, and <span class="refAuthor">B. Campbell</span>, <span class="refTitle">"Selective Disclosure for JSON Web Tokens"</span>, <span class="seriesInfo">RFC 9901</span>, <span class="seriesInfo">DOI 10.17487/RFC9901</span>, <time datetime="2025-11" class="refDate">November 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc9901">https://www.rfc-editor.org/info/rfc9901</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TS14">[TS14]</dt>
+      <dd>
+<span class="refAuthor">European Commission, EUDI Wallet Expert Group</span>, <span class="refTitle">"Specification for the implementation of Zero-Knowledge Proofs based on multi-message signatures in the EUDI Wallet (TS-14)"</span>, <span class="refContent">Work in Progress.</span>, <span class="seriesInfo">EUDI TS-14</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-technical-specifications/blob/main/docs/technical-specifications/ts14-zkps-from-mms.md">https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-technical-specifications/blob/main/docs/technical-specifications/ts14-zkps-from-mms.md</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</section>
 <div id="acknowledgments">
 <section id="appendix-A">
       <h2 id="name-acknowledgments">
 <a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">TODO<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">The technical foundation for this document is the work captured in <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> by the EUDI Wallet expert group; the committed-message core proof builds on <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>, and the modular committed-disclosure framework follows <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
