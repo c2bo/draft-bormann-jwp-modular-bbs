@@ -4,8 +4,8 @@
 
 Network Working Group                                         C. Bormann
 Internet-Draft                                               SPRIND GmbH
-Intended status: Standards Track                             8 June 2026
-Expires: 10 December 2026
+Intended status: Standards Track                            11 June 2026
+Expires: 13 December 2026
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 December 2026.
+   This Internet-Draft will expire on 13 December 2026.
 
 Copyright Notice
 
@@ -951,8 +951,8 @@ Table of Contents
    The reconstructed payload omits attributes that were hidden or
    committed but not disclosed; the Verifier MUST NOT infer values for
    these from outside the proof.  Predicates established by sub-proofs
-   over committed indices are statements about hidden values and are not
-   represented as concrete leaf values in this payload.
+   over committed indices are not represented as concrete leaf values in
+   this payload.
 
    For the example of Section 4.5, in which only family_name is
    disclosed, the reconstructed JSON Payload is:
@@ -961,9 +961,6 @@ Table of Contents
      "vct": "https://credentials.example.com/identity_credential",
      "family_name": "Mustermann"
    }
-
-   together with the application-conveyed fact that exp lies in
-   [1779926400, 2^63).
 
 5.  Cipher Suite
 

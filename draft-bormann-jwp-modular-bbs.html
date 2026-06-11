@@ -1051,7 +1051,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Bormann</td>
-<td class="center">Expires 10 December 2026</td>
+<td class="center">Expires 13 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1064,12 +1064,12 @@ svg {
 <dd class="internet-draft">draft-bormann-jwp-modular-bbs-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-08" class="published">8 June 2026</time>
+<time datetime="2026-06-11" class="published">11 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-10">10 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-13">13 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1115,7 +1115,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 10 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1955,7 +1955,7 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
           <li id="section-4.6-3.3">Preserve the nested object and array structure of the <code>claims</code> Header Parameter for the leaves that remain. For an array attribute, the reconstructed payload contains only the surviving entries, in the same relative order as their corresponding <code>claims</code> annotations; omitted entries are not represented, so reconstructed array indices do not in general match the index annotations of <code>claims</code>.<a href="#section-4.6-3.3" class="pilcrow">¶</a>
 </li>
         </ol>
-<p id="section-4.6-4">The reconstructed payload omits attributes that were hidden or committed but not disclosed; the Verifier MUST NOT infer values for these from outside the proof. Predicates established by sub-proofs over committed indices are statements about hidden values and are not represented as concrete leaf values in this payload.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
+<p id="section-4.6-4">The reconstructed payload omits attributes that were hidden or committed but not disclosed; the Verifier MUST NOT infer values for these from outside the proof. Predicates established by sub-proofs over committed indices are not represented as concrete leaf values in this payload.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
 <p id="section-4.6-5">For the example of <a href="#example-presentation" class="auto internal xref">Section 4.5</a>, in which only <code>family_name</code> is disclosed, the reconstructed JSON Payload is:<a href="#section-4.6-5" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.6-6">
 <pre>{
@@ -1965,7 +1965,6 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 
 </pre><a href="#section-4.6-6" class="pilcrow">¶</a>
 </div>
-<p id="section-4.6-7">together with the application-conveyed fact that <code>exp</code> lies in <code>[1779926400, 2^63)</code>.<a href="#section-4.6-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
