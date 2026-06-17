@@ -1051,7 +1051,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Bormann</td>
-<td class="center">Expires 13 December 2026</td>
+<td class="center">Expires 19 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1064,12 +1064,12 @@ svg {
 <dd class="internet-draft">draft-bormann-jwp-modular-bbs-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-11" class="published">11 June 2026</time>
+<time datetime="2026-06-17" class="published">17 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-13">13 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-19">19 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1115,7 +1115,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 19 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1309,20 +1309,19 @@ svg {
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">The BBS signature scheme as defined in <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span> is a multi-message signature (MMS) scheme: the signer produces a single signature over a vector of messages (m<em>0, ..., m</em>{n-1}) and a holder of the signature can prove, in zero knowledge, knowledge of a valid signature while disclosing only a subset of the messages.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">The Blind BBS Signatures extension <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> extends this scheme with Pedersen commitments to messages and defines blind signing and proof operations over them. This document uses that extension's proof generation with committed messages: at proof time the Holder marks each message as disclosed, hidden, or committed, and the resulting proof carries fresh Pedersen commitments to the committed messages so that those commitments can be reused as inputs to further proofs.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">[Editor's Note: This profile uses the committed-message proof extension of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> proposed in (PR #13): <a href="https://github.com/cfrg/draft-irtf-cfrg-bbs-blind-signatures/pull/13">https://github.com/cfrg/draft-irtf-cfrg-bbs-blind-signatures/pull/13</a>]<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document defines a digital credential format that:<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-2">The Blind BBS Signatures extension <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> extends this scheme with Pedersen commitments to messages and defines blind signing and proof operations over them. This document uses the committed-message proof generation of that extension (<code>CoreProofGen</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>): at proof time the Holder marks each message as disclosed, hidden, or committed, and the resulting proof carries fresh Pedersen commitments to the committed messages so that those commitments can be reused as inputs to further proofs.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This document defines a digital credential format that:<a href="#section-1-3" class="pilcrow">¶</a></p>
 <ul class="compact">
-<li class="compact" id="section-1-5.1">Uses JSON Web Proofs <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span> as the container format for both issuance and presentation, with a new JSON Proof Algorithm <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span> profile based on Blind BBS.<a href="#section-1-5.1" class="pilcrow">¶</a>
+<li class="compact" id="section-1-4.1">Uses JSON Web Proofs <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span> as the container format for both issuance and presentation, with a new JSON Proof Algorithm <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span> profile based on Blind BBS.<a href="#section-1-4.1" class="pilcrow">¶</a>
 </li>
-        <li class="compact" id="section-1-5.2">Uses the committed-message proof generation of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> as the core proof, so that fresh Pedersen commitments to undisclosed messages are carried within the core proof and used as inputs to sub-proofs.<a href="#section-1-5.2" class="pilcrow">¶</a>
+        <li class="compact" id="section-1-4.2">Uses the committed-message proof generation of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> as the core proof, so that fresh Pedersen commitments to undisclosed messages are carried within the core proof and used as inputs to sub-proofs.<a href="#section-1-4.2" class="pilcrow">¶</a>
 </li>
-        <li class="compact" id="section-1-5.3">Defines a sub-proof container that contains zero or more sub-proofs (e.g., range proofs, equality proofs, set-membership proofs) that are attached to the core proof via commitments<a href="#section-1-5.3" class="pilcrow">¶</a>
+        <li class="compact" id="section-1-4.3">Defines a sub-proof container that contains zero or more sub-proofs (e.g., range proofs, equality proofs, set-membership proofs) that are attached to the core proof via commitments<a href="#section-1-4.3" class="pilcrow">¶</a>
 </li>
-        <li class="compact" id="section-1-5.4">Optionally supports device binding to an ECDSA P-256 key by encoding the device public key into eight messages of the BBS signature vector (using a public key limb decomposition)<a href="#section-1-5.4" class="pilcrow">¶</a>
+        <li class="compact" id="section-1-4.4">Optionally supports device binding to an ECDSA P-256 key by encoding the device public key into eight messages of the BBS signature vector (using a public key limb decomposition)<a href="#section-1-4.4" class="pilcrow">¶</a>
 </li>
       </ul>
-<p id="section-1-6">The design is informed by the modular architecture for MMS-based ZKP credentials proposed in <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> and <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>, and re-uses the core data-model elements (like credential types, type metadata, claim metadata) from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-5">The design is informed by the modular architecture for MMS-based ZKP credentials proposed in <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> and <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>, and re-uses the core data-model elements (like credential types, type metadata, claim metadata) from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <div id="requirements-notation-and-conventions">
 <section id="section-1.1">
         <h3 id="name-requirements-notation-and-c">
@@ -2009,7 +2008,7 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-parameters" class="section-name selfRef">Parameters</a>
         </h3>
 <ul class="compact">
-<li class="compact" id="section-5.2-1.1">Signature scheme: this profile invokes the <em>core</em> operations of the blind BBS Interface of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly per, rather than the <code>BlindSign</code>/<code>VerifyBlindSign</code> entry points, so that the per-leaf <code>scalar</code> flag of <a href="#claims-mapping" class="auto internal xref">Section 2.3</a> is honored. The blind BBS Interface is instantiated over the base BBS ciphersuite <code>BLS12-381-SHA-256</code> (Section 7.2.2 of <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>), whose ciphersuite identifier is <code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_</code>. The Interface identifier used by this profile (the <code>api_id</code> for hash-to-scalar, generator derivation, and domain-separation tags) is the cipher suite identifier defined above, <code>BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>; the <code>BBS-MOD_</code> prefix domain-separates this profile from the base blind BBS Interface at the BBS layer.<a href="#section-5.2-1.1" class="pilcrow">¶</a>
+<li class="compact" id="section-5.2-1.1">Signature scheme: this profile invokes the <em>core</em> operations of the blind BBS Interface of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly, rather than the <code>BlindSign</code>/<code>VerifyBlindSign</code> entry points, so that the per-leaf <code>scalar</code> flag of <a href="#claims-mapping" class="auto internal xref">Section 2.3</a> is honored. The blind BBS Interface is instantiated over the base BBS ciphersuite <code>BLS12-381-SHA-256</code> (Section 7.2.2 of <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>), whose ciphersuite identifier is <code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_</code>. The Interface identifier used by this profile (the <code>api_id</code> for hash-to-scalar, generator derivation, and domain-separation tags) is the cipher suite identifier defined above, <code>BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>; the <code>BBS-MOD_</code> prefix domain-separates this profile from the base blind BBS Interface at the BBS layer.<a href="#section-5.2-1.1" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-5.2-1.2">Elliptic curve: BLS12-381, G1 subgroup.<a href="#section-5.2-1.2" class="pilcrow">¶</a>
 </li>
@@ -2017,9 +2016,9 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 </li>
           <li class="compact" id="section-5.2-1.4">Hash-to-scalar: as defined for the BBS cipher suite, with domain separation tag derived from the Interface identifier above.<a href="#section-5.2-1.4" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-5.2-1.5">Core proof: this profile invokes <code>CoreProofGen</code> and <code>CoreProofVerify</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly, with <code>commits_indexes</code> corresponding to the <code>COMMIT</code>-marked messages of the per-message disclosure map of <a href="#core-proof" class="auto internal xref">Section 4.3</a>. The resulting proof carries fresh Pedersen commitments to those messages, together with their proofs of correctness and their indices.<a href="#section-5.2-1.5" class="pilcrow">¶</a>
+          <li class="compact" id="section-5.2-1.5">Core proof: this profile invokes <code>CoreProofGen</code> and <code>CoreProofVerify</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly, with <code>commits_indexes</code> corresponding to the <code>COMMIT</code>-marked messages of the per-message disclosure map of <a href="#core-proof" class="auto internal xref">Section 4.3</a>. The resulting proof carries fresh Pedersen commitments to those messages, together with their proofs of correctness and their indices. Because <code>CoreProofGen</code> is not invoked as a subroutine of <code>BlindProofGen</code>, implementations MUST apply the <code>disclosed_indexes</code> and <code>commits_indexes</code> input validity checks called out in Section 7.1 of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>.<a href="#section-5.2-1.5" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-5.2-1.6">Pedersen commitment generators: the commitments carried by the core proof for the <code>COMMIT</code>-marked indices, and consumed by sub-proofs (e.g., <code>bp-range</code> <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>), use the fixed commitment generator pair <code>(G, H)</code> returned by the committed-message proof mechanism of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>. For every committed index <code>i</code>, the commitment has the form <code>C_i = m_i * G + s_i * H</code> where <code>s_i</code> is the per-commitment blinding scalar sampled inside <code>CoreProofGen</code>. The exact instantiation of <code>(G, H)</code> is taken from the blind BBS Interface generators identified above and is not re-derived here.<a href="#section-5.2-1.6" class="pilcrow">¶</a>
+          <li class="compact" id="section-5.2-1.6">Pedersen commitment generators: the commitments carried by the core proof for the <code>COMMIT</code>-marked indices, and consumed by sub-proofs (e.g., <code>bp-range</code> <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>), use the fixed commitment generator pair <code>(G, H) = (Y_1, Y_0)</code>, where <code>(Y_0, Y_1)</code> are the fixed points of G1 defined by <code>CoreProofGen</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> as <code>(Y_0, Y_1) = BBS.create_generators("COM_DIS_" || api_id)</code>, with <code>api_id</code> set to the cipher suite identifier above. For every committed index <code>i</code>, the commitment has the form <code>C_i = m_i * G + s_i * H</code>, equivalently <code>C_i = Y_0 * s_i + Y_1 * m_i</code>, where <code>s_i</code> is the per-commitment blinding scalar sampled inside <code>CoreProofGen</code>.<a href="#section-5.2-1.6" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-5.2-1.7">Per-message hash-to-scalar bypass: each message slot's <code>scalar</code> flag, as declared in <code>claims</code> (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>), determines whether the corresponding message is derived via hash-to-scalar (<code>scalar</code> = false) or is supplied directly as a scalar (<code>scalar</code> = true).<a href="#section-5.2-1.7" class="pilcrow">¶</a>
 </li>

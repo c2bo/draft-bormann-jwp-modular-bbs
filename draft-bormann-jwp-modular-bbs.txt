@@ -4,8 +4,8 @@
 
 Network Working Group                                         C. Bormann
 Internet-Draft                                               SPRIND GmbH
-Intended status: Standards Track                            11 June 2026
-Expires: 13 December 2026
+Intended status: Standards Track                            17 June 2026
+Expires: 19 December 2026
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 December 2026.
+   This Internet-Draft will expire on 19 December 2026.
 
 Copyright Notice
 
@@ -127,17 +127,12 @@ Table of Contents
    The Blind BBS Signatures extension
    [I-D.irtf-cfrg-bbs-blind-signatures] extends this scheme with
    Pedersen commitments to messages and defines blind signing and proof
-   operations over them.  This document uses that extension's proof
-   generation with committed messages: at proof time the Holder marks
+   operations over them.  This document uses the committed-message proof
+   generation of that extension (CoreProofGen of
+   [I-D.irtf-cfrg-bbs-blind-signatures]): at proof time the Holder marks
    each message as disclosed, hidden, or committed, and the resulting
    proof carries fresh Pedersen commitments to the committed messages so
    that those commitments can be reused as inputs to further proofs.
-
-   [Editor's Note: This profile uses the committed-message proof
-   extension of [I-D.irtf-cfrg-bbs-blind-signatures] proposed in (PR
-   #13): https://github.com/cfrg/draft-irtf-cfrg-bbs-blind-signatures/
-   pull/13 (https://github.com/cfrg/draft-irtf-cfrg-bbs-blind-
-   signatures/pull/13)]
 
    This document defines a digital credential format that:
 
@@ -1008,10 +1003,10 @@ Table of Contents
 
    *  Signature scheme: this profile invokes the _core_ operations of
       the blind BBS Interface of [I-D.irtf-cfrg-bbs-blind-signatures]
-      directly per, rather than the BlindSign/VerifyBlindSign entry
-      points, so that the per-leaf scalar flag of Section 2.3 is
-      honored.  The blind BBS Interface is instantiated over the base
-      BBS ciphersuite BLS12-381-SHA-256 (Section 7.2.2 of
+      directly, rather than the BlindSign/VerifyBlindSign entry points,
+      so that the per-leaf scalar flag of Section 2.3 is honored.  The
+      blind BBS Interface is instantiated over the base BBS ciphersuite
+      BLS12-381-SHA-256 (Section 7.2.2 of
       [I-D.irtf-cfrg-bbs-signatures]), whose ciphersuite identifier is
       BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_. The Interface identifier used
       by this profile (the api_id for hash-to-scalar, generator
@@ -1030,17 +1025,22 @@ Table of Contents
       commits_indexes corresponding to the COMMIT-marked messages of the
       per-message disclosure map of Section 4.3.  The resulting proof
       carries fresh Pedersen commitments to those messages, together
-      with their proofs of correctness and their indices.
+      with their proofs of correctness and their indices.  Because
+      CoreProofGen is not invoked as a subroutine of BlindProofGen,
+      implementations MUST apply the disclosed_indexes and
+      commits_indexes input validity checks called out in Section 7.1 of
+      [I-D.irtf-cfrg-bbs-blind-signatures].
    *  Pedersen commitment generators: the commitments carried by the
       core proof for the COMMIT-marked indices, and consumed by sub-
       proofs (e.g., bp-range Section 4.4.2), use the fixed commitment
-      generator pair (G, H) returned by the committed-message proof
-      mechanism of [I-D.irtf-cfrg-bbs-blind-signatures].  For every
-      committed index i, the commitment has the form C_i = m_i * G + s_i
-      * H where s_i is the per-commitment blinding scalar sampled inside
-      CoreProofGen.  The exact instantiation of (G, H) is taken from the
-      blind BBS Interface generators identified above and is not re-
-      derived here.
+      generator pair (G, H) = (Y_1, Y_0), where (Y_0, Y_1) are the fixed
+      points of G1 defined by CoreProofGen of
+      [I-D.irtf-cfrg-bbs-blind-signatures] as (Y_0, Y_1) =
+      BBS.create_generators("COM_DIS_" || api_id), with api_id set to
+      the cipher suite identifier above.  For every committed index i,
+      the commitment has the form C_i = m_i * G + s_i * H, equivalently
+      C_i = Y_0 * s_i + Y_1 * m_i, where s_i is the per-commitment
+      blinding scalar sampled inside CoreProofGen.
    *  Per-message hash-to-scalar bypass: each message slot's scalar
       flag, as declared in claims (see Section 2.3), determines whether
       the corresponding message is derived via hash-to-scalar (scalar =
