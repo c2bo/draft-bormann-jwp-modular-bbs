@@ -184,7 +184,7 @@ The `vct` value becomes the `vct` Header Parameter and every other attribute bec
 }
 ~~~
 
-The claims at indices 0 through 11 use `scalar` = false: their values are mapped to BBS messages via hash-to-scalar (see (#message-derivation)). The temporal claims `iat` and `exp` (indices 12 and 13) use `scalar` = true: they are NumericDate integers as defined in [@!RFC7519] (no fractional component) used directly as scalars (see (#scalar-encoding)), which makes them valid range-proof targets. A presentation may then mark `iat` and/or `exp` as `COMMIT` (see (#core-proof)) and attach one or two `bp-range` sub-proofs (see (#range-proof)) to establish that the credential is currently valid without disclosing the timestamps themselves.
+The claims at indices 0 through 11 use `scalar` = false: their values are mapped to BBS messages via hash-to-scalar (see (#message-derivation)). The temporal claims `iat` and `exp` (indices 12 and 13) use `scalar` = true: they are NumericDate integers as defined in [@!RFC7519] (no fractional component) used directly as scalars (see (#scalar-encoding)), which makes them valid range-proof targets. A presentation may then mark `iat` and/or `exp` as `COMMIT` (see (#core-proof)) and attach one or two `sigma-range` sub-proofs (see (#range-proof)) to establish that the credential is currently valid without disclosing the timestamps themselves.
 
 For a real-world deployment, the credential type would fix a structural layout covering every optional attribute and every maximum-length array slot, with absent slots filled by decoys (see (#decoys)).
 
@@ -414,16 +414,16 @@ The Verifier accepts the sub-proof if and only if:
 ### Range Proof Sub-Proof {#range-proof}
 
 Algorithm identifier:
-: `bp-range` (Bulletproofs over Pedersen commitments [@!BBBP18])
+: `sigma-range`
 
-Inputs (in addition to the base sub-proof fields of (#sub-proofs)): the lower bound `l` and upper bound `u` (both JSON integers) and the encoded Bulletproof in the `proof` field. The `i` field MUST be a single-element JSON array `[idx]` naming the message-vector index `idx` whose committed value is range-checked.
-The sub-proof attests that the message m_idx committed by the core proof for index `idx` (see (#core-proof)) satisfies `l <= m_idx < u`, taking as its input the Pedersen commitment `C_idx` to m_idx carried by the core proof.
+Inputs (in addition to the base sub-proof fields of (#sub-proofs)): the lower bound `l` and upper bound `u` (both JSON integers). The `i` field MUST be a single-element JSON array `[idx]` naming the message-vector index `idx` whose committed value is range-checked.
+The sub-proof attests that the message m_idx committed by the core proof for index `idx` (see (#core-proof)) satisfies `l <= m_idx < u`, taking as its input the Pedersen commitment `C_idx = m_idx * G + s_idx * H` to m_idx carried by the core proof.
 
-The bounds MUST satisfy `l < u`, and implementations MUST reject `bp-range` sub-proofs whose width exceeds `u - l <= 2^64` unless a deployment profile explicitly permits a larger width. The `2^64` bound matches the natural Bulletproofs range for a single 64-bit limb decomposition and accommodates NumericDate temporal claims (Section 4.1 of [@!RFC7519]), whose maximum value is `2^63 - 1`. Both `l` and `u` are arbitrary-precision JSON integers; implementations MUST parse them as bigints rather than as IEEE-754 doubles.
+The bounds MUST satisfy `l < u`, and implementations MUST reject `sigma-range` sub-proofs whose width exceeds `u - l <= 2^64` unless a deployment profile explicitly permits a larger width. The `2^64` bound accommodates NumericDate temporal claims (Section 4.1 of [@!RFC7519]), whose maximum value is `2^63 - 1`. Both `l` and `u` are arbitrary-precision JSON integers; implementations MUST parse them as bigints rather than as IEEE-754 doubles.
 
-The construction operates in G1 of BLS12-381 using the same commitment generators `(G, H)` as the core proof (see (#cipher-suite)), so the commitment carried by the core proof can be used directly as the Bulletproof input. Any additional generators, the transcript hash, and the Fiat-Shamir domain separation are derived from the cipher-suite identifier and are pinned by the concrete construction.
+The construction operates in G1 of BLS12-381 using the same commitment generators `(G, H)` as the core proof (see (#cipher-suite)). It instantiates the sigma-protocol range proof of Section 5.4 of [@!I-D.ietf-privacypass-arc-crypto] (the `MakeRangeProofHelper` / `VerifyRangeProofHelper` construction) against the Pedersen commitment supplied by the core proof, shifted to the `[0, w)` range with `w = u - l`. The combined statement is realized as a proof of knowledge of the preimage of a linear map and made non-interactive with the Fiat-Shamir transform of [@!I-D.irtf-cfrg-fiat-shamir]; `presentation_header_octets` (see (#sub-proofs)) is absorbed into the Fiat-Shamir transcript.
 
-\[Editor's Note: TODO - select and describe concrete construction]
+\[Editor's Note: TODO - does it make sense to base on this or should we use another construction? Need to fully describe serialization etc. as well]
 
 ### Equality Proof Sub-Proof {#equality-proof}
 
@@ -455,11 +455,11 @@ Continuing the example of (#example-issuer-header), a Verifier requests `family_
 }
 ~~~
 
-The Holder generates the core proof (see (#core-proof)) with this per-message disclosure map: index 1 (`family_name`) is `DISCLOSE`, index 13 (`exp`) is `COMMIT`, and all other indices are `HIDE`. The core proof therefore carries a fresh Pedersen commitment to m_13. The Holder attaches one `bp-range` sub-proof (see (#range-proof)) over index 13, proving `now <= exp < 2^63` for the Verifier-supplied current time `now` = 1779926400:
+The Holder generates the core proof (see (#core-proof)) with this per-message disclosure map: index 1 (`family_name`) is `DISCLOSE`, index 13 (`exp`) is `COMMIT`, and all other indices are `HIDE`. The core proof therefore carries a fresh Pedersen commitment to m_13. The Holder attaches one `sigma-range` sub-proof (see (#range-proof)) over index 13, proving `now <= exp < 2^63` for the Verifier-supplied current time `now` = 1779926400:
 
 ~~~ json
 {
-  "alg": "bp-range",
+  "alg": "sigma-range",
   "input": { "i": [13], "l": 1779926400, "u": 9223372036854775808 },
   "proof": "..."
 }
@@ -474,10 +474,10 @@ In the Compact Serialization (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]), 
 .
 ~TXVzdGVybWFubg~~~~~~~~~~~~
 .
-<core proof>~<bp-range sub-proof>
+<core proof>~<sigma-range sub-proof>
 ~~~
 
-The Verifier verifies the core proof, recovers the commitment to m_13, recomputes `now` and the bounds, and checks the `bp-range` sub-proof against that commitment (see (#sub-proofs)). It learns `family_name` and that the credential is unexpired, but nothing else about the Holder's attributes, `iat`, or `exp`.
+The Verifier verifies the core proof, recovers the commitment to m_13, recomputes `now` and the bounds, and checks the `sigma-range` sub-proof against that commitment (see (#sub-proofs)). It learns `family_name` and that the credential is unexpired, but nothing else about the Holder's attributes, `iat`, or `exp`.
 
 ## Reconstructed JSON Payload {#reconstructed-payload}
 
@@ -538,7 +538,7 @@ The `BBS-MOD` algorithm signals that this profile uses the committed-message pro
 - Hash-to-curve: SHA-256 SSWU random oracle as in [@!RFC9380], with the cipher-suite-specific domain separation tag derived from the Interface identifier above.
 - Hash-to-scalar: as defined for the BBS cipher suite, with domain separation tag derived from the Interface identifier above.
 - Core proof: this profile invokes `CoreProofGen` and `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] directly, with `commits_indexes` corresponding to the `COMMIT`-marked messages of the per-message disclosure map of (#core-proof). The resulting proof carries fresh Pedersen commitments to those messages, together with their proofs of correctness and their indices. Because `CoreProofGen` is not invoked as a subroutine of `BlindProofGen`, implementations MUST apply the `disclosed_indexes` and `commits_indexes` input validity checks called out in Section 7.1 of [@!I-D.irtf-cfrg-bbs-blind-signatures].
-- Pedersen commitment generators: the commitments carried by the core proof for the `COMMIT`-marked indices, and consumed by sub-proofs (e.g., `bp-range` (#range-proof)), use the fixed commitment generator pair `(G, H) = (Y_1, Y_0)`, where `(Y_0, Y_1)` are the fixed points of G1 defined by `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures] as `(Y_0, Y_1) = BBS.create_generators("COM_DIS_" || api_id)`, with `api_id` set to the cipher suite identifier above. For every committed index `i`, the commitment has the form `C_i = m_i * G + s_i * H`, equivalently `C_i = Y_0 * s_i + Y_1 * m_i`, where `s_i` is the per-commitment blinding scalar sampled inside `CoreProofGen`.
+- Pedersen commitment generators: the commitments carried by the core proof for the `COMMIT`-marked indices, and consumed by sub-proofs (e.g., `sigma-range` (#range-proof)), use the fixed commitment generator pair `(G, H) = (Y_1, Y_0)`, where `(Y_0, Y_1)` are the fixed points of G1 defined by `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures] as `(Y_0, Y_1) = BBS.create_generators("COM_DIS_" || api_id)`, with `api_id` set to the cipher suite identifier above. For every committed index `i`, the commitment has the form `C_i = m_i * G + s_i * H`, equivalently `C_i = Y_0 * s_i + Y_1 * m_i`, where `s_i` is the per-commitment blinding scalar sampled inside `CoreProofGen`.
 - Per-message hash-to-scalar bypass: each message slot's `scalar` flag, as declared in `claims` (see (#claims-mapping)), determines whether the corresponding message is derived via hash-to-scalar (`scalar` = false) or is supplied directly as a scalar (`scalar` = true).
 
 # Security Considerations
@@ -623,8 +623,8 @@ Initial entries:
 - Reference: This document, (#ecdsa-db).
 - Change Controller: IETF.
 
-- Identifier: `bp-range`
-- Description: Bulletproofs range proof over a committed scalar message
+- Identifier: `sigma-range`
+- Description: Sigma-protocol range proof over a committed scalar message
 - Reference: This document, (#range-proof).
 - Change Controller: IETF.
 
@@ -656,21 +656,6 @@ Initial entries:
     <date year="2025"/>
   </front>
   <seriesInfo name="IACR ePrint" value="2025/1981"/>
-</reference>
-
-<reference anchor="BBBP18" target="https://doi.org/10.1109/SP.2018.00020">
-  <front>
-    <title>Bulletproofs: Short Proofs for Confidential Transactions and More</title>
-    <author initials="B." surname="Bünz"/>
-    <author initials="J." surname="Bootle"/>
-    <author initials="D." surname="Boneh"/>
-    <author initials="A." surname="Poelstra"/>
-    <author initials="P." surname="Wuille"/>
-    <author initials="G." surname="Maxwell"/>
-    <date year="2018" month="May"/>
-  </front>
-  <seriesInfo name="DOI" value="10.1109/SP.2018.00020"/>
-  <refcontent>Proceedings of the 2018 IEEE Symposium on Security and Privacy (S&amp;P), pp. 315-334. Full version: IACR ePrint 2017/1066, https://eprint.iacr.org/2017/1066.</refcontent>
 </reference>
 
 <reference anchor="FIPS186-5" target="https://doi.org/10.6028/NIST.FIPS.186-5">
