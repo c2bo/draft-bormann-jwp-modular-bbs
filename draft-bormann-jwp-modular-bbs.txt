@@ -352,9 +352,9 @@ Table of Contents
    they are NumericDate integers as defined in [RFC7519] (no fractional
    component) used directly as scalars (see Section 2.6), which makes
    them valid range-proof targets.  A presentation may then mark iat
-   and/or exp as COMMIT (see Section 4.3) and attach one or two bp-range
-   sub-proofs (see Section 4.4.2) to establish that the credential is
-   currently valid without disclosing the timestamps themselves.
+   and/or exp as COMMIT (see Section 4.3) and attach one or two sigma-
+   range sub-proofs (see Section 4.4.2) to establish that the credential
+   is currently valid without disclosing the timestamps themselves.
 
    For a real-world deployment, the credential type would fix a
    structural layout covering every optional attribute and every
@@ -788,35 +788,40 @@ Table of Contents
 
 4.4.2.  Range Proof Sub-Proof
 
-   Algorithm identifier:  bp-range (Bulletproofs over Pedersen
-      commitments [BBBP18])
+   Algorithm identifier:  sigma-range
 
    Inputs (in addition to the base sub-proof fields of Section 4.4): the
-   lower bound l and upper bound u (both JSON integers) and the encoded
-   Bulletproof in the proof field.  The i field MUST be a single-element
-   JSON array [idx] naming the message-vector index idx whose committed
-   value is range-checked.  The sub-proof attests that the message m_idx
-   committed by the core proof for index idx (see Section 4.3) satisfies
-   l <= m_idx < u, taking as its input the Pedersen commitment C_idx to
-   m_idx carried by the core proof.
+   lower bound l and upper bound u (both JSON integers).  The i field
+   MUST be a single-element JSON array [idx] naming the message-vector
+   index idx whose committed value is range-checked.  The sub-proof
+   attests that the message m_idx committed by the core proof for index
+   idx (see Section 4.3) satisfies l <= m_idx < u, taking as its input
+   the Pedersen commitment C_idx = m_idx * G + s_idx * H to m_idx
+   carried by the core proof.
 
-   The bounds MUST satisfy l < u, and implementations MUST reject bp-
+   The bounds MUST satisfy l < u, and implementations MUST reject sigma-
    range sub-proofs whose width exceeds u - l <= 2^64 unless a
    deployment profile explicitly permits a larger width.  The 2^64 bound
-   matches the natural Bulletproofs range for a single 64-bit limb
-   decomposition and accommodates NumericDate temporal claims
-   (Section 4.1 of [RFC7519]), whose maximum value is 2^63 - 1.  Both l
-   and u are arbitrary-precision JSON integers; implementations MUST
-   parse them as bigints rather than as IEEE-754 doubles.
+   accommodates NumericDate temporal claims (Section 4.1 of [RFC7519]),
+   whose maximum value is 2^63 - 1.  Both l and u are arbitrary-
+   precision JSON integers; implementations MUST parse them as bigints
+   rather than as IEEE-754 doubles.
 
    The construction operates in G1 of BLS12-381 using the same
-   commitment generators (G, H) as the core proof (see Section 5), so
-   the commitment carried by the core proof can be used directly as the
-   Bulletproof input.  Any additional generators, the transcript hash,
-   and the Fiat-Shamir domain separation are derived from the cipher-
-   suite identifier and are pinned by the concrete construction.
+   commitment generators (G, H) as the core proof (see Section 5).  It
+   instantiates the sigma-protocol range proof of Section 5.4 of
+   [I-D.ietf-privacypass-arc-crypto] (the MakeRangeProofHelper /
+   VerifyRangeProofHelper construction) against the Pedersen commitment
+   supplied by the core proof, shifted to the [0, w) range with w = u -
+   l.  The combined statement is realized as a proof of knowledge of the
+   preimage of a linear map and made non-interactive with the Fiat-
+   Shamir transform of [I-D.irtf-cfrg-fiat-shamir];
+   presentation_header_octets (see Section 4.4) is absorbed into the
+   Fiat-Shamir transcript.
 
-   [Editor's Note: TODO - select and describe concrete construction]
+   [Editor's Note: TODO - does it make sense to base on this or should
+   we use another construction?  Need to fully describe serialization
+   etc. as well]
 
 4.4.3.  Equality Proof Sub-Proof
 
@@ -878,12 +883,12 @@ Table of Contents
    message disclosure map: index 1 (family_name) is DISCLOSE, index 13
    (exp) is COMMIT, and all other indices are HIDE.  The core proof
    therefore carries a fresh Pedersen commitment to m_13.  The Holder
-   attaches one bp-range sub-proof (see Section 4.4.2) over index 13,
+   attaches one sigma-range sub-proof (see Section 4.4.2) over index 13,
    proving now <= exp < 2^63 for the Verifier-supplied current time now
    = 1779926400:
 
    {
-     "alg": "bp-range",
+     "alg": "sigma-range",
      "input": { "i": [13], "l": 1779926400, "u": 9223372036854775808 },
      "proof": "..."
    }
@@ -904,10 +909,10 @@ Table of Contents
    .
    ~TXVzdGVybWFubg~~~~~~~~~~~~
    .
-   <core proof>~<bp-range sub-proof>
+   <core proof>~<sigma-range sub-proof>
 
    The Verifier verifies the core proof, recovers the commitment to
-   m_13, recomputes now and the bounds, and checks the bp-range sub-
+   m_13, recomputes now and the bounds, and checks the sigma-range sub-
    proof against that commitment (see Section 4.4).  It learns
    family_name and that the credential is unexpired, but nothing else
    about the Holder's attributes, iat, or exp.
@@ -1032,7 +1037,7 @@ Table of Contents
       [I-D.irtf-cfrg-bbs-blind-signatures].
    *  Pedersen commitment generators: the commitments carried by the
       core proof for the COMMIT-marked indices, and consumed by sub-
-      proofs (e.g., bp-range Section 4.4.2), use the fixed commitment
+      proofs (e.g., sigma-range Section 4.4.2), use the fixed commitment
       generator pair (G, H) = (Y_1, Y_0), where (Y_0, Y_1) are the fixed
       points of G1 defined by CoreProofGen of
       [I-D.irtf-cfrg-bbs-blind-signatures] as (Y_0, Y_1) =
@@ -1184,9 +1189,9 @@ Table of Contents
 
    *  Change Controller: IETF.
 
-   *  Identifier: bp-range
+   *  Identifier: sigma-range
 
-   *  Description: Bulletproofs range proof over a committed scalar
+   *  Description: Sigma-protocol range proof over a committed scalar
       message
 
    *  Reference: This document, Section 4.4.2.
@@ -1205,15 +1210,6 @@ Table of Contents
 9.  References
 
 9.1.  Normative References
-
-   [BBBP18]   Bünz, B., Bootle, J., Boneh, D., Poelstra, A., Wuille, P.,
-              and G. Maxwell, "Bulletproofs: Short Proofs for
-              Confidential Transactions and More", Proceedings of the
-              2018 IEEE Symposium on Security and Privacy (S&P), pp.
-              315-334. Full version: IACR ePrint 2017/1066,
-              https://eprint.iacr.org/2017/1066.,
-              DOI 10.1109/SP.2018.00020, May 2018,
-              <https://doi.org/10.1109/SP.2018.00020>.
 
    [FIPS186-5]
               National Institute of Standards and Technology, "Digital
@@ -1241,6 +1237,13 @@ Table of Contents
               Progress, Internet-Draft, draft-ietf-oauth-sd-jwt-vc-16,
               24 April 2026, <https://datatracker.ietf.org/doc/html/
               draft-ietf-oauth-sd-jwt-vc-16>.
+
+   [I-D.ietf-privacypass-arc-crypto]
+              Yun, C., Wood, C. A., and A. F. Faz-Hernandez, "Anonymous
+              Rate-Limited Credentials Cryptography", Work in Progress,
+              Internet-Draft, draft-ietf-privacypass-arc-crypto-01, 2
+              March 2026, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-privacypass-arc-crypto-01>.
 
    [I-D.irtf-cfrg-bbs-blind-signatures]
               Kalos, V. and G. M. Bernstein, "Blind BBS Signatures",

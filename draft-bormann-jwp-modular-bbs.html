@@ -1504,7 +1504,7 @@ Where the credential type permits optional attributes, the corresponding payload
 
 </pre><a href="#section-2.4-5" class="pilcrow">¶</a>
 </div>
-<p id="section-2.4-6">The claims at indices 0 through 11 use <code>scalar</code> = false: their values are mapped to BBS messages via hash-to-scalar (see <a href="#message-derivation" class="auto internal xref">Section 2.5</a>). The temporal claims <code>iat</code> and <code>exp</code> (indices 12 and 13) use <code>scalar</code> = true: they are NumericDate integers as defined in <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> (no fractional component) used directly as scalars (see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>), which makes them valid range-proof targets. A presentation may then mark <code>iat</code> and/or <code>exp</code> as <code>COMMIT</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) and attach one or two <code>bp-range</code> sub-proofs (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) to establish that the credential is currently valid without disclosing the timestamps themselves.<a href="#section-2.4-6" class="pilcrow">¶</a></p>
+<p id="section-2.4-6">The claims at indices 0 through 11 use <code>scalar</code> = false: their values are mapped to BBS messages via hash-to-scalar (see <a href="#message-derivation" class="auto internal xref">Section 2.5</a>). The temporal claims <code>iat</code> and <code>exp</code> (indices 12 and 13) use <code>scalar</code> = true: they are NumericDate integers as defined in <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> (no fractional component) used directly as scalars (see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>), which makes them valid range-proof targets. A presentation may then mark <code>iat</code> and/or <code>exp</code> as <code>COMMIT</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) and attach one or two <code>sigma-range</code> sub-proofs (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) to establish that the credential is currently valid without disclosing the timestamps themselves.<a href="#section-2.4-6" class="pilcrow">¶</a></p>
 <p id="section-2.4-7">For a real-world deployment, the credential type would fix a structural layout covering every optional attribute and every maximum-length array slot, with absent slots filled by decoys (see <a href="#decoys" class="auto internal xref">Section 2.10</a>).<a href="#section-2.4-7" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1852,15 +1852,15 @@ Decoy values MUST be supplied for all optional claims that are not being populat
 <span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4.2-1">
             <dt id="section-4.4.2-1.1">Algorithm identifier:</dt>
             <dd style="margin-left: 1.5em" id="section-4.4.2-1.2">
-              <code>bp-range</code> (Bulletproofs over Pedersen commitments <span>[<a href="#BBBP18" class="cite xref">BBBP18</a>]</span>)<a href="#section-4.4.2-1.2" class="pilcrow">¶</a>
+              <code>sigma-range</code><a href="#section-4.4.2-1.2" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-4.4.2-2">Inputs (in addition to the base sub-proof fields of <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>): the lower bound <code>l</code> and upper bound <code>u</code> (both JSON integers) and the encoded Bulletproof in the <code>proof</code> field. The <code>i</code> field MUST be a single-element JSON array <code>[idx]</code> naming the message-vector index <code>idx</code> whose committed value is range-checked.
-The sub-proof attests that the message m_idx committed by the core proof for index <code>idx</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) satisfies <code>l &lt;= m_idx &lt; u</code>, taking as its input the Pedersen commitment <code>C_idx</code> to m_idx carried by the core proof.<a href="#section-4.4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.4.2-3">The bounds MUST satisfy <code>l &lt; u</code>, and implementations MUST reject <code>bp-range</code> sub-proofs whose width exceeds <code>u - l &lt;= 2^64</code> unless a deployment profile explicitly permits a larger width. The <code>2^64</code> bound matches the natural Bulletproofs range for a single 64-bit limb decomposition and accommodates NumericDate temporal claims (Section 4.1 of <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>), whose maximum value is <code>2^63 - 1</code>. Both <code>l</code> and <code>u</code> are arbitrary-precision JSON integers; implementations MUST parse them as bigints rather than as IEEE-754 doubles.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.4.2-4">The construction operates in G1 of BLS12-381 using the same commitment generators <code>(G, H)</code> as the core proof (see <a href="#cipher-suite" class="auto internal xref">Section 5</a>), so the commitment carried by the core proof can be used directly as the Bulletproof input. Any additional generators, the transcript hash, and the Fiat-Shamir domain separation are derived from the cipher-suite identifier and are pinned by the concrete construction.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.4.2-5">[Editor's Note: TODO - select and describe concrete construction]<a href="#section-4.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-2">Inputs (in addition to the base sub-proof fields of <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>): the lower bound <code>l</code> and upper bound <code>u</code> (both JSON integers). The <code>i</code> field MUST be a single-element JSON array <code>[idx]</code> naming the message-vector index <code>idx</code> whose committed value is range-checked.
+The sub-proof attests that the message m_idx committed by the core proof for index <code>idx</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) satisfies <code>l &lt;= m_idx &lt; u</code>, taking as its input the Pedersen commitment <code>C_idx = m_idx * G + s_idx * H</code> to m_idx carried by the core proof.<a href="#section-4.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-3">The bounds MUST satisfy <code>l &lt; u</code>, and implementations MUST reject <code>sigma-range</code> sub-proofs whose width exceeds <code>u - l &lt;= 2^64</code> unless a deployment profile explicitly permits a larger width. The <code>2^64</code> bound accommodates NumericDate temporal claims (Section 4.1 of <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>), whose maximum value is <code>2^63 - 1</code>. Both <code>l</code> and <code>u</code> are arbitrary-precision JSON integers; implementations MUST parse them as bigints rather than as IEEE-754 doubles.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-4">The construction operates in G1 of BLS12-381 using the same commitment generators <code>(G, H)</code> as the core proof (see <a href="#cipher-suite" class="auto internal xref">Section 5</a>). It instantiates the sigma-protocol range proof of Section 5.4 of <span>[<a href="#I-D.ietf-privacypass-arc-crypto" class="cite xref">I-D.ietf-privacypass-arc-crypto</a>]</span> (the <code>MakeRangeProofHelper</code> / <code>VerifyRangeProofHelper</code> construction) against the Pedersen commitment supplied by the core proof, shifted to the <code>[0, w)</code> range with <code>w = u - l</code>. The combined statement is realized as a proof of knowledge of the preimage of a linear map and made non-interactive with the Fiat-Shamir transform of <span>[<a href="#I-D.irtf-cfrg-fiat-shamir" class="cite xref">I-D.irtf-cfrg-fiat-shamir</a>]</span>; <code>presentation_header_octets</code> (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>) is absorbed into the Fiat-Shamir transcript.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-5">[Editor's Note: TODO - does it make sense to base on this or should we use another construction? Need to fully describe serialization etc. as well]<a href="#section-4.4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="equality-proof">
@@ -1900,10 +1900,10 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 
 </pre><a href="#section-4.5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.5-3">The Holder generates the core proof (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) with this per-message disclosure map: index 1 (<code>family_name</code>) is <code>DISCLOSE</code>, index 13 (<code>exp</code>) is <code>COMMIT</code>, and all other indices are <code>HIDE</code>. The core proof therefore carries a fresh Pedersen commitment to m_13. The Holder attaches one <code>bp-range</code> sub-proof (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) over index 13, proving <code>now &lt;= exp &lt; 2^63</code> for the Verifier-supplied current time <code>now</code> = 1779926400:<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.5-3">The Holder generates the core proof (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) with this per-message disclosure map: index 1 (<code>family_name</code>) is <code>DISCLOSE</code>, index 13 (<code>exp</code>) is <code>COMMIT</code>, and all other indices are <code>HIDE</code>. The core proof therefore carries a fresh Pedersen commitment to m_13. The Holder attaches one <code>sigma-range</code> sub-proof (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) over index 13, proving <code>now &lt;= exp &lt; 2^63</code> for the Verifier-supplied current time <code>now</code> = 1779926400:<a href="#section-4.5-3" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.5-4">
 <pre>{
-  "alg": "bp-range",
+  "alg": "sigma-range",
   "input": { "i": [13], "l": 1779926400, "u": 9223372036854775808 },
   "proof": "..."
 }
@@ -1918,11 +1918,11 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 .
 ~TXVzdGVybWFubg~~~~~~~~~~~~
 .
-&lt;core proof&gt;~&lt;bp-range sub-proof&gt;
+&lt;core proof&gt;~&lt;sigma-range sub-proof&gt;
 
 </pre><a href="#section-4.5-6" class="pilcrow">¶</a>
 </div>
-<p id="section-4.5-7">The Verifier verifies the core proof, recovers the commitment to m_13, recomputes <code>now</code> and the bounds, and checks the <code>bp-range</code> sub-proof against that commitment (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>). It learns <code>family_name</code> and that the credential is unexpired, but nothing else about the Holder's attributes, <code>iat</code>, or <code>exp</code>.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
+<p id="section-4.5-7">The Verifier verifies the core proof, recovers the commitment to m_13, recomputes <code>now</code> and the bounds, and checks the <code>sigma-range</code> sub-proof against that commitment (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>). It learns <code>family_name</code> and that the credential is unexpired, but nothing else about the Holder's attributes, <code>iat</code>, or <code>exp</code>.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="reconstructed-payload">
@@ -2018,7 +2018,7 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 </li>
           <li class="compact" id="section-5.2-1.5">Core proof: this profile invokes <code>CoreProofGen</code> and <code>CoreProofVerify</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> directly, with <code>commits_indexes</code> corresponding to the <code>COMMIT</code>-marked messages of the per-message disclosure map of <a href="#core-proof" class="auto internal xref">Section 4.3</a>. The resulting proof carries fresh Pedersen commitments to those messages, together with their proofs of correctness and their indices. Because <code>CoreProofGen</code> is not invoked as a subroutine of <code>BlindProofGen</code>, implementations MUST apply the <code>disclosed_indexes</code> and <code>commits_indexes</code> input validity checks called out in Section 7.1 of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>.<a href="#section-5.2-1.5" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-5.2-1.6">Pedersen commitment generators: the commitments carried by the core proof for the <code>COMMIT</code>-marked indices, and consumed by sub-proofs (e.g., <code>bp-range</code> <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>), use the fixed commitment generator pair <code>(G, H) = (Y_1, Y_0)</code>, where <code>(Y_0, Y_1)</code> are the fixed points of G1 defined by <code>CoreProofGen</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> as <code>(Y_0, Y_1) = BBS.create_generators("COM_DIS_" || api_id)</code>, with <code>api_id</code> set to the cipher suite identifier above. For every committed index <code>i</code>, the commitment has the form <code>C_i = m_i * G + s_i * H</code>, equivalently <code>C_i = Y_0 * s_i + Y_1 * m_i</code>, where <code>s_i</code> is the per-commitment blinding scalar sampled inside <code>CoreProofGen</code>.<a href="#section-5.2-1.6" class="pilcrow">¶</a>
+          <li class="compact" id="section-5.2-1.6">Pedersen commitment generators: the commitments carried by the core proof for the <code>COMMIT</code>-marked indices, and consumed by sub-proofs (e.g., <code>sigma-range</code> <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>), use the fixed commitment generator pair <code>(G, H) = (Y_1, Y_0)</code>, where <code>(Y_0, Y_1)</code> are the fixed points of G1 defined by <code>CoreProofGen</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> as <code>(Y_0, Y_1) = BBS.create_generators("COM_DIS_" || api_id)</code>, with <code>api_id</code> set to the cipher suite identifier above. For every committed index <code>i</code>, the commitment has the form <code>C_i = m_i * G + s_i * H</code>, equivalently <code>C_i = Y_0 * s_i + Y_1 * m_i</code>, where <code>s_i</code> is the per-commitment blinding scalar sampled inside <code>CoreProofGen</code>.<a href="#section-5.2-1.6" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-5.2-1.7">Per-message hash-to-scalar bypass: each message slot's <code>scalar</code> flag, as declared in <code>claims</code> (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>), determines whether the corresponding message is derived via hash-to-scalar (<code>scalar</code> = false) or is supplied directly as a scalar (<code>scalar</code> = true).<a href="#section-5.2-1.7" class="pilcrow">¶</a>
 </li>
@@ -2177,10 +2177,10 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
             <p id="section-8.3-6.4.1">Change Controller: IETF.<a href="#section-8.3-6.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-6.5">
-            <p id="section-8.3-6.5.1">Identifier: <code>bp-range</code><a href="#section-8.3-6.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.3-6.5.1">Identifier: <code>sigma-range</code><a href="#section-8.3-6.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-6.6">
-            <p id="section-8.3-6.6.1">Description: Bulletproofs range proof over a committed scalar message<a href="#section-8.3-6.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.3-6.6.1">Description: Sigma-protocol range proof over a committed scalar message<a href="#section-8.3-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-6.7">
             <p id="section-8.3-6.7.1">Reference: This document, <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>.<a href="#section-8.3-6.7.1" class="pilcrow">¶</a></p>
@@ -2214,10 +2214,6 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 <a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
-<dt id="BBBP18">[BBBP18]</dt>
-        <dd>
-<span class="refAuthor">Bünz, B.</span>, <span class="refAuthor">Bootle, J.</span>, <span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Poelstra, A.</span>, <span class="refAuthor">Wuille, P.</span>, and <span class="refAuthor">G. Maxwell</span>, <span class="refTitle">"Bulletproofs: Short Proofs for Confidential Transactions and More"</span>, <span class="refContent">Proceedings of the 2018 IEEE Symposium on Security and Privacy (S&amp;P), pp. 315-334. Full version: IACR ePrint 2017/1066, https://eprint.iacr.org/2017/1066.</span>, <span class="seriesInfo">DOI 10.1109/SP.2018.00020</span>, <time datetime="2018-05" class="refDate">May 2018</time>, <span>&lt;<a href="https://doi.org/10.1109/SP.2018.00020">https://doi.org/10.1109/SP.2018.00020</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="FIPS186-5">[FIPS186-5]</dt>
         <dd>
 <span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Digital Signature Standard (DSS)"</span>, <span class="seriesInfo">FIPS PUB 186-5</span>, <span class="seriesInfo">DOI 10.6028/NIST.FIPS.186-5</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.186-5">https://doi.org/10.6028/NIST.FIPS.186-5</a>&gt;</span>. </dd>
@@ -2233,6 +2229,10 @@ The sub-proof attests that the commitment <code>C_idx</code> carried by the core
 <dt id="I-D.ietf-oauth-sd-jwt-vc">[I-D.ietf-oauth-sd-jwt-vc]</dt>
         <dd>
 <span class="refAuthor">Terbu, O.</span>, <span class="refAuthor">Fett, D.</span>, and <span class="refAuthor">B. Campbell</span>, <span class="refTitle">"SD-JWT-based Verifiable Digital Credentials (SD-JWT VC)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-oauth-sd-jwt-vc-16</span>, <time datetime="2026-04-24" class="refDate">24 April 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc-16">https://datatracker.ietf.org/doc/html/draft-ietf-oauth-sd-jwt-vc-16</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-privacypass-arc-crypto">[I-D.ietf-privacypass-arc-crypto]</dt>
+        <dd>
+<span class="refAuthor">Yun, C.</span>, <span class="refAuthor">Wood, C. A.</span>, and <span class="refAuthor">A. F. Faz-Hernandez</span>, <span class="refTitle">"Anonymous Rate-Limited Credentials Cryptography"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-arc-crypto-01</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-crypto-01">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-arc-crypto-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.irtf-cfrg-bbs-blind-signatures">[I-D.irtf-cfrg-bbs-blind-signatures]</dt>
         <dd>
