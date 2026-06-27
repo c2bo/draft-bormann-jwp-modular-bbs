@@ -23,26 +23,26 @@ organization = "SPRIND GmbH"
 
 .# Abstract
 
-This document specifies a digital credential format that combines JSON Web Proofs (JWP) as a container format with the Blind BBS signature scheme and a modular sub-proof framework supporting committed disclosure. It re-uses the existing credential data model of SD-JWT Verifiable Credentials (SD-JWT VC) and aims to keep some level of compatibility with existing deployments.
+This document specifies a digital credential format combining JSON Web Proofs (JWP) as the container format with the Blind BBS signature scheme and a modular sub-proof framework supporting committed disclosure. It re-uses the credential data model of SD-JWT Verifiable Credentials (SD-JWT VC).
 
-The format supports selective disclosure of signed attributes, predicate sub-proofs (such as range, equality, and set-membership proofs) over undisclosed attributes, and optional device binding through a sub-proof of knowledge of an ECDSA P-256 signature under a device public key embedded in the BBS messages.
+The format supports selective disclosure of signed attributes, predicate sub-proofs (range, equality, set-membership) over undisclosed attributes, and optional device binding through an ECDSA P-256 proof of possession bound to a device public key embedded in the BBS messages.
 
 {mainmatter}
 
 # Introduction {#introduction}
 
-The BBS signature scheme as defined in [@!I-D.irtf-cfrg-bbs-signatures] is a multi-message signature (MMS) scheme: the signer produces a single signature over a vector of messages (m_0, ..., m_{n-1}) and a holder of the signature can prove, in zero knowledge, knowledge of a valid signature while disclosing only a subset of the messages.
+The BBS signature scheme [@!I-D.irtf-cfrg-bbs-signatures] is a multi-message signature scheme: the signer produces a single signature over a vector of messages `(m_0, ..., m_{n-1})`, and the Holder can prove knowledge of the signature in zero knowledge while disclosing only a subset of those messages.
 
-The Blind BBS Signatures extension [@!I-D.irtf-cfrg-bbs-blind-signatures] extends this scheme with Pedersen commitments to messages and defines blind signing and proof operations over them. This document uses the committed-message proof generation of that extension (`CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures]): at proof time the Holder marks each message as disclosed, hidden, or committed, and the resulting proof carries fresh Pedersen commitments to the committed messages so that those commitments can be reused as inputs to further proofs.
+The Blind BBS Signatures extension [@!I-D.irtf-cfrg-bbs-blind-signatures] adds Pedersen commitments to that scheme. In particular, its `CoreProofGen` operation lets the Holder mark each message as disclosed, hidden, or committed at proof time. The resulting proof carries fresh Pedersen commitments to the committed messages that can be used as public inputs to further proofs such as range proofs.
 
 This document defines a digital credential format that:
 
-- Uses JSON Web Proofs [@!I-D.ietf-jose-json-web-proof] as the container format for both issuance and presentation, with a new JSON Proof Algorithm [@!I-D.ietf-jose-json-proof-algorithms] profile based on Blind BBS.
-- Uses the committed-message proof generation of [@!I-D.irtf-cfrg-bbs-blind-signatures] as the core proof, so that fresh Pedersen commitments to undisclosed messages are carried within the core proof and used as inputs to sub-proofs.
-- Defines a sub-proof container that contains zero or more sub-proofs (e.g., range proofs, equality proofs, set-membership proofs) that are attached to the core proof via commitments
-- Optionally supports device binding to an ECDSA P-256 key by encoding the device public key into eight messages of the BBS signature vector (using a public key limb decomposition)
+- Uses JSON Web Proofs [@!I-D.ietf-jose-json-web-proof] as the container for both issuance and presentation, with a new JSON Proof Algorithm [@!I-D.ietf-jose-json-proof-algorithms] profile based on Blind BBS.
+- Uses `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures] as the core proof, exposing fresh Pedersen commitments to selected messages as public inputs for sub-proofs.
+- Defines a sub-proof container holding zero or more sub-proofs (range, equality, set-membership, ...), each bound to the core proof via commitments.
+- Optionally supports device binding to an ECDSA P-256 key by embedding the device public key into messages of the BBS signature vector.
 
-The design is informed by the modular architecture for MMS-based ZKP credentials proposed in [@TS14] and [@LSZ25], and re-uses the core data-model elements (like credential types, type metadata, claim metadata) from SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
+The design follows the modular architecture for MMS-based ZKP credentials of [@TS14] and [@LSZ25], and re-uses the data-model elements (credential types, type metadata, claim metadata) of SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
 ## Requirements Notation and Conventions
 
@@ -53,25 +53,21 @@ when, and only when, they appear in all capitals, as shown here.
 
 ## Terms and Definitions
 
-This document uses the Issuer-Holder-Verifier model and terminology as defined in Section 1 of [@!I-D.ietf-oauth-sd-jwt-vc].
+This document uses the Issuer-Holder-Verifier model and terminology of Section 1 of [@!I-D.ietf-oauth-sd-jwt-vc].
 
-Additional terminology used is:
-
-BBS:
-: The BBS signature scheme as specified in [@!I-D.irtf-cfrg-bbs-signatures].
+Additional terms used are:
 
 Core proof:
-: The zero-knowledge proof that establishes knowledge of a blind BBS signature on a message vector, with selective disclosure of a subset of messages and committed disclosure of others.
+: The zero-knowledge proof establishing knowledge of a blind BBS signature on a message vector, with selective disclosure of some messages and committed disclosure of others.
 
 Sub-proof:
-: A zero-knowledge proof, distinct from the core proof, that proves a predicate over a message committed in the core proof.
-  Examples include range proofs, equality proofs, set-membership proofs, and the ECDSA device-binding proof defined in this document.
+: A zero-knowledge proof, distinct from the core proof, that proves a predicate over a message committed in the core proof (e.g., range, equality, set membership, ECDSA device binding).
 
 Committed disclosure:
-: The disclosure of a commitment that corresponds to a signed message of the message vector.
+: Disclosure of a Pedersen commitment to a signed message rather than the message itself.
 
 Device binding:
-: A cryptographic mechanism that ties a credential presentation to possession of a private key held by the Holder, by requiring a fresh proof of possession of that key for every presentation.
+: A mechanism tying a credential presentation to possession of a Holder-controlled private key by requiring a fresh proof of possession for every presentation.
 
 # Data Model
 
@@ -81,59 +77,52 @@ This section specifies the credential and presentation data model.
 
 A credential is issued in the Issued Form (Section 6.1 of [@!I-D.ietf-jose-json-web-proof]) consisting of:
 
-1. An Issuer Header as defined in (Section 6.1.1 of [@!I-D.ietf-jose-json-web-proof])
-1. n Issuer Payloads as defined in (Section 6.1.2 of [@!I-D.ietf-jose-json-web-proof]).
-  The payload at position i (0 <= i < n) is the octet encoding of the credential attribute value at index i, as specified in (#message-derivation).
-1. An Issuer Proof (Section 6.1.3 of [@!I-D.ietf-jose-json-web-proof]) consisting of a single octet string carrying the blind BBS signature computed over `header_octets` (as the BBS `header` input) and the prepared scalar message vector `(m_0, ..., m_{n-1})` (see (#message-derivation), (#device-binding-header)).
+1. An Issuer Header (Section 6.1.1 of [@!I-D.ietf-jose-json-web-proof]) with the contents specified in (#issuer-header).
+1. `n` Issuer Payloads (Section 6.1.2 of [@!I-D.ietf-jose-json-web-proof]), where `n` is the length of the BBS message vector (see (#claims-mapping)). The Issuer Payload at position `i` is the octet string from which the scalar message m_i is derived per (#message-derivation).
+1. An Issuer Proof (Section 6.1.3 of [@!I-D.ietf-jose-json-web-proof]) carrying the blind BBS signature over `header_octets` and the message vector `(m_0, ..., m_{n-1})`.
 
-`header_octets` denotes the octet string carrying the Issuer Header as transmitted: the octets obtained by base64url-decoding the Issuer Header component of the Compact Serialization. Issuers, Holders, and Verifiers MUST use the octets as received and MUST NOT re-encode the header.
+`header_octets` is the Issuer Header as transmitted, i.e., the octets obtained by base64url-decoding the Issuer Header component of the Compact Serialization. All parties MUST use those octets as received and MUST NOT re-encode the header.
 
-The Issued Form is serialized using the Compact Serialization defined in (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]). Serialization of this profile under the CBOR Serialization (Section 7.2 of [@!I-D.ietf-jose-json-web-proof]) is (currently) out of scope.
+The Issued Form is serialized using the Compact Serialization (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]); CBOR Serialization is out of scope for this profile.
 
 ## Issuer Header {#issuer-header}
 
-The Issuer Header is a JWP Issuer Header as defined in (Section 6.1.1 of [@!I-D.ietf-jose-json-web-proof]) represented as a JSON object with the following Header Parameters.
+The Issuer Header is a JSON object with the following Header Parameters.
 
 `alg` (REQUIRED):
-: The Algorithm Header Parameter as defined in Section 5.2.1 of [@!I-D.ietf-jose-json-web-proof].
-  This document defines the JPA value `BBS-MOD` (see (#cipher-suite)), which corresponds to a cipher suite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`.
+: The Algorithm Header Parameter (Section 5.2.1 of [@!I-D.ietf-jose-json-web-proof]). This profile defines the JPA value `BBS-MOD` (see (#cipher-suite)).
 
 `vct` (string, REQUIRED):
 : The credential type identifier as defined in Section 3.2.2.1 of [@!I-D.ietf-oauth-sd-jwt-vc].
-  The associated type metadata applies to this credential format.
 
 `claims` (JSON object, REQUIRED):
-: A mapping from credential attribute names / claim names to their position in the message vector and whether each is hashed to a scalar or supplied directly as a scalar; see (#claims-mapping).
+: The mapping from claim names to message-vector positions and per-message encoding; see (#claims-mapping).
 
 `kb` (string, OPTIONAL):
-: The device-binding identifier specifying both the device public key type and its encoding into the BBS messages; see (#device-binding-header).
-  When absent, the credential is not device-bound and presentations of this credential MUST NOT include a key binding proof.
+: The device-binding identifier; see (#device-binding-header). When absent, the credential is not device-bound, and a presentation MUST NOT include a device-binding sub-proof.
 
-Temporal validity claims such as `exp`, `nbf`, `iat` MUST NOT appear as values in the Issuer Header. When present in a credential, they are carried as messages in the message vector and referenced via the `claims` Header Parameter - see (#temporal-claims).
+Temporal claims (`exp`, `nbf`, `iat`) MUST NOT appear as Issuer Header values; see (#temporal-claims).
 
-The JWP `iek` (Issuer Ephemeral Key), `hpk` (Holder Presentation Key), and `hpa` (Holder Presentation Algorithm) Header Parameters (Sections 5.2.5–5.2.7 of [@!I-D.ietf-jose-json-web-proof]) are not used by this profile.
+The JWP `iek`, `hpk`, and `hpa` Header Parameters (Sections 5.2.5–5.2.7 of [@!I-D.ietf-jose-json-web-proof]) are not used by this profile.
 
 ## Claims Mapping {#claims-mapping}
 
-The `claims` Header Parameter of the Issuer Header is a JSON object that mirrors the credential's attribute tree structurally. Leaf positions in the tree are replaced by an index annotation.
+`claims` mirrors the credential's attribute tree structurally; each leaf is replaced by an *index annotation*: a two-element JSON array `[i, scalar]`, where:
 
-An index annotation is a JSON array of exactly two elements:
+- `i` is the 0-based index of the leaf value in the message vector.
+- `scalar` is a boolean selecting how the leaf becomes the BBS message m_i:
+  - `false`: the leaf is encoded as octets and mapped to a scalar via the cipher suite's hash-to-scalar primitive (see (#message-derivation)).
+  - `true`: the leaf MUST be a JSON integer in `[0, r - 1]` (where `r` is the order of the BBS scalar field) and is used directly as m_i (see (#scalar-encoding)).
 
-- element 0: a non-negative integer `i` giving the 0-based index in the payload vector of the leaf value.
-- element 1: a boolean `scalar`. When `scalar` is `false`, the leaf value is first encoded to an octet string and then mapped to a scalar via the hash-to-scalar primitive of the cipher suite (see (#message-derivation)).
-  When `scalar` is `true`, the leaf value MUST itself be a scalar in the BBS scalar field and is used directly as the message - see (#scalar-encoding) for more details.
+Let `n` be the length of the message vector, and `N` the number of payload slots reserved for the device-key encoding (see (#device-binding-header); `N = 0` when `kb` is absent). Every index in `[N, n-1]` MUST appear in exactly one annotation in `claims`. Indices `[0, N-1]` MUST NOT appear in `claims`.
 
-Let `N` be the number of payload slots reserved for the device-key encoding as determined by the `kb` Header Parameter (see (#device-binding-header)), or 0 when `kb` is absent. Let `n` be the length of the message vector.
-Every index in the closed range `[N, n-1]` (i.e., every index that is not part of the device-key encoding) MUST appear in exactly one annotation in `claims`.
-Where the credential type permits optional attributes, the corresponding payload slot MUST be filled with a decoy message (see (#decoys)). Similarly, arrays SHOULD contain decoy messages to avoid fingerprinting based on the number of array elements.
-
-When a `kb` Header Parameter is present, the indices reserved for device-key encoding (indices 0 through `N - 1`) MUST NOT appear in `claims`.
+Optional attributes and unused array slots MUST be filled with decoy messages (see (#decoys)).
 
 ## Example: Issuance {#example-issuer-header}
 
 The examples in this and the following sections are non-normative.
 
-The Issuer starts from an SD-JWT VC style claim set [@!I-D.ietf-oauth-sd-jwt-vc]. This example uses the attributes of the example identity credential of that document:
+Starting from an SD-JWT VC-style claim set [@!I-D.ietf-oauth-sd-jwt-vc]:
 
 ~~~ json
 {
@@ -157,7 +146,7 @@ The Issuer starts from an SD-JWT VC style claim set [@!I-D.ietf-oauth-sd-jwt-vc]
 }
 ~~~
 
-The `vct` value becomes the `vct` Header Parameter and every other attribute becomes a leaf in the `claims` Header Parameter, with the nested `address` object mirrored per (#layout). No device binding is used (`kb` is absent), so `N = 0` and the fourteen claims occupy indices 0 through 13. Following (#temporal-claims), the `iat` and `exp` temporal claims are not Header Parameters but `claims` leaves carried as NumericDate scalars (`scalar` = true), so that a Verifier can create sub-proofs over them. The resulting Issuer Header is:
+`vct` becomes a Header Parameter; the other 14 attributes become leaves in `claims`, with `address` mirrored as a nested object. No device binding is used, so `N = 0` and the leaves occupy indices 0 through 13. The temporal claims `iat` and `exp` are carried as `scalar = true` leaves (see (#temporal-claims)) so that range sub-proofs can be attached. The resulting Issuer Header is:
 
 ~~~ json
 {
@@ -184,104 +173,92 @@ The `vct` value becomes the `vct` Header Parameter and every other attribute bec
 }
 ~~~
 
-The claims at indices 0 through 11 use `scalar` = false: their values are mapped to BBS messages via hash-to-scalar (see (#message-derivation)). The temporal claims `iat` and `exp` (indices 12 and 13) use `scalar` = true: they are NumericDate integers as defined in [@!RFC7519] (no fractional component) used directly as scalars (see (#scalar-encoding)), which makes them valid range-proof targets. A presentation may then mark `iat` and/or `exp` as `COMMIT` (see (#core-proof)) and attach one or two `sigma-range` sub-proofs (see (#range-proof)) to establish that the credential is currently valid without disclosing the timestamps themselves.
+Indices 0–11 use hash-to-scalar; indices 12–13 carry NumericDate integers ([@!RFC7519]) directly as scalars. A presentation can then mark `iat`/`exp` as `COMMIT` (see (#core-proof)) and attach `sigma-range` sub-proofs (see (#range-proof)) to prove validity without disclosing the timestamps.
 
-For a real-world deployment, the credential type would fix a structural layout covering every optional attribute and every maximum-length array slot, with absent slots filled by decoys (see (#decoys)).
+A real deployment would fix a structural layout covering every optional attribute and every maximum-length array slot, with absent slots filled by decoys (see (#decoys)).
 
 ## Message Derivation {#message-derivation}
 
 For an annotation `[i, false]` with leaf value `v`:
 
-1. Let `o` be the octet encoding of `v` that the Issuer carries as Issuer Payload i. This profile does not mandate a specific encoding of `v` to octets (for example, the UTF-8 octets of a string value) and the raw received payload values must be used by the Holder during presentation.
-1. Compute m_i = `hash_to_scalar(o, map_dst)` where `hash_to_scalar` is the BBS primitive of (#cipher-suite) and `map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"`, with `api_id` the Interface identifier of this profile defined in (#cipher-suite). This matches the per-message derivation that `BBS.messages_to_scalars` (Section 4.1.2 of [@!I-D.irtf-cfrg-bbs-signatures]) would apply to `o`.
+1. The Issuer chooses an octet encoding `o` of `v` (e.g., the UTF-8 octets of a string) and carries it as Issuer Payload `i`. This profile does not mandate a specific encoding; Holders MUST use the received payload octets as-is.
+1. m_i = `hash_to_scalar(o, map_dst)`, with `map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"` and `api_id` the Interface identifier of (#cipher-suite). This is the per-message derivation of `BBS.messages_to_scalars` (Section 4.1.2 of [@!I-D.irtf-cfrg-bbs-signatures]).
 
-For an annotation `[i, true]` with leaf value `v` (a JSON integer per (#scalar-encoding)):
+For an annotation `[i, true]` with leaf value `v`:
 
-1. Let `o` be the canonical decimal octet encoding of `v` per (#scalar-encoding), which the Issuer carries as Issuer Payload i.
-1. Set m_i to the integer denoted by `o`, interpreted as an element of the BBS scalar field.
+1. `o` is the canonical decimal octet encoding of `v` (see (#scalar-encoding)), carried as Issuer Payload `i`.
+1. m_i is the integer denoted by `o`, interpreted as an element of the BBS scalar field.
 
 ## Scalar Encoding {#scalar-encoding}
 
-A leaf with `scalar` = true MUST be a JSON number whose value is an integer in the range [0, r - 1], where r is the order of the BBS scalar field. Implementations MUST reject leaves with `scalar` = true that are not JSON integers or whose value lies outside of the allowed range.
+A leaf with `scalar = true` MUST be a JSON integer in `[0, r - 1]`, where `r` is the order of the BBS scalar field. Implementations MUST reject any other value.
 
-The Issuer Payload for such a value is the aforementioned JSON number itself.
+The Issuer Payload for such a leaf is the *canonical decimal octet encoding* of the integer: the ASCII octets of its base-10 representation, with no leading zeros (the single octet `0` for value zero) and no sign character.
 
-Future extensions MAY define additional scalar encodings (e.g., for fixed-point or string-keyed enumerations) provided that the encoding deterministically maps a JSON value to an element of [0, r - 1].
+Future extensions MAY define additional scalar encodings provided they deterministically map a JSON value to an element of `[0, r - 1]`.
 
 ## Temporal Claims {#temporal-claims}
 
-The JWT temporal claims `exp`, `nbf`, and `iat` (Section 4.1 of [@!RFC7519]) MUST NOT appear in the Issuer Header as values.
-When a credential type uses any of these claims, the corresponding NumericDate values MUST be carried as scalar messages in the message vector.
-Each such claim is declared as a leaf in `claims` (see (#claims-mapping)) with `scalar` = true and contributes one payload slot.
+The JWT temporal claims `exp`, `nbf`, and `iat` (Section 4.1 of [@!RFC7519]), when present in a credential, MUST be declared as `scalar = true` leaves in `claims` carrying their NumericDate values. They MUST NOT appear as Issuer Header values.
 
 ## Device Binding Header {#device-binding-header}
 
-When present, the `kb` Header Parameter of the Issuer Header is a string identifier specifying both the type of device public key used for device binding and how it is embedded in the BBS messages. This document defines the single value `ecdsa-p256-limb4-64` (the NIST P-256 curve, encoded as four 64-bit little-endian limbs per coordinate as defined below).
+When present, the `kb` Header Parameter is a string identifier selecting both the device public key type and its encoding into the BBS message vector. The reserved slots are always indices `[0, N-1]`, where `N` depends on the `kb` value. This document defines a single value: `ecdsa-p256-limb4-64`.
 
-Note: the `kb` parameter defined here identifies a *public-key encoding layout* for embedding into the BBS message vector. It is distinct from the SD-JWT "Key Binding JWT" mechanism (Section 4.3 of [@RFC9901]).
-The Holder proof of possession is conveyed by a sub-proof, not by a separate JWT. The choice of 4 64 bit limbs is a performance optimization to make the required public key reconstruction easier in the sub-proof.
+Note: `kb` here identifies a *public-key encoding layout*, not the SD-JWT "Key Binding JWT" mechanism (Section 4.3 of [@RFC9901]). The Holder proof of possession is conveyed by a sub-proof. Four 64-bit limbs were chosen to simplify the in-circuit public-key reconstruction.
 
-The value of `kb` fixes both the number of payload slots reserved for the device public key and their position: the reserved slots are the first N indices of the payload vector, i.e., indices 0 through N-1. Attribute messages declared in `claims` occupy indices N and above.
+For `kb = "ecdsa-p256-limb4-64"`, `N = 8` and:
 
-For `kb = "ecdsa-p256-limb4-64"`, N = 8 and the layout used to encode the P-256 public key is:
+- m_0..m_3 encode the x-coordinate of the device public key as four 64-bit little-endian limbs (m_0 least significant).
+- m_4..m_7 encode the y-coordinate the same way.
 
-- m_0, m_1, m_2, m_3 encode the x-coordinate of the device public key as four 64-bit limbs, with m_0 the least significant 64 bits.
-- m_4, m_5, m_6, m_7 encode the y-coordinate of the device public key in the same way.
+Each limb is encoded as if `scalar = true`: the Issuer Payload is its canonical decimal octet encoding (see (#scalar-encoding)).
 
-Each limb is treated as a scalar in [0, 2^64) and signed with the hash-to-scalar step bypassed (as if `scalar` = true). Each limb is the canonical decimal octet encoding (see (#scalar-encoding)).
-
-The Issuer MUST verify, before computing the message vector, that the device public key `(x, y)` is a valid point on P-256 [@!FIPS186-5]: both `x` and `y` MUST be integers in [0, p - 1] where p is the P-256 base field prime, `(x, y)` MUST satisfy the P-256 curve equation, and `(x, y)` MUST NOT be the point at infinity.
+The Issuer MUST verify that `(x, y)` is a valid non-identity P-256 point [@!FIPS186-5] before computing the message vector.
 
 ## Structural Layout {#layout}
 
-For claims that are JSON objects, `claims` mirrors the object structure unless the whole object should be encoded and disclosed in one message - in that case the whole object is JSON encoded and treated as a leaf in the structure.
+For object claims, `claims` either mirrors the object structure or treats the whole JSON-encoded object as a single leaf.
 
-For claims that are JSON arrays of bounded length, `claims` contains a JSON array of index annotations of the maximum length supported by the credential type. All index annotations of such an array SHOULD share the same `scalar` flag, so that every payload slot of the array uses the same encoding and the same decoy octets (see (#decoys)). Array entries beyond the actual array length present in the issued credential SHOULD be filled with decoys.
+For bounded-length array claims, `claims` contains a JSON array of index annotations sized to the credential type's maximum array length. All entries SHOULD share the same `scalar` flag (so that the same decoy octets apply to every slot, see (#decoys)). Unused entries SHOULD be filled with decoys.
 
-For claims that are optional (per the credential type's metadata), `claims` MUST contain an entry, and the corresponding payload slot MUST be filled with a decoy when the attribute is absent.
+For optional claims, `claims` MUST contain the entry, and the slot MUST be filled with a decoy when the attribute is absent.
 
 ## Decoys {#decoys}
 
-A decoy message is a payload slot that is reserved by the credential type's fixed structural layout but not in use for a specific issued credential.
-Decoy values MUST be supplied for all optional claims that are not being populated for a specific credential, and arrays SHOULD be padded with decoys to the maximum length declared by the credential type, so that the message-vector length and the `claims` structure do not vary with the specific credential contents.
+A decoy fills a payload slot reserved by the credential type's structural layout but not populated for a specific credential. Decoys keep the message-vector length and `claims` structure identical across all credentials of a given `vct`, so that Issuer Header disclosure does not narrow the anonymity set (see (#anonymity)).
 
-The purpose of decoys is to ensure that the Issuer Header and allocation of indices in the message vector is identical across the entire population of credentials of a given type, so that header disclosure does not narrow the anonymity set (see (#anonymity)).
-
-Every decoy slot in every credential MUST carry the same fixed scalar, derived once per cipher suite:
+Every decoy slot carries the same fixed scalar:
 
 ~~~
 m_decoy = hash_to_scalar("JWP-BBS-DECOY", map_dst)
 ~~~
 
-where `hash_to_scalar` and `map_dst` are as defined in (#message-derivation) and `"JWP-BBS-DECOY"` is the literal ASCII string.
+with `hash_to_scalar` and `map_dst` as defined in (#message-derivation).
 
-The Issuer Payload carried for a decoy slot depends on the `scalar` flag of that slot's `claims` annotation (see (#claims-mapping)), so that the same scalar `m_decoy` is recovered through (#message-derivation) in both cases:
+The Issuer Payload for a decoy slot depends on the slot's `scalar` flag so that running (#message-derivation) over it recovers `m_decoy`:
 
-- For a slot with `scalar = false`, the Issuer Payload MUST be the 13 ASCII octets of `"JWP-BBS-DECOY"`. The Holder recovers m_decoy by applying the `scalar = false` step of (#message-derivation), i.e., `hash_to_scalar` over those octets with the same `map_dst` as above.
-- For a slot with `scalar = true`, the Issuer Payload MUST be the canonical decimal octet encoding (per (#scalar-encoding)) of the integer m_decoy. The Holder recovers m_decoy by applying the `scalar = true` step of (#message-derivation).
+- `scalar = false`: the 13 ASCII octets of `"JWP-BBS-DECOY"`.
+- `scalar = true`: the canonical decimal octet encoding of `m_decoy` (see (#scalar-encoding)).
 
-Both encodings are fixed per cipher suite: the `scalar = false` decoy octets are the literal `"JWP-BBS-DECOY"` and are independent of the cipher suite, while the `scalar = true` decoy octets depend on the cipher suite via `m_decoy` and the order of its scalar field, and are computed once for the cipher suite identified by `alg`.
-
-A Verifier detects a disclosed decoy by byte-comparing the disclosed Presentation Payload to the precomputed decoy octets for the cipher suite of `alg` and the slot's `scalar` flag.
-
-This allows for detection of decoy payloads in cases where the presentation of a decoy value is necessary, e.g., a proof over all array members. Decoys SHOULD NOT be revealed unless explicitly required by the use-case.
+A Verifier detects a disclosed decoy by byte-comparing the disclosed Presentation Payload to these fixed octets. Decoys SHOULD NOT be revealed unless required by the use case (e.g., a proof over all array members).
 
 # Issuance
 
 ## Issuer Key Generation
 
-The Issuer key pair is a BBS key pair as specified in Section 3.4 of [@!I-D.irtf-cfrg-bbs-signatures], using the cipher suite of (#cipher-suite).
+The Issuer key pair is a BBS key pair (Section 3.4 of [@!I-D.irtf-cfrg-bbs-signatures]) using the cipher suite of (#cipher-suite).
 
 ## Credential Issuance
 
 To issue a credential:
 
 1. Construct the Issuer Header per (#issuer-header) and (#claims-mapping).
-1. Derive the message vector (m_0, ..., m_{n-1}) per (#message-derivation) and (#device-binding-header). Fill decoys per (#decoys).
-1. Compute the blind BBS signature over `header_octets` (as defined in (#issued-credential)) and the prepared scalar message vector `(m_0, ..., m_{n-1})`.
-1. Assemble the Issued Form (Section 6.1 of [@!I-D.ietf-jose-json-web-proof]) with the Issuer Header from step 1, n Issuer Payloads carrying (m_0, ..., m_{n-1}) in order, and an Issuer Proof equal to the blind BBS signature octets. Serialize per (#issued-credential).
+1. Derive the message vector `(m_0, ..., m_{n-1})` per (#message-derivation) and (#device-binding-header), filling decoys per (#decoys).
+1. Compute the blind BBS signature over `header_octets` and the message vector.
+1. Assemble and serialize the Issued Form per (#issued-credential).
 
-The following is a non-normative example of an issued Credential in compact form:
+A non-normative example of the Compact Serialization:
 
 ~~~
 <base64url(Issuer Header)>
@@ -291,162 +268,144 @@ The following is a non-normative example of an issued Credential in compact form
 <base64url(blind BBS signature)>
 ~~~
 
-Each `<m_i>` is the base64url-encoded Issuer Payload for index `i`: for `scalar` = false leaves, the octets of the attribute value (e.g., m_1 is the octets of "Mustermann"); for `scalar` = true leaves, the canonical decimal octets of the integer (e.g., m_13 is the octets `1786000000`).
+Each `<m_i>` is the base64url-encoded Issuer Payload for index `i` (e.g., m_1 is "Mustermann", m_13 is `1786000000`).
 
 ## Holder Verification
 
-Upon receiving an issued credential, the Holder verifies by:
+The Holder verifies an issued credential by:
 
-1. Parsing the Issued Form into the Issuer Header, Issuer Payloads, and Issuer Proof
-1. Verifying the blind BBS signature over `header_octets` and the prepared scalar message vector `(m_0, ..., m_{n-1})`. If verification fails, the credential MUST be rejected.
-1. For every claim declared with `scalar` = true in `claims` (see (#claims-mapping)), re-parsing the corresponding Issuer Payload per (#scalar-encoding) and rejecting the credential if the recovered integer is not in `[0, r - 1]`.
-1. If `kb` is present, the Holder repeats the P-256 validation of (#device-binding-header) on the point reconstructed from the limb messages, and rejects the credential if the validation fails or if the reconstructed point does not match the device public key the Holder controls. How the Holder obtains the corresponding device key pair (e.g., as part of an issuance request prior to receiving the credential) is out of scope of this profile.
+1. Parsing the Issued Form.
+1. Verifying the blind BBS signature over `header_octets` and the message vector. Reject on failure.
+1. For every `scalar = true` leaf, confirming the corresponding Issuer Payload decodes to an integer in `[0, r - 1]`.
+1. If `kb` is present, repeating the P-256 validation of (#device-binding-header) on the point reconstructed from the limb messages and confirming it matches the Holder's device public key. How the Holder obtains the corresponding device key pair is out of scope.
 
 # Presentation
 
 ## Presented Form {#presented-form}
 
-A presentation is a Presented Form as defined in (Section 6.2 of [@!I-D.ietf-jose-json-web-proof]) consisting of:
+A presentation is a Presented Form (Section 6.2 of [@!I-D.ietf-jose-json-web-proof]) consisting of:
 
-1. A Presentation Header as defined in (Section 6.2.1 of [@!I-D.ietf-jose-json-web-proof]) with the concrete structure being specified in (#presentation-header).
-1. The Issuer Header from issuance, presented as the same Header Parameter set with identical values. The core proof is bound to `header_octets` as defined in (#issued-credential); Verifiers obtain `header_octets` from the received Issuer Header component, using the octets as received.
-1. n Presentation Payloads (Section 6.2.2 of [@!I-D.ietf-jose-json-web-proof]). Disclosed positions carry the corresponding Issuer Payload octet string and undisclosed positions MUST be omitted as defined by the Compact Serialization (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]).
-1. A Presentation Proof (Section 6.2.4 of [@!I-D.ietf-jose-json-web-proof]) consisting of one or more octet strings. The first octet string is the encoded core proof (see (#core-proof)). Each subsequent octet string, if present, is the UTF-8 encoding of a JSON-serialized sub-proof object (see (#sub-proofs)), in any order. The Compact Serialization base64url-encodes each octet string of the Presentation Proof for transmission.
+1. A Presentation Header per (#presentation-header).
+1. The Issuer Header from issuance, byte-identical to the issued form.
+1. `n` Presentation Payloads (Section 6.2.2 of [@!I-D.ietf-jose-json-web-proof]): disclosed positions carry the corresponding Issuer Payload; undisclosed positions are omitted (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]).
+1. A Presentation Proof (Section 6.2.4 of [@!I-D.ietf-jose-json-web-proof]) consisting of one or more octet strings. The first is the encoded core proof (see (#core-proof)). Subsequent octet strings, if any, are UTF-8 JSON-serialized sub-proof objects (see (#sub-proofs)), in any order. The Compact Serialization base64url-encodes each octet string.
 
 ## Presentation Header {#presentation-header}
 
-The Presentation Header is a JWP Presentation Header (Section 6.2.1 of [@!I-D.ietf-jose-json-web-proof]) represented as a JSON object. It MUST contain the following Header Parameters:
+The Presentation Header is a JSON object containing at least:
 
 `nonce` (REQUIRED):
-: The Nonce Header Parameter as defined in Section 5.2.10 of [@!I-D.ietf-jose-json-web-proof].
+: Nonce Header Parameter (Section 5.2.10 of [@!I-D.ietf-jose-json-web-proof]).
 
 `aud` (REQUIRED):
-: The Audience Header Parameter as defined in Section 5.2.9 of [@!I-D.ietf-jose-json-web-proof].
+: Audience Header Parameter (Section 5.2.9 of [@!I-D.ietf-jose-json-web-proof]).
 
-`presentation_header_octets` denotes the octet string carrying the Presentation Header as transmitted: the octets obtained by base64url-decoding the Presentation Header component of the Compact Serialization. It MUST be bound into the core proof challenge (see (#core-proof)). Verifiers MUST use the octets as received and MUST NOT re-encode the header.
+`presentation_header_octets` is the Presentation Header as transmitted (the base64url-decoded Compact Serialization component). It is bound into the core proof challenge (see (#core-proof)). Verifiers MUST use the octets as received.
 
 ## Core Proof {#core-proof}
 
-The Holder generates the core proof by invoking `CoreProofGen`. At the profile level, the Holder first builds a per-message disclosure map that assigns each index `i` in `[N, n-1]` (with `N` as defined in (#claims-mapping)) one of `DISCLOSE`, `HIDE`, or `COMMIT`, subject to the following constraints:
+The Holder builds a per-message disclosure map assigning each index in `[N, n-1]` (where `N` is as in (#claims-mapping)) one of `DISCLOSE`, `HIDE`, or `COMMIT`:
 
-- The indices assigned `DISCLOSE` MUST be a subset of `[N, n-1]` (i.e., MUST NOT include any device-key indices, see (#device-binding-header)) and their values match the disclosed Presentation Payloads.
-- The indices assigned `COMMIT` MUST include every index referenced by any sub-proof attached to this presentation (see (#sub-proofs)). For each such index the proof carries a fresh Pedersen commitment to the corresponding message, together with its proof of correctness and its index, using the commitment generators fixed in (#cipher-suite).
-- All remaining indices MUST be assigned `HIDE`.
+- `DISCLOSE`: the message is revealed; its value MUST match the corresponding disclosed Presentation Payload.
+- `COMMIT`: a fresh Pedersen commitment to the message is carried in the proof. Every index referenced by a sub-proof (see (#sub-proofs)) MUST be marked `COMMIT`.
+- `HIDE`: all other indices in `[N, n-1]`. Device-key indices `[0, N-1]` are implicitly hidden.
 
-This map is translated into the `CoreProofGen` inputs as follows: `disclosed_indexes` is the set of indices marked `DISCLOSE`, `commits_indexes` is the set of indices marked `COMMIT`, and indices marked `HIDE` appear in neither set. The full set of `CoreProofGen` inputs is:
+The Holder generates the core proof by invoking `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures] with:
 
-- `PK`: the Issuer public key.
-- `signature`: the blind BBS signature recovered from the Issuer Proof of the issued credential.
-- `header`: `header_octets` as defined in (#issued-credential).
-- `ph`: `presentation_header_octets` (see (#presentation-header)), bound into the proof challenge so that the proof is non-malleable with respect to `nonce` and `aud`.
-- `messages`: the full message vector `(m_0, ..., m_{n-1})`.
-- `disclosed_indexes`: the indices marked `DISCLOSE` in the disclosure map above.
-- `commits_indexes`: the indices marked `COMMIT` in the disclosure map above.
+- `PK`: Issuer public key.
+- `signature`: blind BBS signature from the Issuer Proof.
+- `header`: `header_octets`.
+- `ph`: `presentation_header_octets` (binds `nonce` and `aud` into the challenge).
+- `messages`: `(m_0, ..., m_{n-1})`.
+- `disclosed_indexes`: indices marked `DISCLOSE`.
+- `commits_indexes`: indices marked `COMMIT`.
+- `api_id`: the cipher suite identifier of (#cipher-suite).
 
-The core proof establishes that:
+`CoreProofGen` returns `(proof, add_zkp_info)`. `add_zkp_info` contains, per committed index, the Pedersen commitment `C_i` and the blinding scalar `s_i`; the Holder retains it locally to build sub-proofs and MUST NOT transmit it. Only `proof` is carried as the first octet string of the Presentation Proof.
 
-- The Holder knows a blind BBS signature under the Issuer's public key on a message vector whose values at the disclosed indices match the disclosed Presentation Payloads.
-- For every committed index `i`, the commitment carried in the proof for `i` is a Pedersen commitment to the message at index `i` of the same message vector.
+The core proof establishes that the Holder knows a blind BBS signature under the Issuer's public key on a message vector whose disclosed-index values match the disclosed Presentation Payloads, and that each carried `C_i` commits to the message at index `i` of that vector.
 
-The Verifier verifies the core proof by invoking `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures], passing `PK`, the core proof, the generator set, `header_octets`, `presentation_header_octets`, and the disclosed scalar messages recovered from the disclosed Presentation Payloads per (#message-derivation), obtaining `header_octets` from the received Issuer Header and `presentation_header_octets` from the received Presentation Header, using the octets as received. On success, the Verifier recovers from the proof the committed indices and their Pedersen commitments, which are the inputs to the sub-proofs (see (#sub-proofs)).
+The Verifier verifies the core proof with `CoreProofVerify`, passing `PK`, the core proof, `header_octets`, `presentation_header_octets`, the disclosed scalar messages, and `api_id`. The disclosed and committed indices are recovered from the proof octets, not passed separately. On success the Verifier obtains the committed indices and their `C_i`, which feed into sub-proof verification (see (#sub-proofs)).
 
 ## Sub-Proofs {#sub-proofs}
 
-A sub-proof is a JSON object with the following members. Each sub-proof appears as an additional octet string in the Presentation Proof (see (#presented-form)), carrying the UTF-8 encoding of that JSON object.
+A sub-proof is a JSON object carried as an additional octet string of the Presentation Proof (see (#presented-form)) with the following members:
 
 `alg` (string, REQUIRED):
-: The sub-proof algorithm identifier registered in the Sub-Proof Algorithms registry (see (#iana)).
+: The sub-proof algorithm identifier from the Sub-Proof Algorithms registry (see (#iana)).
 
 `input` (JSON object, REQUIRED):
-: Public inputs to the sub-proof. The input MUST include:
+: Public inputs to the sub-proof. MUST contain `i`; MAY contain algorithm-specific members.
 
-- `i`: A non-empty JSON array of non-negative integers, giving the message-vector index (or indices) to which this sub-proof is bound. Every value MUST be a committed index of the core proof (i.e., a message marked `COMMIT` - see (#core-proof)), so that the core proof carries a commitment for it. Each sub-proof algorithm fixes the required length of `i` and the role of each entry.
-
-  Additional members are defined per sub-proof type.
+  `i` is a non-empty JSON array of message-vector indices, each of which MUST be a `COMMIT`-marked index of the core proof. Each algorithm fixes the length of `i` and the role of its entries.
 
 `proof` (string, REQUIRED):
-: The base64url [@!RFC4648] encoding of the sub-proof bytes, as specified by `alg`.
+: The base64url [@!RFC4648] encoding of the sub-proof bytes specified by `alg`.
 
-The Verifier MUST run the following validation steps for each sub-proof:
+For each sub-proof, the Verifier MUST confirm that every value in `i` is among the committed indices recovered from the core proof, then run the algorithm-specific verification routine against the corresponding `C_i`, `input`, and `proof`. A presentation referencing an uncommitted index MUST be rejected.
 
-1. For every index value in `i`, confirm that it appears among the committed indices recovered from the verified core proof.
-1. Obtain the commitment(s) for those indices from the verified core proof and pass them, together with the sub-proof's additional inputs and `proof`, to the verification routine defined for `alg`.
-
-A presentation that includes a sub-proof whose `i` references an index for which the core proof carries no commitment MUST be rejected.
-
-Sub-proof freshness is inherited from the core proof: for every committed index, the `CoreProofGen` operation of (#core-proof) MUST produce a freshly randomized Pedersen commitment `C_i` (with an independent blinding scalar `gamma` sampled per presentation), and the core proof's challenge MUST bind to `presentation_header_octets`.
-
-Algorithms whose proof object does not bind to `C_i` (for example, `ecdsa-p256-db`, which creates a proof of knowledge over an ECDSA signature) MUST establish freshness another way. The `ecdsa-p256-db` sub-proof does so by signing `db_msg` (see (#ecdsa-db)).
+Sub-proof freshness is inherited from the core proof: every `C_i` is randomized per presentation, and the core proof's challenge binds to `presentation_header_octets`. Sub-proof algorithms that include public material not derived from `C_i` (for example, the device ECDSA signature in `ecdsa-p256-db`) MUST bind that material to the current presentation by other means; `ecdsa-p256-db` does so via `db_msg` (see (#ecdsa-db)).
 
 ### ECDSA Device-Binding Sub-Proof {#ecdsa-db}
 
-This sub-proof MUST be present for any presentation of a device-bound credential where `kb = "ecdsa-p256-limb4-64"` in the Issuer Header, and MUST NOT be present otherwise.
+This sub-proof MUST be present whenever `kb = "ecdsa-p256-limb4-64"` and MUST NOT be present otherwise.
 
 Algorithm identifier:
 : `ecdsa-p256-db`
 
-Inputs:
+Inputs (beyond the base sub-proof fields): none. The `i` field MUST be `[0, 1, 2, 3, 4, 5, 6, 7]`, naming the eight indices that carry the device public-key limbs (see (#device-binding-header)).
 
-None - This sub-proof always uses the first 8 messages in the message vector to convey the public key information, hence no explicit input is required.
-
-The message signed by the device under `dpk` is not transmitted in the sub-proof object. It is fixed as the concatenation:
+The device-signed message is not transmitted; it is recomputed as:
 
 ~~~
 db_msg = "JWP-BBS-DB-CHAL" || presentation_header_octets
 ~~~
 
-where `"JWP-BBS-DB-CHAL"` is the literal ASCII string (15 octets) and `presentation_header_octets` is defined in (#presentation-header). The device signs `db_msg` with standard ECDSA-P256 (the ECDSA signing operation hashes `db_msg` with SHA-256 internally); implementations MUST pass `db_msg` to the ECDSA signing/verification routine as the message input, not as a pre-computed digest. Holders and Verifiers MUST compute `db_msg` from the Presentation Header rather than accepting it as an input.
-
-Binding `db_msg` to `presentation_header_octets` is sufficient for freshness: that octet string carries both the Verifier-supplied `nonce` and the target `aud` (see (#presentation-header)), so the same device signature cannot be replayed against a different Verifier or in a different protocol run. This is the same binding the core proof's challenge uses, so the ECDSA sub-proof and the core proof are bound to the same presentation context.
+where `"JWP-BBS-DB-CHAL"` is the 15-octet literal ASCII string. `db_msg` is passed to ECDSA as the raw message (not a pre-computed digest). Binding `db_msg` to `presentation_header_octets` carries `nonce` and `aud` and is therefore sufficient for freshness.
 
 The proof bytes encode a non-interactive zero-knowledge proof of knowledge of `(dpk, (r, s))` such that:
 
-1. The 8 commitments obtained from the core proof at the indices in `i` are Pedersen commitments (under the commitment generators `(G, H)` of (#cipher-suite)) to the 64-bit little-endian limbs of the x- and y-coordinates of `dpk`, in the layout fixed by `kb`.
+1. The 8 commitments at the indices in `i` open to the 64-bit limbs of `dpk` (in the layout of `kb`) under `(G, H)` (see (#cipher-suite)).
 2. `(r, s)` is a valid ECDSA P-256 signature on `db_msg` under `dpk`.
 
-\[Editor's Note: TODO - select and describe concrete mechanism]
+\[Editor's Note: TODO - select and describe concrete mechanism.]
 
-The Verifier accepts the sub-proof if and only if:
-
-1. The 8 indices in `i` all appear among the committed indices recovered from the verified core proof.
-2. The proof verifies, as a proof of the statement above against the 8 commitments obtained from the core proof and the locally recomputed `db_msg`, under the parameters of the concrete construction once specified.
+The Verifier accepts iff the 8 indices in `i` are all committed in the core proof and the sub-proof verifies against the 8 commitments and the locally recomputed `db_msg`.
 
 ### Range Proof Sub-Proof {#range-proof}
 
 Algorithm identifier:
 : `sigma-range`
 
-Inputs (in addition to the base sub-proof fields of (#sub-proofs)): the lower bound `l` and upper bound `u` (both JSON integers). The `i` field MUST be a single-element JSON array `[idx]` naming the message-vector index `idx` whose committed value is range-checked.
-The sub-proof attests that the message m_idx committed by the core proof for index `idx` (see (#core-proof)) satisfies `l <= m_idx < u`, taking as its input the Pedersen commitment `C_idx = m_idx * G + s_idx * H` to m_idx carried by the core proof.
+Inputs (beyond the base sub-proof fields): bounds `l` and `u` as JSON integers. The `i` field MUST be a single-element array `[idx]`. The sub-proof attests that m_idx, the message committed in the core proof at index `idx`, satisfies `l <= m_idx < u`.
 
-The bounds MUST satisfy `l < u`, and implementations MUST reject `sigma-range` sub-proofs whose width exceeds `u - l <= 2^64` unless a deployment profile explicitly permits a larger width. The `2^64` bound accommodates NumericDate temporal claims (Section 4.1 of [@!RFC7519]), whose maximum value is `2^63 - 1`. Both `l` and `u` are arbitrary-precision JSON integers; implementations MUST parse them as bigints rather than as IEEE-754 doubles.
+`l < u` and `u - l <= 2^64` MUST hold. The `2^64` ceiling accommodates NumericDate values (Section 4.1 of [@!RFC7519]). Implementations MUST parse `l` and `u` as bigints (not IEEE-754 doubles). A deployment profile MAY permit a larger width.
 
-The construction operates in G1 of BLS12-381 using the same commitment generators `(G, H)` as the core proof (see (#cipher-suite)). It instantiates the sigma-protocol range proof of Section 5.4 of [@!I-D.ietf-privacypass-arc-crypto] (the `MakeRangeProofHelper` / `VerifyRangeProofHelper` construction) against the Pedersen commitment supplied by the core proof, shifted to the `[0, w)` range with `w = u - l`. The combined statement is realized as a proof of knowledge of the preimage of a linear map and made non-interactive with the Fiat-Shamir transform of [@!I-D.irtf-cfrg-fiat-shamir]; `presentation_header_octets` (see (#sub-proofs)) is absorbed into the Fiat-Shamir transcript.
+The construction operates in BLS12-381 G1 against `C_idx`, using a sigma-protocol range proof made non-interactive via Fiat-Shamir [@!I-D.irtf-cfrg-fiat-shamir] with `presentation_header_octets` absorbed into the transcript.
 
-\[Editor's Note: TODO - does it make sense to base on this or should we use another construction? Need to fully describe serialization etc. as well]
+\[Editor's Note: TODO - select concrete construction (candidate: the sigma-protocol range proof of Section 5.4 of [@!I-D.ietf-privacypass-arc-crypto]) and pin serialization.]
 
 ### Equality Proof Sub-Proof {#equality-proof}
 
 Algorithm identifier:
 : `schnorr-eq`
 
-Inputs (in addition to the base sub-proof fields of (#sub-proofs)): the `i` field, which MUST be a single-element JSON array `[idx]` naming the message-vector index `idx` whose committed value is compared, and an external commitment `c_ext` (a base64url-encoded BLS12-381 G1 point).
-The sub-proof attests that the commitment `C_idx` carried by the core proof for index `idx` and the external commitment `c_ext` are Pedersen commitments to the same scalar, under the same generators `(G, H)` of (#cipher-suite).
+Inputs (beyond the base sub-proof fields):
 
+- `i`: a single-element array `[idx]`.
+- `c_ext`: a base64url-encoded BLS12-381 G1 point.
 
-It uses the `pedersen_commitment_dleq` statement of [@!I-D.irtf-cfrg-sigma-protocols] (Appendix A.5), realized as a proof of knowledge of the preimage of a linear map and made non-interactive with the Fiat-Shamir transform of [@!I-D.irtf-cfrg-fiat-shamir]. The `proof` field carries the resulting serialized sigma-protocol proof.
+The sub-proof attests that `C_idx` (from the core proof) and `c_ext` open to the same scalar under the generators `(G, H)` of (#cipher-suite). Cross-group equality is out of scope.
 
-This algorithm identifier is defined only for the case where `c_ext` is in the same group, and uses the same generators, as the core proof's Pedersen commitments. Cross-group equality (e.g., between a BLS12-381 G1 commitment and a commitment over a different elliptic curve) is out of scope.
+The construction is a Schnorr discrete-logarithm-equality (DLEQ) proof over BLS12-381 G1 with `(G, H)`, made non-interactive via Fiat-Shamir [@!I-D.irtf-cfrg-fiat-shamir] with `presentation_header_octets` absorbed into the transcript.
 
-The construction operates in G1 of BLS12-381 using the commitment generators `(G, H)` of (#cipher-suite) for both `C_idx` and `c_ext`, with `presentation_header_octets` (see (#sub-proofs)) absorbed into the Fiat-Shamir transcript. The protocol and instance identifiers (Sections 5 and 6 of [@!I-D.irtf-cfrg-sigma-protocols]) and any further domain separation are pinned by the concrete construction.
+\[Editor's Note: TODO - pin concrete construction (candidate: `pedersen_commitment_dleq` of [@!I-D.irtf-cfrg-sigma-protocols] Appendix A.5) and serialization.]
 
-\[Editor's Note: TODO - pin protocol / instance identifiers and serialization]
-
-The freshness of `C_idx` (see (#sub-proofs)) prevents replay of a stale `(C_idx, c_ext)` pair. Replay of a stale `c_ext` against a freshly committed `C_idx` is prevented only by the deployment's own binding of `c_ext` to the presentation context; Verifiers MUST therefore ensure that `c_ext` is associated with the current presentation (e.g., generated freshly per presentation, or delivered under a Verifier-supplied challenge bound to the presentation).
+`C_idx` is fresh per presentation, but `c_ext` is not. Verifiers MUST ensure `c_ext` is bound to the current presentation (e.g., freshly generated, or issued under a Verifier-supplied challenge); otherwise a stale `c_ext` could be replayed against a fresh `C_idx`.
 
 ## Example Presentation {#example-presentation}
 
-Continuing the example of (#example-issuer-header), a Verifier requests `family_name` and asks the Holder to prove the credential is unexpired without revealing `exp`. The Verifier supplies a fresh `nonce` and its own identifier as `aud`, which the Holder echoes in the Presentation Header:
+Continuing the example of (#example-issuer-header), a Verifier requests `family_name` and asks the Holder to prove `exp` is in the future without disclosing it. The Presentation Header:
 
 ~~~ json
 {
@@ -455,7 +414,7 @@ Continuing the example of (#example-issuer-header), a Verifier requests `family_
 }
 ~~~
 
-The Holder generates the core proof (see (#core-proof)) with this per-message disclosure map: index 1 (`family_name`) is `DISCLOSE`, index 13 (`exp`) is `COMMIT`, and all other indices are `HIDE`. The core proof therefore carries a fresh Pedersen commitment to m_13. The Holder attaches one `sigma-range` sub-proof (see (#range-proof)) over index 13, proving `now <= exp < 2^63` for the Verifier-supplied current time `now` = 1779926400:
+The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 13 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to m_13. The Holder attaches a `sigma-range` sub-proof over index 13 proving `now <= exp < 2^63` (with `now = 1779926400`):
 
 ~~~ json
 {
@@ -465,7 +424,7 @@ The Holder generates the core proof (see (#core-proof)) with this per-message di
 }
 ~~~
 
-In the Compact Serialization (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]), the Presented Form concatenates, separated by `.`: the base64url-encoded Presentation Header, the base64url-encoded Issuer Header, the Presentation Payloads, and the Presentation Proof. Only the `family_name` payload (index 1) is disclosed; the other thirteen slots are omitted (empty), leaving a run of `~` separators with the single disclosed value in position 1. The Presentation Proof is the core proof followed by the sub-proof object, joined with `~`:
+The Compact Serialization concatenates with `.`: Presentation Header, Issuer Header, Presentation Payloads, Presentation Proof. The disclosed `family_name` at index 1 is the only populated payload; the other thirteen slots are empty:
 
 ~~~
 <base64url(Presentation Header)>
@@ -477,25 +436,19 @@ In the Compact Serialization (Section 7.1 of [@!I-D.ietf-jose-json-web-proof]), 
 <core proof>~<sigma-range sub-proof>
 ~~~
 
-The Verifier verifies the core proof, recovers the commitment to m_13, recomputes `now` and the bounds, and checks the `sigma-range` sub-proof against that commitment (see (#sub-proofs)). It learns `family_name` and that the credential is unexpired, but nothing else about the Holder's attributes, `iat`, or `exp`.
+The Verifier verifies the core proof, recovers `C_13`, and checks the sub-proof against it. It learns `family_name` and that the credential has not expired.
 
 ## Reconstructed JSON Payload {#reconstructed-payload}
 
-After successfully verifying the core proof (see (#core-proof)) and any sub-proofs (see (#sub-proofs)), the Verifier MAY hand the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of [@RFC9901].
+After verifying the core proof and any sub-proofs, the Verifier MAY hand the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of [@RFC9901]:
 
-The reconstructed payload is built as follows:
+1. Start from `{ "vct": <vct from Issuer Header> }`.
+1. Walk `claims`. For each leaf at disclosed index `i`, set its value from the Presentation Payload (per (#message-derivation)) — except when the payload byte-equals the decoy octets for the leaf's `scalar` flag (see (#decoys)), in which case omit the leaf. Hidden and committed-but-not-disclosed leaves are omitted.
+1. Preserve the object/array structure of `claims` for surviving leaves. Array entries that were omitted do not appear, so reconstructed array indices may differ from `claims` annotations.
 
-1. Start from an empty JSON object and add the `vct` from the Issuer Header.
-1. Walk the `claims` Header Parameter (see (#claims-mapping)). For each leaf at index `i`:
-    - If `i` is among the disclosed indices recovered from the verified core proof:
-        - If the disclosed Presentation Payload at index `i` is byte-equal to the fixed decoy octets defined for the leaf's `scalar` flag (see (#decoys)), omit the leaf from the reconstructed object.
-        - Otherwise, set the leaf's value in the reconstructed object to the value decoded from the corresponding Presentation Payload (per (#message-derivation)).
-    - Otherwise, omit the leaf from the reconstructed object.
-1. Preserve the nested object and array structure of the `claims` Header Parameter for the leaves that remain. For an array attribute, the reconstructed payload contains only the surviving entries, in the same relative order as their corresponding `claims` annotations; omitted entries are not represented, so reconstructed array indices do not in general match the index annotations of `claims`.
+Predicates established by sub-proofs are not represented as leaf values. The Verifier MUST NOT infer values for omitted leaves from outside the proof.
 
-The reconstructed payload omits attributes that were hidden or committed but not disclosed; the Verifier MUST NOT infer values for these from outside the proof. Predicates established by sub-proofs over committed indices are not represented as concrete leaf values in this payload.
-
-For the example of (#example-presentation), in which only `family_name` is disclosed, the reconstructed JSON Payload is:
+For (#example-presentation), the reconstructed payload is:
 
 ~~~ json
 {
@@ -510,36 +463,24 @@ This document defines a single JPA cipher suite.
 
 ## Identifier
 
-The JPA Algorithm JSON Label is:
+JPA Algorithm JSON Label: `BBS-MOD`.
 
-~~~
-BBS-MOD
-~~~
-
-denoting the cipher suite identifier:
+Cipher suite identifier (also used as `api_id` for hash-to-scalar, generator derivation, and sub-proof domain separation):
 
 ~~~
 BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_
 ~~~
 
-`BBS-MOD` is the JPA value carried in the `alg` Header Parameter (Section 5.2.1 of [@!I-D.ietf-jose-json-web-proof]) of the Issuer Header. The cipher suite identifier above is used internally as the BBS Interface identifier (the `api_id` for hash-to-scalar and generator derivation), and as the root of the domain separation tags consumed by sub-proofs (see (#sub-proofs)).
-
-The cipher suite is distinct from:
-
-- the base BBS JPA identifier (`BBS` in Section 9.1.2.4 of [@!I-D.ietf-jose-json-proof-algorithms], corresponding to the BBS cipher suite identifier `BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_HM2S_`), because this profile uses the blind BBS Interface of [@!I-D.irtf-cfrg-bbs-blind-signatures] rather than the base BBS Interface; and
-- the base blind BBS Interface identifier `BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`, because this profile uses a profile-specific Interface identifier (with the `BBS-MOD_` prefix) so that BBS-layer hash-to-scalar and generator derivation are domain-separated from any other use of the blind BBS Interface under the same key.
-
-The `BBS-MOD` algorithm signals that this profile uses the committed-message proof generation of [@!I-D.irtf-cfrg-bbs-blind-signatures] at presentation time, exposes per-message hash-to-scalar bypass via the `scalar` flag in `claims`, and reserves the sub-proof attachment mechanism of (#sub-proofs).
+The `BBS-MOD_` prefix domain-separates this profile from both the base BBS JPA (`BBS` of Section 9.1.2.4 of [@!I-D.ietf-jose-json-proof-algorithms]) and the base blind BBS Interface (`BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`). It signals: committed-message proof generation, per-message hash-to-scalar bypass via `scalar`, and the sub-proof attachment mechanism of (#sub-proofs).
 
 ## Parameters
 
-- Signature scheme: this profile invokes the *core* operations of the blind BBS Interface of [@!I-D.irtf-cfrg-bbs-blind-signatures] directly, rather than the `BlindSign`/`VerifyBlindSign` entry points, so that the per-leaf `scalar` flag of (#claims-mapping) is honored. The blind BBS Interface is instantiated over the base BBS ciphersuite `BLS12-381-SHA-256` (Section 7.2.2 of [@!I-D.irtf-cfrg-bbs-signatures]), whose ciphersuite identifier is `BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_`. The Interface identifier used by this profile (the `api_id` for hash-to-scalar, generator derivation, and domain-separation tags) is the cipher suite identifier defined above, `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`; the `BBS-MOD_` prefix domain-separates this profile from the base blind BBS Interface at the BBS layer.
-- Elliptic curve: BLS12-381, G1 subgroup.
-- Hash-to-curve: SHA-256 SSWU random oracle as in [@!RFC9380], with the cipher-suite-specific domain separation tag derived from the Interface identifier above.
-- Hash-to-scalar: as defined for the BBS cipher suite, with domain separation tag derived from the Interface identifier above.
-- Core proof: this profile invokes `CoreProofGen` and `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] directly, with `commits_indexes` corresponding to the `COMMIT`-marked messages of the per-message disclosure map of (#core-proof). The resulting proof carries fresh Pedersen commitments to those messages, together with their proofs of correctness and their indices. Because `CoreProofGen` is not invoked as a subroutine of `BlindProofGen`, implementations MUST apply the `disclosed_indexes` and `commits_indexes` input validity checks called out in Section 7.1 of [@!I-D.irtf-cfrg-bbs-blind-signatures].
-- Pedersen commitment generators: the commitments carried by the core proof for the `COMMIT`-marked indices, and consumed by sub-proofs (e.g., `sigma-range` (#range-proof)), use the fixed commitment generator pair `(G, H) = (Y_1, Y_0)`, where `(Y_0, Y_1)` are the fixed points of G1 defined by `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures] as `(Y_0, Y_1) = BBS.create_generators("COM_DIS_" || api_id)`, with `api_id` set to the cipher suite identifier above. For every committed index `i`, the commitment has the form `C_i = m_i * G + s_i * H`, equivalently `C_i = Y_0 * s_i + Y_1 * m_i`, where `s_i` is the per-commitment blinding scalar sampled inside `CoreProofGen`.
-- Per-message hash-to-scalar bypass: each message slot's `scalar` flag, as declared in `claims` (see (#claims-mapping)), determines whether the corresponding message is derived via hash-to-scalar (`scalar` = false) or is supplied directly as a scalar (`scalar` = true).
+- **Curve / group**: BLS12-381, G1 subgroup.
+- **Underlying BBS ciphersuite**: `BLS12-381-SHA-256` (Section 7.2.2 of [@!I-D.irtf-cfrg-bbs-signatures]); hash-to-curve SHA-256 SSWU random oracle [@!RFC9380].
+- **Hash-to-scalar**: as in the underlying BBS ciphersuite, with domain separation derived from `api_id`.
+- **Core proof operations**: `CoreProofGen` / `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] invoked directly (not via `BlindProofGen`), so implementations MUST apply the input validity checks of Section 7.1 of that document.
+- **Pedersen commitment generators**: `(G, H) = (Y_1, Y_0)` where `(Y_0, Y_1) = BBS.create_generators(2, "COM_DIS_" || api_id)`. Every committed-index commitment has the form `C_i = m_i * G + s_i * H` with `s_i` sampled per presentation by `CoreProofGen`.
+- **Per-message hash-to-scalar bypass**: governed by each leaf's `scalar` flag (see (#claims-mapping)).
 
 # Security Considerations
 
@@ -551,21 +492,17 @@ The `BBS-MOD` algorithm signals that this profile uses the committed-message pro
 
 ## Issuer Header Correlation {#anonymity}
 
-The Issuer Header is presented in clear to the Verifier as part of the Presented Form (Section 6.2 of [@!I-D.ietf-jose-json-web-proof]). This can create a correlation factor unless the Header does not differ between different credentials of the same type.
+The Issuer Header is sent in clear to the Verifier. Any variation in it across Holders of the same `vct` narrows the anonymity set.
 
-Implementations SHOULD construct the Issuer Header so that it is identical across the entire population of credentials of the same `vct`, by:
+Implementations SHOULD make the Issuer Header byte-identical across the entire population of a `vct`, by:
 
-- Using a fixed layout for `claims` of each credential type, including all optional attributes, all maximum-length array slots, and a constant serialization.
-- Filling unused or absent attribute slots with decoys per (#decoys).
-- Carrying any per-credential metadata (issuance time, expiry, identifiers) only as messages in the message vector rather than in the Issuer Header.
-
-The byte-identicality requirement applies within a single JWP serialization. The `header_octets` bound by the BBS signature and the core proof are the Issuer Header octets as transmitted in that serialization (see (#issued-credential)), and Verifiers use the octets as received.
+- Fixing the `claims` layout (including all optional attributes and maximum-length array slots) with a constant serialization.
+- Filling unused slots with decoys per (#decoys).
+- Carrying per-credential metadata (issuance time, expiry, identifiers) as messages in the message vector, not as Header Parameters.
 
 ## Cipher Suite and Algorithm Identifiers
 
-The `alg` Header Parameter in the Issuer Header narrows the anonymity set whenever it varies across Holders of the same credential type. Implementations SHOULD use a single cipher suite across all Holders of a credential type.
-
-The `kb` Header Parameter has the same effect: presentations of device-bound and non-device-bound credentials of the same `vct` form separate anonymity sets, as do credentials using different `kb` values. Implementations SHOULD use a single `kb` value (or omit `kb` entirely) across the entire population of credentials of a given `vct`, and SHOULD NOT mix device-bound and non-device-bound credentials under the same `vct`.
+`alg` and `kb` likewise split the anonymity set when they vary across the population of a `vct`. Implementations SHOULD use a single `alg` and a single `kb` value (or omit `kb` entirely) across all credentials of a `vct`, and SHOULD NOT mix device-bound and non-device-bound credentials under the same `vct`.
 
 # IANA Considerations {#iana}
 
@@ -578,7 +515,7 @@ IANA is requested to register the following JSON Proof Algorithm in the "JSON We
 - Algorithm Name: BBS-MOD using SHA-256
 - Algorithm JSON Label: `BBS-MOD`
 - Algorithm CBOR Label: (to be assigned by IANA)
-- Algorithm Description: Corresponds to a cipher suite identifier of `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`. Uses the blind BBS Interface of [@!I-D.irtf-cfrg-bbs-blind-signatures] and extends the base BBS JPA with its committed-message proof generation, per-message hash-to-scalar bypass via the `scalar` flag, and the sub-proof attachment mechanism of (#sub-proofs).
+- Algorithm Description: Blind BBS over BLS12-381 with `CoreProofGen`-based committed-message proofs, the per-message `scalar` flag, and the sub-proof attachment mechanism of (#sub-proofs). Cipher suite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`.
 - Algorithm Usage Location(s): Issued, Presented
 - JWP Implementation Requirements: Optional
 - Change Controller: IETF
@@ -596,7 +533,7 @@ IANA is requested to register the following Header Parameters in the "JSON Web P
 - Specification Document(s): (#claims-mapping) of this document.
 
 - Header Parameter Name: `kb`
-- Header Parameter Description: Device public key encoding identifier for BBS-based device binding. Identifies both the public key type and the layout of its encoding into the BBS message vector.
+- Header Parameter Description: Identifier for the device public-key type and its encoding layout in the BBS message vector.
 - Header Parameter Usage Location(s): Issued, Presented
 - Change Controller: IETF
 - Specification Document(s): (#device-binding-header) of this document.
@@ -605,16 +542,11 @@ This document does not register `vct`; its registration is requested by [@!I-D.i
 
 ## Sub-Proof Algorithms Registry
 
-IANA is requested to create a new registry titled "Sub-Proof Algorithms" with the following structure and policy (TODO).
+IANA is requested to create a new "Sub-Proof Algorithms" registry.
 
-Allocation policy: Specification Required ([@!RFC8126]). The designated experts SHOULD verify that the specification pins the underlying group, generators, transcript hash, and Fiat-Shamir domain separation, and that the sub-proof is bound to a commitment attested by the core proof per (#sub-proofs).
+Allocation policy: Specification Required ([@!RFC8126]). Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and Fiat-Shamir domain separation, and that the sub-proof is bound to a commitment attested by the core proof per (#sub-proofs).
 
-Registry fields:
-
-- Identifier: a string used as the value of the `alg` member of a sub-proof object (#sub-proofs).
-- Description: short description.
-- Reference: a stable specification.
-- Change Controller.
+Registry fields: Identifier (the `alg` value of a sub-proof object), Description, Reference, Change Controller.
 
 Initial entries:
 
@@ -624,7 +556,7 @@ Initial entries:
 - Change Controller: IETF.
 
 - Identifier: `sigma-range`
-- Description: Sigma-protocol range proof over a committed scalar message
+- Description: Sigma-protocol range proof over a committed scalar message.
 - Reference: This document, (#range-proof).
 - Change Controller: IETF.
 
