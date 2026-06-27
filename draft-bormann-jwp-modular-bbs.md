@@ -346,6 +346,8 @@ For each sub-proof, the Verifier MUST confirm that every value in `i` is among t
 
 Sub-proof freshness is inherited from the core proof: every `C_i` is randomized per presentation, and the core proof's challenge binds to `presentation_header_octets`. Sub-proof algorithms that include public material not derived from `C_i` (for example, the device ECDSA signature in `ecdsa-p256-db`) MUST bind that material to the current presentation by other means; `ecdsa-p256-db` does so via `db_msg` (see (#ecdsa-db)).
 
+Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of [@!I-D.irtf-cfrg-bbs-signatures]: BLS12-381 G1 points are serialized in their compressed form, scalars as 32-byte big-endian integers, and integer lengths are encoded as `I2OSP(int, 8)`. The `serialize(...)` notation used in (#range-proof) and (#equality-proof) denotes the concatenation of these per-element encodings.
+
 ### ECDSA Device-Binding Sub-Proof {#ecdsa-db}
 
 This sub-proof MUST be present whenever `kb = "ecdsa-p256-limb4-64"` and MUST NOT be present otherwise.
@@ -379,11 +381,46 @@ Algorithm identifier:
 
 Inputs (beyond the base sub-proof fields): bounds `l` and `u` as JSON integers. The `i` field MUST be a single-element array `[idx]`. The sub-proof attests that m_idx, the message committed in the core proof at index `idx`, satisfies `l <= m_idx < u`.
 
-`l < u` and `u - l <= 2^64` MUST hold. The `2^64` ceiling accommodates NumericDate values (Section 4.1 of [@!RFC7519]). Implementations MUST parse `l` and `u` as bigints (not IEEE-754 doubles). A deployment profile MAY permit a larger width.
+`l < u`, `u - l >= 2`, and `u - l <= 2^64` MUST hold. The `2^64` ceiling accommodates NumericDate values (Section 4.1 of [@!RFC7519]); the lower bound rules out single-value ranges, for which the construction is degenerate. Implementations MUST parse `l` and `u` as bigints (not IEEE-754 doubles). A deployment profile MAY permit a larger width.
 
-The construction operates in BLS12-381 G1 against `C_idx`, using a sigma-protocol range proof made non-interactive via Fiat-Shamir [@!I-D.irtf-cfrg-fiat-shamir] with `presentation_header_octets` absorbed into the transcript.
+The construction operates in BLS12-381 G1 against `C_idx` and follows the sigma-protocol range proof of Section 5.5 of [@!I-D.ietf-privacypass-arc-crypto] (linearized bit decomposition with a homomorphic linkage to `C_idx`):
 
-\[Editor's Note: TODO - select concrete construction (candidate: the sigma-protocol range proof of Section 5.4 of [@!I-D.ietf-privacypass-arc-crypto]) and pin serialization.]
+- Let `k` and `(base[0], ..., base[k-1])` be the outputs of `ComputeBases(u - l)` of [@!I-D.ietf-privacypass-arc-crypto] §5.5. The Holder writes `m_idx - l = sum_{j=0}^{k-1} b[j] * base[j]` with each `b[j]` constrained to `{0, 1}`.
+- For each `j` in `[0, k-1]`, the Holder samples blinding scalars `s[j]` and `s2[j]` and forms the bit commitment `D[j] = b[j] * G + s[j] * H` over `(G, H)` of (#cipher-suite). The Holder then proves, in a single batched Schnorr step, knowledge of `(b[j], s[j], s2[j])` such that `D[j] = b[j] * G + s[j] * H` and `D[j] = b[j] * D[j] + s2[j] * H` (the linearized bit constraint), producing per-bit Schnorr commitments `T1[j]` and `T2[j]` from fresh per-bit random scalars.
+- The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SIGMA_RANGE_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite). The transcript is:
+
+  ~~~
+  serialize(G, H, C_idx, l, u)
+    || I2OSP(k, 8)
+    || serialize(base[0], ..., base[k-1])
+    || serialize(D[0], ..., D[k-1])
+    || serialize(T1[0], T2[0], ..., T1[k-1], T2[k-1])
+    || I2OSP(len(presentation_header_octets), 8)
+    || presentation_header_octets
+  ~~~
+
+  with `serialize` as defined in (#sub-proofs); `l` and `u` are serialized as 32-byte big-endian scalars.
+
+- Per-bit responses are `z_b[j] = r_b[j] + c * b[j]`, `z_s[j] = r_s[j] + c * s[j]`, `z_s2[j] = r_s2[j] + c * s2[j]`, where `r_b[j]`, `r_s[j]`, `r_s2[j]` are the fresh random scalars used for `T1[j]` and `T2[j]`.
+
+Wire format (sub-proof bytes, before base64url encoding):
+
+~~~
+I2OSP(k, 8)
+  || compressed_D[0] || ... || compressed_D[k-1]
+  || c
+  || z_b[0] || z_s[0] || z_s2[0]
+  || ...
+  || z_b[k-1] || z_s[k-1] || z_s2[k-1]
+~~~
+
+where each `compressed_D[j]` is the compressed BLS12-381 G1 encoding of `D[j]`, `c` is a 32-byte big-endian scalar, and each response is likewise a 32-byte big-endian scalar (`3 * k` responses, `c` plus `3 * k` scalars in total).
+
+The Verifier rejects the sub-proof unless, in addition to recomputing each `T1[j], T2[j]` from the responses and `c` and recomputing the challenge from the transcript above, the homomorphic linkage check holds:
+
+~~~
+sum_{j=0}^{k-1} base[j] * D[j] == C_idx - l * G
+~~~
 
 ### Equality Proof Sub-Proof {#equality-proof}
 
@@ -397,9 +434,32 @@ Inputs (beyond the base sub-proof fields):
 
 The sub-proof attests that `C_idx` (from the core proof) and `c_ext` open to the same scalar under the generators `(G, H)` of (#cipher-suite). Cross-group equality is out of scope.
 
-The construction is a Schnorr discrete-logarithm-equality (DLEQ) proof over BLS12-381 G1 with `(G, H)`, made non-interactive via Fiat-Shamir [@!I-D.irtf-cfrg-fiat-shamir] with `presentation_header_octets` absorbed into the transcript.
+The construction is a 3-DL Schnorr discrete-logarithm-equality (DLEQ) proof over BLS12-381 G1 with `(G, H)`, with witness `(m, s_1, s_2)` such that:
 
-\[Editor's Note: TODO - pin concrete construction (candidate: `pedersen_commitment_dleq` of [@!I-D.irtf-cfrg-sigma-protocols] Appendix A.5) and serialization.]
+~~~
+C_idx = m * G + s_1 * H
+c_ext = m * G + s_2 * H
+~~~
+
+The Holder samples fresh random scalars `(r_m, r_s1, r_s2)` and computes Schnorr commitments `T_1 = r_m * G + r_s1 * H` and `T_2 = r_m * G + r_s2 * H`. The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SCHNORR_EQ_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite). The transcript is:
+
+~~~
+serialize(G, H, C_idx, c_ext, T_1, T_2)
+  || I2OSP(len(presentation_header_octets), 8)
+  || presentation_header_octets
+~~~
+
+with `serialize` as defined in (#sub-proofs). Responses are `z_m = r_m + c * m`, `z_s1 = r_s1 + c * s_1`, `z_s2 = r_s2 + c * s_2`.
+
+Wire format (sub-proof bytes, before base64url encoding):
+
+~~~
+c || z_m || z_s1 || z_s2
+~~~
+
+four 32-byte big-endian scalars, 128 bytes total.
+
+The Verifier recomputes `T_1 = z_m * G + z_s1 * H - c * C_idx` and `T_2 = z_m * G + z_s2 * H - c * c_ext`, reconstructs the transcript above with these `T_1` and `T_2`, and rejects the sub-proof unless the recomputed challenge equals the `c` carried in the wire format.
 
 `C_idx` is fresh per presentation, but `c_ext` is not. Verifiers MUST ensure `c_ext` is bound to the current presentation (e.g., freshly generated, or issued under a Verifier-supplied challenge); otherwise a stale `c_ext` could be replayed against a fresh `C_idx`.
 
@@ -481,6 +541,8 @@ The `BBS-MOD_` prefix domain-separates this profile from both the base BBS JPA (
 - **Core proof operations**: `CoreProofGen` / `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] invoked directly (not via `BlindProofGen`), so implementations MUST apply the input validity checks of Section 7.1 of that document.
 - **Pedersen commitment generators**: `(G, H) = (Y_1, Y_0)` where `(Y_0, Y_1) = BBS.create_generators(2, "COM_DIS_" || api_id)`. Every committed-index commitment has the form `C_i = m_i * G + s_i * H` with `s_i` sampled per presentation by `CoreProofGen`.
 - **Per-message hash-to-scalar bypass**: governed by each leaf's `scalar` flag (see (#claims-mapping)).
+
+The base BBS `KeyGen`, `Sign`, and `Verify` operations of this profile use the BBS ciphersuite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_`; the BBS draft's default `api_id = ciphersuite_id || "H2G_HM2S_"` is NOT used. All base-BBS operations are parameterized by the `api_id` defined above (carrying the `BLIND_H2G_HM2S_` suffix), so that `key_dst` and other domain-separation tags are derived deterministically across implementations.
 
 # Security Considerations
 
