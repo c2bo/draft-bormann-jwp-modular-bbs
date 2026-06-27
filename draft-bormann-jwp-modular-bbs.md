@@ -416,7 +416,7 @@ C_idx = m * G + s_1 * H
 c_ext = m * G + s_2 * H
 ~~~
 
-The Holder samples fresh random scalars `(r_m, r_s1, r_s2)` and computes Schnorr commitments `T_1 = r_m * G + r_s1 * H` and `T_2 = r_m * G + r_s2 * H`. The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SCHNORR_EQ_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite). 
+The Holder samples fresh random scalars `(r_m, r_s1, r_s2)` and computes Schnorr commitments `T_1 = r_m * G + r_s1 * H` and `T_2 = r_m * G + r_s2 * H`. The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SCHNORR_EQ_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite).
 
 \[Editor's Note: describe wire format of proof]
 
