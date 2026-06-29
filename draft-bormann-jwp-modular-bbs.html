@@ -7,7 +7,7 @@
 <title>BBS and Modular Sub-proofs with JSON Web Proofs</title>
 <meta content="Christian Bormann" name="author">
 <meta content="
-       This document defines a digital credential format. JSON Web Proofs (JWP) provide the container and Blind BBS Signatures provide the signature scheme. On top of that base it adds a modular framework for attaching zero-knowledge sub-proofs to signed attributes that are not disclosed. A Holder can disclose some attributes directly and prove predicates such as range or equality over the ones it keeps hidden. A credential can also be bound to an ECDSA P-256 device key. The credential type and metadata model are taken from SD-JWT VC  . 
+       This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs to signed but undisclosed attributes that allow a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keeps hidden. A credential can additionally be bound to an ECDSA P-256 device key. The credential metadata and type model follow SD-JWT VC  . 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="zero-knowledge proofs" name="keyword">
@@ -1051,7 +1051,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Bormann</td>
-<td class="center">Expires 30 December 2026</td>
+<td class="center">Expires 31 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1064,12 +1064,12 @@ svg {
 <dd class="internet-draft">draft-bormann-jwp-modular-bbs-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-28" class="published">28 June 2026</time>
+<time datetime="2026-06-29" class="published">29 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-30">30 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-31">31 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1082,7 +1082,7 @@ svg {
 <h1 id="title">BBS and Modular Sub-proofs with JSON Web Proofs</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines a digital credential format. JSON Web Proofs (JWP) provide the container and Blind BBS Signatures provide the signature scheme. On top of that base it adds a modular framework for attaching zero-knowledge sub-proofs to signed attributes that are not disclosed. A Holder can disclose some attributes directly and prove predicates such as range or equality over the ones it keeps hidden. A credential can also be bound to an ECDSA P-256 device key. The credential type and metadata model are taken from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs to signed but undisclosed attributes that allow a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keeps hidden. A credential can additionally be bound to an ECDSA P-256 device key. The credential metadata and type model follow SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1114,7 +1114,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 30 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1299,21 +1299,13 @@ svg {
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
-                <p id="section-toc.1-1.10.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-device-public-key-limb-enco" class="internal xref">Device Public Key Limb Encoding</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1324,20 +1316,20 @@ svg {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">The BBS signature scheme <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span> is a multi-message signature (MMS) scheme: the signer produces a single signature over a vector of messages m<em>0 through m</em>(n-1), and the Holder can prove knowledge of the signature in zero knowledge while disclosing only a subset of those messages.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">The Blind BBS Signatures extension <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> adds Pedersen commitments to the scheme. Its <code>CoreProofGen</code> operation lets the Holder mark each message as disclosed, hidden, or committed at proof time, and the resulting proof carries a fresh Pedersen commitment for every committed message. Those commitments become public inputs to further proofs over the values they hide.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">This document defines a digital credential format that:<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-1">The BBS signature scheme <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span> is a multi-message signature (MMS) scheme where the signer produces a single signature over a vector of messages m<em>0 through m</em>(n-1), and the Holder can prove knowledge of the signature in zero knowledge while disclosing only a chosen subset of those messages.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The Blind BBS Signatures extension <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span> adds Pedersen commitments to the scheme that allow the Holder to mark each message as disclosed, hidden, or committed at proof time, and the resulting proof carries a fresh Pedersen commitment for every committed message. Those commitments become public inputs to further proofs over the values they hide.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Building on those core building lbocks, this document defines a digital credential format that:<a href="#section-1-3" class="pilcrow">¶</a></p>
 <ul class="compact">
-<li class="compact" id="section-1-4.1">Uses JSON Web Proofs <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span> as the container for both issuance and presentation, and defines a JSON Proof Algorithm <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span> profile based on Blind BBS Signatures.<a href="#section-1-4.1" class="pilcrow">¶</a>
+<li class="compact" id="section-1-4.1">Uses JSON Web Proofs <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span> as the serialization/container format for both issuance and presentation, and defines a JSON Proof Algorithm <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span> profile based on Blind BBS Signatures.<a href="#section-1-4.1" class="pilcrow">¶</a>
 </li>
         <li class="compact" id="section-1-4.2">Builds its core proof on <code>CoreProofGen</code> of <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>, exposing fresh Pedersen commitments to selected messages as public inputs for sub-proofs.<a href="#section-1-4.2" class="pilcrow">¶</a>
 </li>
         <li class="compact" id="section-1-4.3">Defines a sub-proof container carrying optional sub-proofs, each bound to the core proof via a Pedersen commitment.<a href="#section-1-4.3" class="pilcrow">¶</a>
 </li>
-        <li class="compact" id="section-1-4.4">Can bind a credential to an ECDSA P-256 device key by encoding that key as messages in the BBS signature vector.<a href="#section-1-4.4" class="pilcrow">¶</a>
+        <li class="compact" id="section-1-4.4">Optionally bind a credential to an ECDSA P-256 device key by encoding that key as messages in the BBS signature vector.<a href="#section-1-4.4" class="pilcrow">¶</a>
 </li>
       </ul>
-<p id="section-1-5">The modular architecture builds on <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> and <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>. Its credential type and metadata model come from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-5">This modular architecture builds on prior work <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> and <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>, and the credential type and metadata model are reused from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <div id="requirements-notation-and-conventions">
 <section id="section-1.1">
         <h3 id="name-requirements-notation-and-c">
@@ -1363,19 +1355,19 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
         <h3 id="name-terms-and-definitions">
 <a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-terms-and-definitions" class="section-name selfRef">Terms and Definitions</a>
         </h3>
-<p id="section-1.3-1">This document uses the Issuer-Holder-Verifier model and terminology of Section 1 of <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
-<p id="section-1.3-2">Additional terms used are:<a href="#section-1.3-2" class="pilcrow">¶</a></p>
+<p id="section-1.3-1">This document uses the Issuer-Holder-Verifier model and terminology of <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
+<p id="section-1.3-2">Additional terminology used are:<a href="#section-1.3-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlCompact dlParallel" id="section-1.3-3">
           <dt id="section-1.3-3.1">Core proof:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.2">A zero-knowledge proof of knowledge of a blind BBS signature on a message vector, where some messages are disclosed and others are exposed only as commitments.<a href="#section-1.3-3.2" class="pilcrow">¶</a>
+          <dd style="margin-left: 1.5em" id="section-1.3-3.2">A zero-knowledge proof of knowledge of a BBS signature on a message vector, where some messages are disclosed and others are exposed only as commitments.<a href="#section-1.3-3.2" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 <dt id="section-1.3-3.3">Sub-proof:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.4">A zero-knowledge proof attached to a core proof, asserting a predicate over a message whose Pedersen commitment that core proof exposes. Range, equality, set-membership, and ECDSA device-binding sub-proofs are examples.<a href="#section-1.3-3.4" class="pilcrow">¶</a>
+          <dd style="margin-left: 1.5em" id="section-1.3-3.4">A zero-knowledge proof attached to a core proof, asserting a predicate over a message whose Pedersen commitment that core proof exposes.<a href="#section-1.3-3.4" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 <dt id="section-1.3-3.5">Committed disclosure:</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-3.6">Exposing a Pedersen commitment to a signed message in place of the value itself, so that later proofs can operate on the message without revealing it.<a href="#section-1.3-3.6" class="pilcrow">¶</a>
+          <dd style="margin-left: 1.5em" id="section-1.3-3.6">Exposing a Pedersen commitment to a signed message in place of the value itself that is used as an input for sub-proofs.<a href="#section-1.3-3.6" class="pilcrow">¶</a>
 </dd>
           <dd class="break"></dd>
 <dt id="section-1.3-3.7">Device binding:</dt>
@@ -1392,24 +1384,24 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
       <h2 id="name-data-model">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-data-model" class="section-name selfRef">Data Model</a>
       </h2>
-<p id="section-2-1">A credential exists in two forms: the Issued Form an Issuer hands to a Holder, and the Presented Form a Holder derives from it for a Verifier (see <a href="#presentation" class="auto internal xref">Section 4</a>). This section covers the Issued Form and the header structure both forms share.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-1">A credential exists in two forms: the Issued Form an Issuer transmits to a Holder, and the Presented Form a Holder derives from it for a Verifier (see <a href="#presentation" class="auto internal xref">Section 4</a>).<a href="#section-2-1" class="pilcrow">¶</a></p>
 <div id="issued-credential">
 <section id="section-2.1">
         <h3 id="name-issued-credential">
 <a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-issued-credential" class="section-name selfRef">Issued Credential</a>
         </h3>
-<p id="section-2.1-1">A credential is issued in the Issued Form (Section 6.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) consisting of:<a href="#section-2.1-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="compact type-1" id="section-2.1-2">
-<li id="section-2.1-2.1">An Issuer Header (Section 6.1.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) with the contents specified in <a href="#issuer-header" class="auto internal xref">Section 2.2</a>.<a href="#section-2.1-2.1" class="pilcrow">¶</a>
+<p id="section-2.1-1">A credential is issued in the Issued Form (see Section 6.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) consisting of:<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-2.1-2.1">An Issuer Header (Section 6.1.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) with the contents specified in <a href="#issuer-header" class="auto internal xref">Section 2.2</a>.<a href="#section-2.1-2.1" class="pilcrow">¶</a>
 </li>
-          <li id="section-2.1-2.2">
-            <code>n</code> Issuer Payloads (Section 6.1.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>), where <code>n</code> is the length of the BBS message vector (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>). The Issuer Payload at position <code>i</code> is the octet string from which the scalar message m_i is derived per <a href="#message-derivation" class="auto internal xref">Section 2.5</a>.<a href="#section-2.1-2.2" class="pilcrow">¶</a>
+          <li class="compact" id="section-2.1-2.2">
+            <code>n</code> Issuer Payloads (Section 6.1.2 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>), where <code>n</code> is the length of the BBS message vector (see <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>). The Issuer Payload at position <code>i</code> is the octet string from which the scalar message <code>m_i</code> is derived per <a href="#message-derivation" class="auto internal xref">Section 2.5</a>.<a href="#section-2.1-2.2" class="pilcrow">¶</a>
 </li>
-          <li id="section-2.1-2.3">An Issuer Proof (Section 6.1.3 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) carrying the blind BBS signature over <code>header_octets</code> and the message vector <code>(m_0, ..., m_(n-1))</code>.<a href="#section-2.1-2.3" class="pilcrow">¶</a>
+          <li class="compact" id="section-2.1-2.3">An Issuer Proof (Section 6.1.3 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>) carrying the blind BBS signature over <code>header_octets</code> and the message vector <code>(m_0, ..., m_(n-1))</code>.<a href="#section-2.1-2.3" class="pilcrow">¶</a>
 </li>
-        </ol>
-<p id="section-2.1-3"><code>header_octets</code> is the Issuer Header as transmitted, i.e., the octets obtained by base64url-decoding the Issuer Header component of the Compact Serialization. All parties MUST use those octets as received and MUST NOT re-encode the header.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
-<p id="section-2.1-4">The Issued Form is serialized using the Compact Serialization (Section 7.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>). CBOR Serialization is out of scope for this document.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
+        </ul>
+<p id="section-2.1-3"><code>header_octets</code> is the Issuer Header as transmitted, i.e., the octets obtained by base64url-decoding the Issuer Header component of the Compact Serialization. All parties MUST use those octets as received and MUST NOT alter the header (e.g., re-encode).<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">The Issued Form is serialized using the Compact Serialization (Section 7.1 of <span>[<a href="#I-D.ietf-jose-json-web-proof" class="cite xref">I-D.ietf-jose-json-web-proof</a>]</span>). CBOR Serialization is (currently) out of scope for this document.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="issuer-header">
@@ -1449,7 +1441,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
         <h3 id="name-claims-mapping">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-claims-mapping" class="section-name selfRef">Claims Mapping</a>
         </h3>
-<p id="section-2.3-1"><code>claims</code> mirrors the credential's attribute tree structurally. Each leaf is replaced by an <em>index annotation</em>: a two-element JSON array <code>[i, scalar]</code>, where:<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-1"><code>claims</code> mirrors the credential's JSON tree structurally. Each leaf is replaced by an index annotation: a two-element JSON array <code>[i, scalar]</code>, where:<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <ul class="compact">
 <li class="compact" id="section-2.3-2.1">
             <code>i</code> is the 0-based index of the leaf value in the message vector.<a href="#section-2.3-2.1" class="pilcrow">¶</a>
@@ -1467,7 +1459,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 </li>
         </ul>
 <p id="section-2.3-3">Let <code>n</code> be the length of the message vector, and <code>N</code> the number of payload slots reserved for the device-key encoding (see <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>), with <code>N = 0</code> when <code>kb</code> is absent). Every index in <code>[N, n-1]</code> MUST appear in exactly one annotation in <code>claims</code>. Indices <code>[0, N-1]</code> MUST NOT appear in <code>claims</code>.<a href="#section-2.3-3" class="pilcrow">¶</a></p>
-<p id="section-2.3-4">Payload slots reserved by the credential type's structural layout (see <a href="#layout" class="auto internal xref">Section 2.9</a>) but not populated by a given credential MUST carry the decoy value defined in <a href="#decoys" class="auto internal xref">Section 2.10</a>.<a href="#section-2.3-4" class="pilcrow">¶</a></p>
+<p id="section-2.3-4">Payload slots defined by the credential type's structural layout (see <a href="#layout" class="auto internal xref">Section 2.9</a>) but not populated by a given credential MUST carry the decoy value defined in <a href="#decoys" class="auto internal xref">Section 2.10</a>.<a href="#section-2.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="example-issuer-header">
@@ -1505,17 +1497,17 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
   "alg": "BBS-MOD",
   "vct": "https://credentials.example.com/identity_credential",
   "claims": {
-    "given_name":   [0, false],
-    "family_name":  [1, false],
-    "email":        [2, false],
+    "given_name": [0, false],
+    "family_name": [1, false],
+    "email": [2, false],
     "phone_number": [3, false],
     "address": {
       "street_address": [4, false],
-      "locality":       [5, false],
-      "region":         [6, false],
-      "country":        [7, false]
+      "locality": [5, false],
+      "region": [6, false],
+      "country": [7, false]
     },
-    "birthdate":  [8, false],
+    "birthdate": [8, false],
     "is_over_18": [9, false],
     "is_over_21": [10, false],
     "is_over_65": [11, false],
@@ -1527,7 +1519,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 </pre><a href="#section-2.4-4" class="pilcrow">¶</a>
 </div>
 <p id="section-2.4-5">Indices 0–11 use hash-to-scalar and indices 12–13 carry NumericDate integers (<span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>) directly as scalars. A presentation can then mark <code>iat</code>/<code>exp</code> as <code>COMMIT</code> (see <a href="#core-proof" class="auto internal xref">Section 4.3</a>) and attach <code>sigma-range</code> sub-proofs (see <a href="#range-proof" class="auto internal xref">Section 4.4.2</a>) to prove validity without disclosing the timestamps.<a href="#section-2.4-5" class="pilcrow">¶</a></p>
-<p id="section-2.4-6">A real deployment would fix a structural layout covering all optional attributes and array slots up to their maximum length, with absent slots filled by decoys (see <a href="#decoys" class="auto internal xref">Section 2.10</a>).<a href="#section-2.4-6" class="pilcrow">¶</a></p>
+<p id="section-2.4-6">A real deployment would define a structural layout covering all optional attributes and array slots up to their maximum length, with absent slots filled by decoys (see <a href="#decoys" class="auto internal xref">Section 2.10</a>).<a href="#section-2.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-derivation">
@@ -1558,8 +1550,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 <a href="#section-2.6" class="section-number selfRef">2.6. </a><a href="#name-scalar-encoding" class="section-name selfRef">Scalar Encoding</a>
         </h3>
 <p id="section-2.6-1">A leaf with <code>scalar = true</code> MUST be a JSON integer in <code>[0, r - 1]</code>, where <code>r</code> is the order of the BBS scalar field. Implementations MUST reject any other value.<a href="#section-2.6-1" class="pilcrow">¶</a></p>
-<p id="section-2.6-2">The Issuer Payload for such a leaf is the <em>canonical decimal octet encoding</em> of the integer: the ASCII octets of its base-10 representation, with no leading zeros (the single octet <code>0</code> for value zero) and no sign character.<a href="#section-2.6-2" class="pilcrow">¶</a></p>
-<p id="section-2.6-3">Future extensions MAY define additional scalar encodings provided they deterministically map a JSON value to an element of <code>[0, r - 1]</code>.<a href="#section-2.6-3" class="pilcrow">¶</a></p>
+<p id="section-2.6-2">The Issuer Payload for such a leaf is the canonical decimal octet encoding of the integer. Future extensions MAY define additional scalar encodings provided they deterministically map a JSON value to an element of <code>[0, r - 1]</code>.<a href="#section-2.6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="temporal-claims">
@@ -1575,9 +1566,9 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
         <h3 id="name-device-binding-header">
 <a href="#section-2.8" class="section-number selfRef">2.8. </a><a href="#name-device-binding-header" class="section-name selfRef">Device Binding Header</a>
         </h3>
-<p id="section-2.8-1">When present, the <code>kb</code> Header Parameter is a string identifier selecting both the device public key type and its encoding into the BBS message vector. The reserved slots are always indices <code>[0, N-1]</code>, where <code>N</code> depends on the <code>kb</code> value. This document defines a single value: <code>ecdsa-p256-limb4-64</code>.<a href="#section-2.8-1" class="pilcrow">¶</a></p>
-<p id="section-2.8-2">Note: <code>kb</code> here identifies a public-key encoding layout, not the SD-JWT "Key Binding JWT" mechanism (Section 4.3 of <span>[<a href="#RFC9901" class="cite xref">RFC9901</a>]</span>). The Holder proof of possession is conveyed by a sub-proof. See <a href="#design-rationale" class="auto internal xref">Appendix A</a> for the rationale behind the limb encoding.<a href="#section-2.8-2" class="pilcrow">¶</a></p>
-<p id="section-2.8-3">For <code>kb = "ecdsa-p256-limb4-64"</code>, <code>N = 8</code> and:<a href="#section-2.8-3" class="pilcrow">¶</a></p>
+<p id="section-2.8-1">When present, the <code>kb</code> Header Parameter is a string identifier selecting both the device public key type and its encoding into the BBS message vector. The reserved slots are always indices <code>[0, N-1]</code>, where <code>N</code> depends on the <code>kb</code> value. If <code>kb</code> is not present, no slots are reserved. This document defines a single value for <code>kb</code>: <code>ecdsa-p256-db</code>.<a href="#section-2.8-1" class="pilcrow">¶</a></p>
+<p id="section-2.8-2">A <code>kb</code> value and its matching device-binding sub-proof algorithm (see <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>) share the same algorithm identifier string.<a href="#section-2.8-2" class="pilcrow">¶</a></p>
+<p id="section-2.8-3">For <code>kb = "ecdsa-p256-pb"</code>, <code>N = 8</code> and:<a href="#section-2.8-3" class="pilcrow">¶</a></p>
 <ul class="compact">
 <li class="compact" id="section-2.8-4.1">m_0..m_3 encode the x-coordinate of the device public key as four 64-bit little-endian limbs (m_0 least significant).<a href="#section-2.8-4.1" class="pilcrow">¶</a>
 </li>
@@ -1585,7 +1576,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 </li>
         </ul>
 <p id="section-2.8-5">Each limb is encoded as if <code>scalar = true</code>: the Issuer Payload is its canonical decimal octet encoding (see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>).<a href="#section-2.8-5" class="pilcrow">¶</a></p>
-<p id="section-2.8-6">The Issuer MUST verify that <code>(x, y)</code> is a valid non-identity P-256 point <span>[<a href="#FIPS186-5" class="cite xref">FIPS186-5</a>]</span> before computing the message vector.<a href="#section-2.8-6" class="pilcrow">¶</a></p>
+<p id="section-2.8-6">The Issuer MUST make sure that <code>(x, y)</code> is a valid non-identity P-256 point <span>[<a href="#FIPS186-5" class="cite xref">FIPS186-5</a>]</span> before computing the message vector.<a href="#section-2.8-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="layout">
@@ -1593,9 +1584,9 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
         <h3 id="name-structural-layout">
 <a href="#section-2.9" class="section-number selfRef">2.9. </a><a href="#name-structural-layout" class="section-name selfRef">Structural Layout</a>
         </h3>
-<p id="section-2.9-1">For object-valued claims, the Issuer either mirrors the object structure within <code>claims</code> or treats the JSON-encoded object as a single leaf.<a href="#section-2.9-1" class="pilcrow">¶</a></p>
+<p id="section-2.9-1">For claims containing objects, the Issuer either mirrors the object structure within <code>claims</code> or treats the JSON-encoded object as a single leaf. This is a policy decision by the Issuer and allows some objects to be discloseable only as one object containing all values or not at all.<a href="#section-2.9-1" class="pilcrow">¶</a></p>
 <p id="section-2.9-2">For bounded-length array claims, <code>claims</code> contains a JSON array of index annotations sized to the credential type's maximum array length. All entries in such an array SHOULD share the same <code>scalar</code> flag to guarantee a single decoy encoding (see <a href="#decoys" class="auto internal xref">Section 2.10</a>).<a href="#section-2.9-2" class="pilcrow">¶</a></p>
-<p id="section-2.9-3">For optional claims, <code>claims</code> MUST contain the entry regardless of whether the attribute is present in a given credential.<a href="#section-2.9-3" class="pilcrow">¶</a></p>
+<p id="section-2.9-3">For optional claims, <code>claims</code> MUST contain the index entry regardless of whether the attribute is present in a given credential.<a href="#section-2.9-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="decoys">
@@ -1603,7 +1594,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
         <h3 id="name-decoys">
 <a href="#section-2.10" class="section-number selfRef">2.10. </a><a href="#name-decoys" class="section-name selfRef">Decoys</a>
         </h3>
-<p id="section-2.10-1">Decoys fill payload slots that the credential type's structural layout reserves but a specific credential does not populate. They keep the message-vector length and <code>claims</code> structure identical across all credentials of a given <code>vct</code>.<a href="#section-2.10-1" class="pilcrow">¶</a></p>
+<p id="section-2.10-1">Decoys fill payload slots that the credential type's layout defines, but a specific credential does not populate. They keep the message-vector length and <code>claims</code> identical across all credentials of a given <code>vct</code> to avoid correlation.<a href="#section-2.10-1" class="pilcrow">¶</a></p>
 <p id="section-2.10-2">Every decoy slot carries the same fixed scalar:<a href="#section-2.10-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-2.10-3">
 <pre>m_decoy = hash_to_scalar("JWP-BBS-DECOY", map_dst)
@@ -1643,7 +1634,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
         <h3 id="name-credential-issuance">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-credential-issuance" class="section-name selfRef">Credential Issuance</a>
         </h3>
-<p id="section-3.2-1">To issue a credential:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-1">To issue a credential, the issuer performs the following steps:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="compact type-1" id="section-3.2-2">
 <li id="section-3.2-2.1">Construct the Issuer Header per <a href="#issuer-header" class="auto internal xref">Section 2.2</a> and <a href="#claims-mapping" class="auto internal xref">Section 2.3</a>.<a href="#section-3.2-2.1" class="pilcrow">¶</a>
 </li>
@@ -1680,7 +1671,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 </li>
           <li id="section-3.3-2.3">For every <code>scalar = true</code> leaf, confirming the corresponding Issuer Payload decodes to an integer in <code>[0, r - 1]</code>.<a href="#section-3.3-2.3" class="pilcrow">¶</a>
 </li>
-          <li id="section-3.3-2.4">If <code>kb</code> is present, repeating the P-256 validation of <a href="#device-binding-header" class="auto internal xref">Section 2.8</a> on the point reconstructed from the limb messages and confirming it matches the Holder's device public key. How the Holder obtains the corresponding device key pair is out of scope.<a href="#section-3.3-2.4" class="pilcrow">¶</a>
+          <li id="section-3.3-2.4">If <code>kb</code> is present, confirming that the point reconstructed from the limb messages matches the Holder's device public key. How the Holder obtains the corresponding device key pair is out of scope.<a href="#section-3.3-2.4" class="pilcrow">¶</a>
 </li>
         </ol>
 </section>
@@ -1811,13 +1802,13 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 <p id="section-4.4-5">For each sub-proof, the Verifier MUST confirm that every value in <code>i</code> is among the committed indices recovered from the core proof, and MUST then run the algorithm-specific verification routine against the corresponding <code>C_i</code>, <code>input</code>, and <code>proof</code>.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
 <p id="section-4.4-6">Sub-proof freshness is inherited from the core proof: every <code>C_i</code> is randomized per presentation, and the core proof's challenge binds to <code>presentation_header_octets</code>. Sub-proof algorithms that include public material not derived from <code>C_i</code> (for example, the device ECDSA signature in <code>ecdsa-p256-db</code>) MUST bind that material to the current presentation by other means (<code>ecdsa-p256-db</code> does so via <code>db_msg</code> - see <a href="#ecdsa-db" class="auto internal xref">Section 4.4.1</a>).<a href="#section-4.4-6" class="pilcrow">¶</a></p>
 <p id="section-4.4-7">Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of <span>[<a href="#I-D.irtf-cfrg-bbs-signatures" class="cite xref">I-D.irtf-cfrg-bbs-signatures</a>]</span>: BLS12-381 G1 points are serialized in their compressed form (48 octets), scalars as 32-octet big-endian integers, and integer lengths are encoded as <code>I2OSP(int, 8)</code>. The <code>serialize(...)</code> notation used in <a href="#range-proof" class="auto internal xref">Section 4.4.2</a> and <a href="#equality-proof" class="auto internal xref">Section 4.4.3</a> denotes the concatenation of these per-element encodings.<a href="#section-4.4-7" class="pilcrow">¶</a></p>
-<p id="section-4.4-8">[Editor's Note: Some of the following sub-proofs already make very concrete choices to make the construction more concrete - all of these are open for discussion and might significantly change.]<a href="#section-4.4-8" class="pilcrow">¶</a></p>
+<p id="section-4.4-8">[Editor's Note: Some of the following sub-proofs already make very concrete choices to make the construction more concrete - all of these are open for discussion and will very like see significant changes.]<a href="#section-4.4-8" class="pilcrow">¶</a></p>
 <div id="ecdsa-db">
 <section id="section-4.4.1">
           <h4 id="name-ecdsa-device-binding-sub-pr">
 <a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-ecdsa-device-binding-sub-pr" class="section-name selfRef">ECDSA Device-Binding Sub-Proof</a>
           </h4>
-<p id="section-4.4.1-1">This sub-proof MUST be present whenever <code>kb = "ecdsa-p256-limb4-64"</code> and MUST NOT be present otherwise.<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-1">This sub-proof MUST be present whenever <code>kb = "ecdsa-p256-db"</code> and MUST NOT be present otherwise. The algorithm identifier deliberately matches the <code>kb</code> value it verifies (see <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>).<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlCompact dlParallel" id="section-4.4.1-2">
             <dt id="section-4.4.1-2.1">Algorithm identifier:</dt>
             <dd style="margin-left: 1.5em" id="section-4.4.1-2.2">
@@ -1841,7 +1832,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
               <code>(r, s)</code> is a valid ECDSA P-256 signature on <code>db_msg</code> under <code>dpk</code>.<a href="#section-4.4.1-8.2" class="pilcrow">¶</a>
 </li>
           </ol>
-<p id="section-4.4.1-9">[Editor's Note: TODO - select and describe concrete mechanism.]<a href="#section-4.4.1-9" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-9">[Editor's Note: TODO - select and describe concrete mechanism - expectation is that this will be described in another IETF draft]<a href="#section-4.4.1-9" class="pilcrow">¶</a></p>
 <p id="section-4.4.1-10">The Verifier accepts if the 8 indices in <code>i</code> are all committed in the core proof and the sub-proof verifies against the 8 commitments and the locally recomputed <code>db_msg</code>.<a href="#section-4.4.1-10" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1865,7 +1856,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 </li>
             <li class="compact" id="section-4.4.2-5.2">For each <code>j</code> in <code>[0, k-1]</code>, the Holder samples blinding scalars <code>s[j]</code> and <code>s2[j]</code> and forms the bit commitment <code>D[j] = b[j] * G + s[j] * H</code> over <code>(G, H)</code> of <a href="#cipher-suite" class="auto internal xref">Section 5</a>. The Holder then proves, in a single batched Schnorr step, knowledge of <code>(b[j], s[j], s2[j])</code> such that <code>D[j] = b[j] * G + s[j] * H</code> and <code>D[j] = b[j] * D[j] + s2[j] * H</code> (the linearized bit constraint), producing per-bit Schnorr commitments <code>T1[j]</code> and <code>T2[j]</code> from fresh per-bit random scalars.<a href="#section-4.4.2-5.2" class="pilcrow">¶</a>
 </li>
-            <li class="compact" id="section-4.4.2-5.3">The challenge is <code>c = hash_to_scalar(transcript, challenge_dst)</code> with <code>challenge_dst = api_id || "SIGMA_RANGE_CHAL_"</code> and <code>hash_to_scalar</code> the base BBS primitive of <a href="#cipher-suite" class="auto internal xref">Section 5</a>. The transcript is:<a href="#section-4.4.2-5.3" class="pilcrow">¶</a>
+            <li class="compact" id="section-4.4.2-5.3">The challenge is <code>c = hash_to_scalar(transcript, challenge_dst)</code> with <code>challenge_dst = api_id || "SIGMA_RANGE_CHAL_"</code> and <code>hash_to_scalar</code> the base BBS primitive of <a href="#cipher-suite" class="auto internal xref">Section 5</a>.<a href="#section-4.4.2-5.3" class="pilcrow">¶</a>
 </li>
           </ul>
 <p id="section-4.4.2-6">[Editor's Note: describe wire format of proof]<a href="#section-4.4.2-6" class="pilcrow">¶</a></p>
@@ -1950,7 +1941,7 @@ c_ext = m * G + s_2 * H
         <h3 id="name-reconstructed-json-payload">
 <a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-reconstructed-json-payload" class="section-name selfRef">Reconstructed JSON Payload</a>
         </h3>
-<p id="section-4.6-1">After verifying the core proof and any sub-proofs, the Verifier MAY hand the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of <span>[<a href="#RFC9901" class="cite xref">RFC9901</a>]</span>:<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.6-1">After verifying the core proof and any sub-proofs, the Verifier SHOULD convey to the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of <span>[<a href="#RFC9901" class="cite xref">RFC9901</a>]</span>:<a href="#section-4.6-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="compact type-1" id="section-4.6-2">
 <li id="section-4.6-2.1">Start from <code>{ "vct": &lt;vct from Issuer Header&gt; }</code>.<a href="#section-4.6-2.1" class="pilcrow">¶</a>
 </li>
@@ -1991,7 +1982,7 @@ c_ext = m * G + s_2 * H
 
 </pre><a href="#section-5.1-3" class="pilcrow">¶</a>
 </div>
-<p id="section-5.1-4">The <code>BBS-MOD_</code> prefix domain-separates this profile from both the base BBS JPA (<code>BBS</code> of Section 9.1.2.4 of <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span>) and the base blind BBS Interface (<code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>). This profile adds committed-message proof generation to that Interface. It also bypasses hash-to-scalar on a per-message basis under the <code>scalar</code> flag and attaches sub-proofs as described in <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">The <code>BBS-MOD_</code> prefix separates this profile from both the base BBS JPA (<code>BBS</code> of Section 9.1.2.4 of <span>[<a href="#I-D.ietf-jose-json-proof-algorithms" class="cite xref">I-D.ietf-jose-json-proof-algorithms</a>]</span>) and the base blind BBS Interface (<code>BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_</code>). This profile adds committed-message proof generation to that Interface. It also bypasses hash-to-scalar on a per-message basis under the <code>scalar</code> flag and attaches sub-proofs as described in <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="parameters">
@@ -2288,45 +2279,29 @@ c_ext = m * G + s_2 * H
 </dl>
 </section>
 </section>
-<div id="design-rationale">
-<section id="appendix-A">
-      <h2 id="name-design-rationale">
-<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-design-rationale" class="section-name selfRef">Design Rationale</a>
-      </h2>
-<p id="appendix-A-1">This appendix is non-normative. It records the rationale behind selected design choices made in this document.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<div id="device-public-key-limb-encoding">
-<section id="appendix-A.1">
-        <h3 id="name-device-public-key-limb-enco">
-<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-device-public-key-limb-enco" class="section-name selfRef">Device Public Key Limb Encoding</a>
-        </h3>
-<p id="appendix-A.1-1">The <code>ecdsa-p256-limb4-64</code> layout (see <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>) splits each P-256 coordinate into four 64-bit little-endian limbs, each carried as a separate BBS message, instead of one multi-precision integer or a hash per coordinate. The device-binding sub-proof drives this choice. Its zero-knowledge proof has to reconstruct the device public key from the message vector to check the embedded ECDSA signature, and the 64-bit limbs keep that reconstruction efficient.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
 <div id="acknowledgments">
-<section id="appendix-B">
+<section id="appendix-A">
       <h2 id="name-acknowledgments">
-<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-B-1">This document rests on the work captured in <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> by the EUDI Wallet expert group. The committed-message core proof builds on <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>, and the modular committed-disclosure framework draws on <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">This document rests on the work captured in <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> by the EUDI Wallet expert group. The committed-message core proof builds on <span>[<a href="#I-D.irtf-cfrg-bbs-blind-signatures" class="cite xref">I-D.irtf-cfrg-bbs-blind-signatures</a>]</span>, and the modular committed-disclosure framework draws on <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="document-history">
-<section id="appendix-C">
+<section id="appendix-B">
       <h2 id="name-document-history">
-<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
-<p id="appendix-C-1">[[ pre Working Group Adoption: ]]<a href="#appendix-C-1" class="pilcrow">¶</a></p>
-<p id="appendix-C-2">-00<a href="#appendix-C-2" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">[[ pre Working Group Adoption: ]]<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2">-00<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 <ul class="compact">
-<li class="compact" id="appendix-C-3.1">Initial Version<a href="#appendix-C-3.1" class="pilcrow">¶</a>
+<li class="compact" id="appendix-B-3.1">Initial Version<a href="#appendix-B-3.1" class="pilcrow">¶</a>
 </li>
       </ul>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-D">
+<section id="appendix-C">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>

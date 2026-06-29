@@ -4,8 +4,8 @@
 
 Network Working Group                                         C. Bormann
 Internet-Draft                                               SPRIND GmbH
-Intended status: Standards Track                            28 June 2026
-Expires: 30 December 2026
+Intended status: Standards Track                            29 June 2026
+Expires: 31 December 2026
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -13,14 +13,14 @@ Expires: 30 December 2026
 
 Abstract
 
-   This document defines a digital credential format.  JSON Web Proofs
-   (JWP) provide the container and Blind BBS Signatures provide the
-   signature scheme.  On top of that base it adds a modular framework
-   for attaching zero-knowledge sub-proofs to signed attributes that are
-   not disclosed.  A Holder can disclose some attributes directly and
-   prove predicates such as range or equality over the ones it keeps
-   hidden.  A credential can also be bound to an ECDSA P-256 device key.
-   The credential type and metadata model are taken from SD-JWT VC
+   This document defines a digital credential format that uses JSON Web
+   Proofs (JWP) as its container format and Blind BBS Signatures as its
+   signature scheme combined with a modular framework for attaching
+   zero-knowledge sub-proofs to signed but undisclosed attributes that
+   allow a Holder to reveal some attributes directly while proving
+   predicates such as range or equality over the ones they keeps hidden.
+   A credential can additionally be bound to an ECDSA P-256 device key.
+   The credential metadata and type model follow SD-JWT VC
    [I-D.ietf-oauth-sd-jwt-vc].
 
 Discussion Venues
@@ -49,7 +49,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 December 2026.
+   This Internet-Draft will expire on 31 December 2026.
 
 Copyright Notice
 
@@ -112,44 +112,44 @@ Table of Contents
    9.  References
      9.1.  Normative References
      9.2.  Informative References
-   Appendix A.  Design Rationale
-     A.1.  Device Public Key Limb Encoding
-   Appendix B.  Acknowledgments
-   Appendix C.  Document History
+   Appendix A.  Acknowledgments
+   Appendix B.  Document History
    Author's Address
 
 1.  Introduction
 
    The BBS signature scheme [I-D.irtf-cfrg-bbs-signatures] is a multi-
-   message signature (MMS) scheme: the signer produces a single
+   message signature (MMS) scheme where the signer produces a single
    signature over a vector of messages m_0 through m_(n-1), and the
    Holder can prove knowledge of the signature in zero knowledge while
-   disclosing only a subset of those messages.
+   disclosing only a chosen subset of those messages.
 
    The Blind BBS Signatures extension
    [I-D.irtf-cfrg-bbs-blind-signatures] adds Pedersen commitments to the
-   scheme.  Its CoreProofGen operation lets the Holder mark each message
-   as disclosed, hidden, or committed at proof time, and the resulting
-   proof carries a fresh Pedersen commitment for every committed
-   message.  Those commitments become public inputs to further proofs
-   over the values they hide.
+   scheme that allow the Holder to mark each message as disclosed,
+   hidden, or committed at proof time, and the resulting proof carries a
+   fresh Pedersen commitment for every committed message.  Those
+   commitments become public inputs to further proofs over the values
+   they hide.
 
-   This document defines a digital credential format that:
+   Building on those core building lbocks, this document defines a
+   digital credential format that:
 
    *  Uses JSON Web Proofs [I-D.ietf-jose-json-web-proof] as the
-      container for both issuance and presentation, and defines a JSON
-      Proof Algorithm [I-D.ietf-jose-json-proof-algorithms] profile
-      based on Blind BBS Signatures.
+      serialization/container format for both issuance and presentation,
+      and defines a JSON Proof Algorithm
+      [I-D.ietf-jose-json-proof-algorithms] profile based on Blind BBS
+      Signatures.
    *  Builds its core proof on CoreProofGen of
       [I-D.irtf-cfrg-bbs-blind-signatures], exposing fresh Pedersen
       commitments to selected messages as public inputs for sub-proofs.
    *  Defines a sub-proof container carrying optional sub-proofs, each
       bound to the core proof via a Pedersen commitment.
-   *  Can bind a credential to an ECDSA P-256 device key by encoding
-      that key as messages in the BBS signature vector.
+   *  Optionally bind a credential to an ECDSA P-256 device key by
+      encoding that key as messages in the BBS signature vector.
 
-   The modular architecture builds on [TS14] and [LSZ25].  Its
-   credential type and metadata model come from SD-JWT VC
+   This modular architecture builds on prior work [TS14] and [LSZ25],
+   and the credential type and metadata model are reused from SD-JWT VC
    [I-D.ietf-oauth-sd-jwt-vc].
 
 1.1.  Requirements Notation and Conventions
@@ -172,56 +172,53 @@ Table of Contents
 1.3.  Terms and Definitions
 
    This document uses the Issuer-Holder-Verifier model and terminology
-   of Section 1 of [I-D.ietf-oauth-sd-jwt-vc].
+   of [I-D.ietf-oauth-sd-jwt-vc].
 
-   Additional terms used are:
+   Additional terminology used are:
 
-   Core proof:  A zero-knowledge proof of knowledge of a blind BBS
-      signature on a message vector, where some messages are disclosed
-      and others are exposed only as commitments.
+   Core proof:  A zero-knowledge proof of knowledge of a BBS signature
+      on a message vector, where some messages are disclosed and others
+      are exposed only as commitments.
    Sub-proof:  A zero-knowledge proof attached to a core proof,
       asserting a predicate over a message whose Pedersen commitment
-      that core proof exposes.  Range, equality, set-membership, and
-      ECDSA device-binding sub-proofs are examples.
+      that core proof exposes.
    Committed disclosure:  Exposing a Pedersen commitment to a signed
-      message in place of the value itself, so that later proofs can
-      operate on the message without revealing it.
+      message in place of the value itself that is used as an input for
+      sub-proofs.
    Device binding:  Tying a credential presentation to control of a
       Holder-held private key, by carrying a fresh proof of possession
       in every presentation.
 
 2.  Data Model
 
-   A credential exists in two forms: the Issued Form an Issuer hands to
-   a Holder, and the Presented Form a Holder derives from it for a
-   Verifier (see Section 4).  This section covers the Issued Form and
-   the header structure both forms share.
+   A credential exists in two forms: the Issued Form an Issuer transmits
+   to a Holder, and the Presented Form a Holder derives from it for a
+   Verifier (see Section 4).
 
 2.1.  Issued Credential
 
-   A credential is issued in the Issued Form (Section 6.1 of
+   A credential is issued in the Issued Form (see Section 6.1 of
    [I-D.ietf-jose-json-web-proof]) consisting of:
 
-   1.  An Issuer Header (Section 6.1.1 of
-       [I-D.ietf-jose-json-web-proof]) with the contents specified in
-       Section 2.2.
-   2.  n Issuer Payloads (Section 6.1.2 of
-       [I-D.ietf-jose-json-web-proof]), where n is the length of the BBS
-       message vector (see Section 2.3).  The Issuer Payload at position
-       i is the octet string from which the scalar message m_i is
-       derived per Section 2.5.
-   3.  An Issuer Proof (Section 6.1.3 of [I-D.ietf-jose-json-web-proof])
-       carrying the blind BBS signature over header_octets and the
-       message vector (m_0, ..., m_(n-1)).
+   *  An Issuer Header (Section 6.1.1 of [I-D.ietf-jose-json-web-proof])
+      with the contents specified in Section 2.2.
+   *  n Issuer Payloads (Section 6.1.2 of
+      [I-D.ietf-jose-json-web-proof]), where n is the length of the BBS
+      message vector (see Section 2.3).  The Issuer Payload at position
+      i is the octet string from which the scalar message m_i is derived
+      per Section 2.5.
+   *  An Issuer Proof (Section 6.1.3 of [I-D.ietf-jose-json-web-proof])
+      carrying the blind BBS signature over header_octets and the
+      message vector (m_0, ..., m_(n-1)).
 
    header_octets is the Issuer Header as transmitted, i.e., the octets
    obtained by base64url-decoding the Issuer Header component of the
    Compact Serialization.  All parties MUST use those octets as received
-   and MUST NOT re-encode the header.
+   and MUST NOT alter the header (e.g., re-encode).
 
    The Issued Form is serialized using the Compact Serialization
    (Section 7.1 of [I-D.ietf-jose-json-web-proof]).  CBOR Serialization
-   is out of scope for this document.
+   is (currently) out of scope for this document.
 
 2.2.  Issuer Header
 
@@ -248,9 +245,9 @@ Table of Contents
 
 2.3.  Claims Mapping
 
-   claims mirrors the credential's attribute tree structurally.  Each
-   leaf is replaced by an _index annotation_: a two-element JSON array
-   [i, scalar], where:
+   claims mirrors the credential's JSON tree structurally.  Each leaf is
+   replaced by an index annotation: a two-element JSON array [i,
+   scalar], where:
 
    *  i is the 0-based index of the leaf value in the message vector.
    *  scalar is a boolean selecting how the leaf becomes the BBS message
@@ -267,9 +264,9 @@ Table of Contents
    in exactly one annotation in claims.  Indices [0, N-1] MUST NOT
    appear in claims.
 
-   Payload slots reserved by the credential type's structural layout
-   (see Section 2.9) but not populated by a given credential MUST carry
-   the decoy value defined in Section 2.10.
+   Payload slots defined by the credential type's structural layout (see
+   Section 2.9) but not populated by a given credential MUST carry the
+   decoy value defined in Section 2.10.
 
 2.4.  Example: Issuance
 
@@ -307,17 +304,17 @@ Table of Contents
      "alg": "BBS-MOD",
      "vct": "https://credentials.example.com/identity_credential",
      "claims": {
-       "given_name":   [0, false],
-       "family_name":  [1, false],
-       "email":        [2, false],
+       "given_name": [0, false],
+       "family_name": [1, false],
+       "email": [2, false],
        "phone_number": [3, false],
        "address": {
          "street_address": [4, false],
-         "locality":       [5, false],
-         "region":         [6, false],
-         "country":        [7, false]
+         "locality": [5, false],
+         "region": [6, false],
+         "country": [7, false]
        },
-       "birthdate":  [8, false],
+       "birthdate": [8, false],
        "is_over_18": [9, false],
        "is_over_21": [10, false],
        "is_over_65": [11, false],
@@ -332,9 +329,9 @@ Table of Contents
    proofs (see Section 4.4.2) to prove validity without disclosing the
    timestamps.
 
-   A real deployment would fix a structural layout covering all optional
-   attributes and array slots up to their maximum length, with absent
-   slots filled by decoys (see Section 2.10).
+   A real deployment would define a structural layout covering all
+   optional attributes and array slots up to their maximum length, with
+   absent slots filled by decoys (see Section 2.10).
 
 2.5.  Message Derivation
 
@@ -363,13 +360,10 @@ Table of Contents
    r is the order of the BBS scalar field.  Implementations MUST reject
    any other value.
 
-   The Issuer Payload for such a leaf is the _canonical decimal octet
-   encoding_ of the integer: the ASCII octets of its base-10
-   representation, with no leading zeros (the single octet 0 for value
-   zero) and no sign character.
-
-   Future extensions MAY define additional scalar encodings provided
-   they deterministically map a JSON value to an element of [0, r - 1].
+   The Issuer Payload for such a leaf is the canonical decimal octet
+   encoding of the integer.  Future extensions MAY define additional
+   scalar encodings provided they deterministically map a JSON value to
+   an element of [0, r - 1].
 
 2.7.  Temporal Claims
 
@@ -383,15 +377,14 @@ Table of Contents
    When present, the kb Header Parameter is a string identifier
    selecting both the device public key type and its encoding into the
    BBS message vector.  The reserved slots are always indices [0, N-1],
-   where N depends on the kb value.  This document defines a single
-   value: ecdsa-p256-limb4-64.
+   where N depends on the kb value.  If kb is not present, no slots are
+   reserved.  This document defines a single value for kb: ecdsa-
+   p256-db.
 
-   Note: kb here identifies a public-key encoding layout, not the SD-JWT
-   "Key Binding JWT" mechanism (Section 4.3 of [RFC9901]).  The Holder
-   proof of possession is conveyed by a sub-proof.  See Appendix A for
-   the rationale behind the limb encoding.
+   A kb value and its matching device-binding sub-proof algorithm (see
+   Section 4.4) share the same algorithm identifier string.
 
-   For kb = "ecdsa-p256-limb4-64", N = 8 and:
+   For kb = "ecdsa-p256-pb", N = 8 and:
 
    *  m_0..m_3 encode the x-coordinate of the device public key as four
       64-bit little-endian limbs (m_0 least significant).
@@ -400,29 +393,31 @@ Table of Contents
    Each limb is encoded as if scalar = true: the Issuer Payload is its
    canonical decimal octet encoding (see Section 2.6).
 
-   The Issuer MUST verify that (x, y) is a valid non-identity P-256
+   The Issuer MUST make sure that (x, y) is a valid non-identity P-256
    point [FIPS186-5] before computing the message vector.
 
 2.9.  Structural Layout
 
-   For object-valued claims, the Issuer either mirrors the object
+   For claims containing objects, the Issuer either mirrors the object
    structure within claims or treats the JSON-encoded object as a single
-   leaf.
+   leaf.  This is a policy decision by the Issuer and allows some
+   objects to be discloseable only as one object containing all values
+   or not at all.
 
    For bounded-length array claims, claims contains a JSON array of
    index annotations sized to the credential type's maximum array
    length.  All entries in such an array SHOULD share the same scalar
    flag to guarantee a single decoy encoding (see Section 2.10).
 
-   For optional claims, claims MUST contain the entry regardless of
-   whether the attribute is present in a given credential.
+   For optional claims, claims MUST contain the index entry regardless
+   of whether the attribute is present in a given credential.
 
 2.10.  Decoys
 
-   Decoys fill payload slots that the credential type's structural
-   layout reserves but a specific credential does not populate.  They
-   keep the message-vector length and claims structure identical across
-   all credentials of a given vct.
+   Decoys fill payload slots that the credential type's layout defines,
+   but a specific credential does not populate.  They keep the message-
+   vector length and claims identical across all credentials of a given
+   vct to avoid correlation.
 
    Every decoy slot carries the same fixed scalar:
 
@@ -451,7 +446,7 @@ Table of Contents
 
 3.2.  Credential Issuance
 
-   To issue a credential:
+   To issue a credential, the issuer performs the following steps:
 
    1.  Construct the Issuer Header per Section 2.2 and Section 2.3.
    2.  Derive the message vector (m_0, ..., m_(n-1)) per Section 2.5 and
@@ -480,10 +475,10 @@ Table of Contents
        message vector.  Reject on failure.
    3.  For every scalar = true leaf, confirming the corresponding Issuer
        Payload decodes to an integer in [0, r - 1].
-   4.  If kb is present, repeating the P-256 validation of Section 2.8
-       on the point reconstructed from the limb messages and confirming
-       it matches the Holder's device public key.  How the Holder
-       obtains the corresponding device key pair is out of scope.
+   4.  If kb is present, confirming that the point reconstructed from
+       the limb messages matches the Holder's device public key.  How
+       the Holder obtains the corresponding device key pair is out of
+       scope.
 
 4.  Presentation
 
@@ -613,12 +608,14 @@ Table of Contents
 
    [Editor's Note: Some of the following sub-proofs already make very
    concrete choices to make the construction more concrete - all of
-   these are open for discussion and might significantly change.]
+   these are open for discussion and will very like see significant
+   changes.]
 
 4.4.1.  ECDSA Device-Binding Sub-Proof
 
-   This sub-proof MUST be present whenever kb = "ecdsa-p256-limb4-64"
-   and MUST NOT be present otherwise.
+   This sub-proof MUST be present whenever kb = "ecdsa-p256-db" and MUST
+   NOT be present otherwise.  The algorithm identifier deliberately
+   matches the kb value it verifies (see Section 2.8).
 
    Algorithm identifier:  ecdsa-p256-db
 
@@ -641,7 +638,8 @@ Table of Contents
        dpk (in the layout of kb) under (G, H) (see Section 5).
    2.  (r, s) is a valid ECDSA P-256 signature on db_msg under dpk.
 
-   [Editor's Note: TODO - select and describe concrete mechanism.]
+   [Editor's Note: TODO - select and describe concrete mechanism -
+   expectation is that this will be described in another IETF draft]
 
    The Verifier accepts if the 8 indices in i are all committed in the
    core proof and the sub-proof verifies against the 8 commitments and
@@ -680,8 +678,7 @@ Table of Contents
       T1[j] and T2[j] from fresh per-bit random scalars.
    *  The challenge is c = hash_to_scalar(transcript, challenge_dst)
       with challenge_dst = api_id || "SIGMA_RANGE_CHAL_" and
-      hash_to_scalar the base BBS primitive of Section 5.  The
-      transcript is:
+      hash_to_scalar the base BBS primitive of Section 5.
 
    [Editor's Note: describe wire format of proof]
 
@@ -755,9 +752,10 @@ Table of Contents
 
 4.6.  Reconstructed JSON Payload
 
-   After verifying the core proof and any sub-proofs, the Verifier MAY
-   hand the application a JSON object reconstructed from the disclosed
-   information, analogous to the Processed SD-JWT Payload of [RFC9901]:
+   After verifying the core proof and any sub-proofs, the Verifier
+   SHOULD convey to the application a JSON object reconstructed from the
+   disclosed information, analogous to the Processed SD-JWT Payload of
+   [RFC9901]:
 
    1.  Start from { "vct": <vct from Issuer Header> }.
    2.  Walk claims.  For each leaf at a disclosed index i, set its value
@@ -797,13 +795,13 @@ Table of Contents
 
    BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_
 
-   The BBS-MOD_ prefix domain-separates this profile from both the base
-   BBS JPA (BBS of Section 9.1.2.4 of
-   [I-D.ietf-jose-json-proof-algorithms]) and the base blind BBS
-   Interface (BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_).  This
-   profile adds committed-message proof generation to that Interface.
-   It also bypasses hash-to-scalar on a per-message basis under the
-   scalar flag and attaches sub-proofs as described in Section 4.4.
+   The BBS-MOD_ prefix separates this profile from both the base BBS JPA
+   (BBS of Section 9.1.2.4 of [I-D.ietf-jose-json-proof-algorithms]) and
+   the base blind BBS Interface (BBS_BLS12381G1_XMD:SHA-
+   256_SSWU_RO_BLIND_H2G_HM2S_).  This profile adds committed-message
+   proof generation to that Interface.  It also bypasses hash-to-scalar
+   on a per-message basis under the scalar flag and attaches sub-proofs
+   as described in Section 4.4.
 
 5.2.  Parameters
 
@@ -1072,29 +1070,14 @@ Table of Contents
               standards-and-technical-specifications/blob/main/docs/
               technical-specifications/ts14-zkps-from-mms.md>.
 
-Appendix A.  Design Rationale
-
-   This appendix is non-normative.  It records the rationale behind
-   selected design choices made in this document.
-
-A.1.  Device Public Key Limb Encoding
-
-   The ecdsa-p256-limb4-64 layout (see Section 2.8) splits each P-256
-   coordinate into four 64-bit little-endian limbs, each carried as a
-   separate BBS message, instead of one multi-precision integer or a
-   hash per coordinate.  The device-binding sub-proof drives this
-   choice.  Its zero-knowledge proof has to reconstruct the device
-   public key from the message vector to check the embedded ECDSA
-   signature, and the 64-bit limbs keep that reconstruction efficient.
-
-Appendix B.  Acknowledgments
+Appendix A.  Acknowledgments
 
    This document rests on the work captured in [TS14] by the EUDI Wallet
    expert group.  The committed-message core proof builds on
    [I-D.irtf-cfrg-bbs-blind-signatures], and the modular committed-
    disclosure framework draws on [LSZ25].
 
-Appendix C.  Document History
+Appendix B.  Document History
 
    [[ pre Working Group Adoption: ]]
 
