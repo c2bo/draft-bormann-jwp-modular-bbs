@@ -1,6 +1,6 @@
 <!-- regenerate: on (set to off if you edit this file) -->
 
-# JSON Web Proofs with BBS and Optional ECDSA Key Binding
+# BBS and Modular Sub-proofs with JSON Web Proofs
 
 This is the working area for the individual Internet-Draft, "JSON Web Proofs with BBS and Optional ECDSA Key Binding".
 
