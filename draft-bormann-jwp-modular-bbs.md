@@ -207,10 +207,10 @@ When present, the `kb` Header Parameter is a string identifier selecting both th
 
 A `kb` value and its matching device-binding sub-proof algorithm (see (#sub-proofs)) share the same algorithm identifier string.
 
-For `kb = "ecdsa-p256-pb"`, `N = 8` and:
+For `kb = "ecdsa-p256-db"`, `N = 4` and:
 
-- m_0..m_3 encode the x-coordinate of the device public key as four 64-bit little-endian limbs (m_0 least significant).
-- m_4..m_7 encode the y-coordinate the same way.
+- m_0..m_1 encode the x-coordinate of the device public key as two 128-bit little-endian limbs (m_0 least significant).
+- m_2..m_3 encode the y-coordinate the same way.
 
 Each limb is encoded as if `scalar = true`: the Issuer Payload is its canonical decimal octet encoding (see (#scalar-encoding)).
 
@@ -359,7 +359,7 @@ This sub-proof MUST be present whenever `kb = "ecdsa-p256-db"` and MUST NOT be p
 Algorithm identifier:
 : `ecdsa-p256-db`
 
-Inputs (beyond the base sub-proof fields): none. The `i` field MUST be `[0, 1, 2, 3, 4, 5, 6, 7]`, naming the eight indices that carry the device public-key limbs (see (#device-binding-header)).
+Inputs (beyond the base sub-proof fields): none. The `i` field MUST be `[0, 1, 2, 3]`, naming the four indices that carry the device public-key limbs (see (#device-binding-header)).
 
 The device-signed message is not transmitted, it is recomputed as:
 
@@ -371,12 +371,12 @@ where `"JWP-BBS-DB-CHAL"` is the literal ASCII string. Binding `db_msg` to `pres
 
 The proof bytes encode a non-interactive zero-knowledge proof of knowledge of `(dpk, (r, s))` such that:
 
-1. The 8 commitments at the indices in `i` open to the 64-bit limbs of `dpk` (in the layout of `kb`) under `(G, H)` (see (#cipher-suite)).
-2. `(r, s)` is a valid ECDSA P-256 signature on `db_msg` under `dpk`.
+1. The 4 commitments at the indices in `i` open to the 128-bit limbs of `dpk` (in the layout of `kb`) under `(G, H)` (see (#cipher-suite)).
+1. `(r, s)` is a valid ECDSA P-256 signature on `db_msg` under `dpk`.
 
 \[Editor's Note: TODO - select and describe concrete mechanism - expectation is that this will be described in another IETF draft]
 
-The Verifier accepts if the 8 indices in `i` are all committed in the core proof and the sub-proof verifies against the 8 commitments and the locally recomputed `db_msg`.
+The Verifier accepts if the 4 indices in `i` are all committed in the core proof and the sub-proof verifies against the 4 commitments and the locally recomputed `db_msg`.
 
 ### Range Proof Sub-Proof {#range-proof}
 
