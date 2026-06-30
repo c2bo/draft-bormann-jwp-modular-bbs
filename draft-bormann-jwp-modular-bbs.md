@@ -3,6 +3,7 @@ title = "BBS and Modular Sub-proofs with JSON Web Proofs"
 abbrev = "JWP-BBS"
 ipr = "trust200902"
 area = "Security"
+workgroup = "TODO Working Group"
 keyword = ["zero-knowledge proofs", "multi-message signatures", "BBS", "JWP"]
 
 [seriesInfo]
