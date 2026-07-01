@@ -1329,29 +1329,29 @@ svg {
 <p id="section-1-5">This modular architecture builds on prior work <span>[<a href="#TS14" class="cite xref">TS14</a>]</span> and <span>[<a href="#LSZ25" class="cite xref">LSZ25</a>]</span>, and the credential type and metadata model are reused from SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <div class="lang-ascii-art sourcecode" id="section-1-6">
 <pre> +----------------+
- |                | ------------------&gt; +----------------+
- |                |                     |   Revealed     |
- |                |                     |   Attributes   |
- |                |                     +----------------+
+ |                | -----------&gt; +----------------+
+ |                |              |   Revealed     |
+ |                |              |   Attributes   |
+ |                |              +----------------+
  |                |                            |
  |                |                            |
- |                | ------------------&gt; +--------------+          +--------------+
- |      MMS       |                     |  Commitment  | -------&gt; |  Sub-Proof   |
- |   Signature    |                     +--------------+          +--------------+
+ |                | -----------&gt; +--------------+       +--------------+
+ |      MMS       |              |  Commitment  | ----&gt; |  Sub-Proof   |
+ |   Signature    |              +--------------+       +--------------+
  |                |                            |
  |                |                            |
- |                | ------------------&gt; +--------------+          +--------------+
- |                |                     |  Commitment  | -------&gt; |  Sub-Proof   |
- |                |                     +--------------+          +--------------+
- |                |                            |
- +----------------+                            |
-        |                                      |
-        |         +--------+---------+---------+
-        |         |        |         |
-        v         v        v         v
- +----------------------------------------------------------&gt; +----------------+
-                  (revealed + commitment openings feed down)  |    Core Proof  |
-                                                              +----------------+
+ |                | -----------&gt; +--------------+       +--------------+
+ |                |              |  Commitment  | ----&gt; |  Sub-Proof   |
+ |                |              +--------------+       +--------------+
+ |                |                      |
+ +----------------+                      |
+        |                                |
+        |         +-----+------+---------+
+        |         |     |      |
+        v         v     v      v
+        +------------------------------------------&gt; +----------------+
+         (revealed + commitment openings feed down)  |    Core Proof  |
+                                                     +----------------+
 
 </pre><a href="#section-1-6" class="pilcrow">¶</a>
 </div>
