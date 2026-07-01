@@ -382,7 +382,7 @@ Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of [@!I
 - scalars as 32-octet big-endian integers
 - integer lengths are encoded as `I2OSP(int, 8)`
 
-\[Editor's Note: Decision needed: Need to define a serialization scheme for the Sigma proofs - Re-use the existing one from the [@I-D.draft-irtf-cfrg-sigma-protocols] (although it uses different encodings etc.), or define an optimized one for BLS12_381?. Some of the following sub-proofs already propose very concrete choices to make the construction more concrete - all of these are open for discussion and will very like see significant changes.]
+\[Editor's Note: Decision needed: Need to define a serialization scheme for the Sigma proofs - Re-use the existing one from the [@?I-D.irtf-cfrg-sigma-protocols] (although it uses different encodings etc.), or define an optimized one for BLS12_381?. Some of the following sub-proofs already propose very concrete choices to make the construction more concrete - all of these are open for discussion and will very like see significant changes.]
 
 ### ECDSA Device-Binding Sub-Proof {#ecdsa-db}
 
