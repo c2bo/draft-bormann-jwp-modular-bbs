@@ -43,6 +43,33 @@ Building on those core building lbocks, this document defines a digital credenti
 
 This modular architecture builds on prior work [@TS14] and [@LSZ25], and the credential type and metadata model are reused from SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
+~~~ ascii-art
+ +----------------+
+ |                | ------------------> +----------------+
+ |                |                     |   Revealed     |
+ |                |                     |   Attributes   |
+ |                |                     +----------------+
+ |                |                            |
+ |                |                            |
+ |                | ------------------> +--------------+          +--------------+
+ |      MMS       |                     |  Commitment  | -------> |  Sub-Proof   |
+ |   Signature    |                     +--------------+          +--------------+
+ |                |                            |
+ |                |                            |
+ |                | ------------------> +--------------+          +--------------+
+ |                |                     |  Commitment  | -------> |  Sub-Proof   |
+ |                |                     +--------------+          +--------------+
+ |                |                            |
+ +----------------+                            |
+        |                                      |
+        |         +--------+---------+---------+
+        |         |        |         |
+        v         v        v         v
+ +----------------------------------------------------------> +----------------+
+                  (revealed + commitment openings feed down)  |    Core Proof  |
+                                                              +----------------+
+~~~
+
 ## Requirements Notation and Conventions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
@@ -286,10 +313,10 @@ The Holder verifies an issued credential by:
 
 A presentation is a Presented Form (Section 6.2 of [@!I-D.ietf-jose-json-web-proof]) consisting of:
 
-1. A Presentation Header per (#presentation-header).
-1. The Issuer Header from issuance, byte-identical to the issued form.
+1. A Presentation Header as defined in (#presentation-header).
+1. The unmodified Issuer Header.
 1. `n` Presentation Payloads (Section 6.2.2 of [@!I-D.ietf-jose-json-web-proof]): disclosed positions carry the corresponding Issuer Payload and undisclosed positions are omitted (see Section 7.1 of [@!I-D.ietf-jose-json-web-proof]).
-1. A Presentation Proof (Section 6.2.4 of [@!I-D.ietf-jose-json-web-proof]) consisting of one or more octet strings. The first octet string is the encoded core proof (see (#core-proof)). Subsequent octet strings, if any, are UTF-8 JSON-serialized sub-proof objects (see (#sub-proofs)) and MAY appear in any order. The Compact Serialization base64url-encodes each octet string.
+1. A Presentation Proof (Section 6.2.4 of [@!I-D.ietf-jose-json-web-proof]) consisting of one or more octet strings. The first octet string is the encoded core proof (see (#core-proof)). Subsequent optional octet strings, are UTF-8 JSON-serialized sub-proof objects (see (#sub-proofs)) and MAY appear in any order. The Compact Serialization base64url-encodes each octet string.
 
 ## Presentation Header {#presentation-header}
 
@@ -349,9 +376,13 @@ For each sub-proof, the Verifier MUST confirm that every value in `i` is among t
 
 Sub-proof freshness is inherited from the core proof: every `C_i` is randomized per presentation, and the core proof's challenge binds to `presentation_header_octets`. Sub-proof algorithms that include public material not derived from `C_i` (for example, the device ECDSA signature in `ecdsa-p256-db`) MUST bind that material to the current presentation by other means (`ecdsa-p256-db` does so via `db_msg` - see (#ecdsa-db)).
 
-Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of [@!I-D.irtf-cfrg-bbs-signatures]: BLS12-381 G1 points are serialized in their compressed form (48 octets), scalars as 32-octet big-endian integers, and integer lengths are encoded as `I2OSP(int, 8)`. The `serialize(...)` notation used in (#range-proof) and (#equality-proof) denotes the concatenation of these per-element encodings.
+Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of [@!I-D.irtf-cfrg-bbs-signatures]:
 
-\[Editor's Note: Some of the following sub-proofs already make very concrete choices to make the construction more concrete - all of these are open for discussion and will very like see significant changes.]
+- BLS12-381 G1 points are serialized in their compressed form (48 octets)
+- scalars as 32-octet big-endian integers
+- integer lengths are encoded as `I2OSP(int, 8)`
+
+\[Editor's Note: Decision needed: Need to define a serialization scheme for the Sigma proofs - Re-use the existing one from the [@I-D.draft-irtf-cfrg-sigma-protocols] (although it uses different encodings etc.), or define an optimized one for BLS12_381?. Some of the following sub-proofs already propose very concrete choices to make the construction more concrete - all of these are open for discussion and will very like see significant changes.]
 
 ### ECDSA Device-Binding Sub-Proof {#ecdsa-db}
 
@@ -375,9 +406,7 @@ The proof bytes encode a non-interactive zero-knowledge proof of knowledge of `(
 1. The 4 commitments at the indices in `i` open to the 128-bit limbs of `dpk` (in the layout of `kb`) under `(G, H)` (see (#cipher-suite)).
 1. `(r, s)` is a valid ECDSA P-256 signature on `db_msg` under `dpk`.
 
-\[Editor's Note: TODO - select and describe concrete mechanism - expectation is that this will be described in another IETF draft]
-
-The Verifier accepts if the 4 indices in `i` are all committed in the core proof and the sub-proof verifies against the 4 commitments and the locally recomputed `db_msg`.
+\[Editor's Note: TODO - This is currently a placeholder until we can reference a construction; expectation is that this will be described in another IETF draft]
 
 ### Range Proof Sub-Proof {#range-proof}
 
@@ -502,9 +531,9 @@ The base BBS `KeyGen`, `Sign`, and `Verify` operations defined by this document 
 
 # Security Considerations
 
-## Random Number Generation
+## Random Number Generation {#random}
 
-All randomness used by this document MUST be generated using a cryptographically secure random number generator. Reuse or predictability of a blinding scalar or proof nonce can break unlinkability or soundness, or even leak the signing key. ECDSA implementations SHOULD use deterministic nonces per [@RFC6979].
+All randomness used by this document MUST be generated using a cryptographically secure random number generator. Reuse or predictability of a blinding scalar or proof nonce can break unlinkability or soundness, or even leak the signing key.
 
 ## Hash-to-Scalar Bypass
 
@@ -638,6 +667,12 @@ This document rests on the work captured in [@TS14] by the EUDI Wallet expert gr
 # Document History
 
 [[ pre Working Group Adoption: ]]
+
+-01
+
+* Fix venue note (was showing JOSE, should've been empty)
+* Add ASCII Art overview
+* some tweaks for sub-proof text
 
 -00
 
