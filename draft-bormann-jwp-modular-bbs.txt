@@ -1067,7 +1067,7 @@ Table of Contents
 
    [CT25]     Chairattana-Apirom, R. and S. Tessaro, "On the Concrete
               Security of BBS/BBS+ Signatures", 2025,
-              <https://eprint.iacr.org/2025/1093.pdf>.
+              <https://eprint.iacr.org/2025/1093>.
 
    [I-D.irtf-cfrg-sigma-protocols]
               Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
@@ -1078,7 +1078,7 @@ Table of Contents
    [LSZ25]    Lehmann, A., Sidorenko, A., and A. Zacharakis, "Vision: A
               Modular Framework for Anonymous Credential Systems", IACR
               ePrint 2025/1981, 2025,
-              <https://eprint.iacr.org/2025/1981.pdf>.
+              <https://eprint.iacr.org/2025/1981>.
 
    [RFC9901]  Fett, D., Yasuda, K., and B. Campbell, "Selective
               Disclosure for JSON Web Tokens", RFC 9901,
