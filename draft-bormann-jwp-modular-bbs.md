@@ -531,7 +531,7 @@ The `BBS-MOD_` prefix separates this profile from both the base BBS JPA (`BBS` o
 - **Curve / group**: BLS12-381, G1 subgroup.
 - **BBS ciphersuite**: `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_` - identical to `BLS12-381-SHA-256` (Section 7.2.2 of [@!I-D.irtf-cfrg-bbs-signatures], with hash-to-curve SHA-256 SSWU random oracle [@!RFC9380]) in all parameters except the ciphersuite identifier.
 - **Hash-to-scalar**: as in the underlying BBS ciphersuite, with domain separation derived from `api_id`.
-- **Core proof operations**: `CoreProofGen` / `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] invoked directly (not via `BlindProofGen`), so implementations MUST apply the input validity checks of Section 7.1 of that document.
+- **Core proof operations**: `CoreProofGen` / `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] invoked directly (not via `BlindProofGen`), so implementations MUST apply the `commits_indexes` and `disclosed_indexes` checks of `CoreProofGen`.
 - **Pedersen commitment generators**: `(G, H) = (Y_1, Y_0)` where `(Y_0, Y_1) = BBS.create_generators(2, "COM_DIS_" || api_id)`. Every committed-index commitment has the form `C_i = m_i * G + s_i * H` with `s_i` sampled per presentation by `CoreProofGen`.
 - **Per-message hash-to-scalar bypass**: governed by each leaf's `scalar` flag (see (#claims-mapping)).
 
