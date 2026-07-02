@@ -631,7 +631,7 @@ Initial entries:
   <refcontent>Work in Progress.</refcontent>
 </reference>
 
-<reference anchor="LSZ25" target="https://eprint.iacr.org/2025/1981.pdf">
+<reference anchor="LSZ25" target="https://eprint.iacr.org/2025/1981">
   <front>
     <title>Vision: A Modular Framework for Anonymous Credential Systems</title>
     <author initials="A." surname="Lehmann"/>
@@ -654,7 +654,7 @@ Initial entries:
   <seriesInfo name="DOI" value="10.6028/NIST.FIPS.186-5"/>
 </reference>
 
-<reference anchor="CT25" target="https://eprint.iacr.org/2025/1093.pdf">
+<reference anchor="CT25" target="https://eprint.iacr.org/2025/1093">
   <front>
     <title>On the Concrete Security of BBS/BBS+ Signatures</title>
     <author initials="R." surname="Chairattana-Apirom"/>
