@@ -90,8 +90,9 @@ Table of Contents
        4.4.1.  Equality Proof Sub-Proof
        4.4.2.  ECDSA Device-Binding Sub-Proof
        4.4.3.  Range Proof Sub-Proof
-     4.5.  Example Presentation
-     4.6.  Reconstructed JSON Payload
+     4.5.  Presentation Verification
+     4.6.  Example Presentation
+     4.7.  Reconstructed JSON Payload
    5.  Cipher Suite
      5.1.  Identifier
      5.2.  Parameters
@@ -229,17 +230,17 @@ Table of Contents
       i is the octet string from which the scalar message m_i is derived
       per Section 2.5.
    *  An Issuer Proof (Section 6.1.3 of [I-D.ietf-jose-json-web-proof])
-      carrying the blind BBS signature over header_octets and the
-      message vector (m_0, ..., m_(n-1)).
+      carrying the BBS signature over header_octets and the message
+      vector (m_0, ..., m_(n-1)).
 
    header_octets is the Issuer Header as transmitted, i.e., the octets
    obtained by base64url-decoding the Issuer Header component of the
    Compact Serialization.  All parties MUST use those octets as received
    and MUST NOT alter the header (e.g., re-encode).
 
-   The Issued Form is serialized using the Compact Serialization
-   (Section 7.1 of [I-D.ietf-jose-json-web-proof]).  CBOR Serialization
-   is (currently) out of scope for this document.
+   The Issued Form is serialized using the Compact Serialization (see
+   Section 7.1).  CBOR Serialization is (currently) out of scope for
+   this document.
 
 2.2.  Issuer Header
 
@@ -250,7 +251,7 @@ Table of Contents
       [I-D.ietf-jose-json-web-proof]).  This profile defines the JPA
       value BBS-MOD (see Section 5).
    vct (string, REQUIRED):  The credential type identifier as defined in
-      Section 3.2.2.1 of [I-D.ietf-oauth-sd-jwt-vc].
+      Section 2.2.2.1.
    claims (JSON object, REQUIRED):  The mapping from claim names to
       message-vector positions and per-message encoding - see
       Section 2.3 for more details.
@@ -286,7 +287,7 @@ Table of Contents
    in claims.
 
    The top-level member names of claims MUST NOT be vct, alg, claims, or
-   kb.  This keeps the reconstructed payload (see Section 4.6) free of
+   kb.  This keeps the reconstructed payload (see Section 4.7) free of
    collisions with the vct member taken from the Issuer Header and
    prevents claim values from masquerading as header-derived members.
 
@@ -319,9 +320,6 @@ Table of Contents
        "country": "DE"
      },
      "birthdate": "19630812",
-     "is_over_18": true,
-     "is_over_21": true,
-     "is_over_65": false,
      "iat": 1683000000,
      "exp": 1786000000
    }
@@ -347,16 +345,13 @@ Table of Contents
          "region": [6, false],
          "country": [7, false]
        },
-       "birthdate": [8, false],
-       "is_over_18": [9, false],
-       "is_over_21": [10, false],
-       "is_over_65": [11, false],
-       "iat": [12, true],
-       "exp": [13, true]
+       "birthdate": [8, true],
+       "iat": [9, true],
+       "exp": [10, true]
      }
    }
 
-   Indices 0–11 use hash-to-scalar and indices 12–13 carry NumericDate
+   Indices 0–7 use hash-to-scalar and indices 8-10 carry NumericDate
    integers ([RFC7519]) directly as scalars.  A presentation can then
    mark iat/exp as COMMIT (see Section 4.3) and attach sigma-range sub-
    proofs (see Section 4.4.3) to prove validity without disclosing the
@@ -370,15 +365,22 @@ Table of Contents
 
    For an annotation [i, false] with leaf value v:
 
-   1.  The Issuer chooses an octet encoding o of v (e.g., the UTF-8
-       octets of a string) and carries it as Issuer Payload i.  This
-       profile does not mandate a specific encoding.  Holders MUST use
-       the received payload octets as-is.
+   1.  o is a JSON serialization of v - a single JSON text [RFC8259]
+       encoded in UTF-8 (e.g., "Erika" for a string, true for a boolean)
+       - carried as Issuer Payload i.  The Issuer MAY produce any
+       serialization of v, as the payload octets rather than the
+       abstract value are what is mapped to the message scalar.  Holders
+       and Verifiers MUST use the received payload octets as-is and MUST
+       NOT re-serialize them.
    2.  m_i = hash_to_scalar(o, map_dst), with map_dst = api_id ||
        "MAP_MSG_TO_SCALAR_AS_HASH_" and api_id the Interface identifier
        of Section 5.  This is the per-message derivation of
        BBS.messages_to_scalars (Section 4.1.2 of
        [I-D.irtf-cfrg-bbs-signatures]).
+
+   Numeric leaves recovered via JSON parsing are subject to JSON number-
+   precision interoperability limits - Issuers SHOULD keep scalar =
+   false number values within the I-JSON [RFC7493] range.
 
    For an annotation [i, true] with leaf value v:
 
@@ -394,9 +396,10 @@ Table of Contents
    any other value.
 
    The Issuer Payload for such a leaf is the canonical decimal octet
-   encoding of the integer.  Future extensions MAY define additional
-   scalar encodings provided they deterministically map a JSON value to
-   an element of [0, r - 1].
+   encoding of the integer: ASCII digits without sign or leading zeros,
+   with 0 represented as the single digit 0.  Future extensions MAY
+   define additional scalar encodings provided they deterministically
+   map a JSON value to an element of [0, r - 1].
 
 2.7.  Temporal Claims
 
@@ -415,7 +418,12 @@ Table of Contents
    p256-db.
 
    A kb value and its matching device-binding sub-proof algorithm (see
-   Section 4.4) share the same algorithm identifier string.
+   Section 4.4) share the same algorithm identifier string.  Valid kb
+   values are the entries of the Sub-Proof Algorithms registry whose
+   Device Binding field is yes - see Section 8.  The specification
+   defining such an entry MUST define the number of reserved slots N,
+   the encoding of the device public key into indices [0, N-1], and the
+   matching device-binding sub-proof.
 
    For kb = "ecdsa-p256-db", N = 4 and:
 
@@ -467,6 +475,8 @@ Table of Contents
 
    A Verifier detects a disclosed decoy by comparing the disclosed
    Presentation Payload octets to the fixed decoy octets defined above.
+   The scalar = false decoy octets are deliberately not a valid JSON
+   text, so no payload produced per Section 2.5 can collide with them.
    Decoys SHOULD NOT be disclosed unless required by the use case (for
    example, a proof over all members of a bounded-length array).
 
@@ -484,8 +494,12 @@ Table of Contents
    1.  Construct the Issuer Header per Section 2.2 and Section 2.3.
    2.  Derive the message vector (m_0, ..., m_(n-1)) per Section 2.5 and
        Section 2.8, filling decoys per Section 2.10.
-   3.  Compute the blind BBS signature over header_octets and the
-       message vector.
+   3.  Compute the signature with CoreSign (Section 3.6.1 of
+       [I-D.irtf-cfrg-bbs-signatures]) over generators =
+       create_generators(n + 1, api_id), header_octets, and the message
+       vector, with api_id as in Section 5.  No messages are Holder-
+       committed at issuance, so the Commit/BlindSign flow of
+       [I-D.irtf-cfrg-bbs-blind-signatures] is not used.
    4.  Assemble and serialize the Issued Form per Section 2.1.
 
    A non-normative example of the Compact Serialization:
@@ -494,10 +508,12 @@ Table of Contents
    .
    <m_0>~<m_1>~ ... ~<m_13>
    .
-   <base64url(blind BBS signature)>
+   <base64url(BBS signature)>
 
    Each <m_i> is the base64url-encoded Issuer Payload for index i (e.g.,
-   m_1 is "Mustermann", m_13 is 1786000000).
+   m_1 is "Mustermann" including the quotes, m_13 is 1786000000).  For
+   scalar = true leaves the canonical decimal encoding coincides with
+   the JSON serialization of the integer.
 
 3.3.  Holder Verification
 
@@ -506,11 +522,15 @@ Table of Contents
    1.  Parsing the Issued Form.
    2.  Validating the claims object per Section 2.3.  Reject on
        violation.
-   3.  Verifying the blind BBS signature over header_octets and the
-       message vector.  Reject on failure.
+   3.  Verifying the signature with CoreVerify (Section 3.6.2 of
+       [I-D.irtf-cfrg-bbs-signatures]) over the same generators,
+       header_octets, and message vector as issuance.  Reject on
+       failure.
    4.  For every scalar = true leaf, confirming the corresponding Issuer
        Payload decodes to an integer in [0, r - 1].
-   5.  If kb is present, confirming that the point reconstructed from
+   5.  For every scalar = false leaf, confirming the corresponding
+       Issuer Payload parses as a single JSON text [RFC8259].
+   6.  If kb is present, confirming that the point reconstructed from
        the limb messages matches the Holder's device public key.  How
        the Holder obtains the corresponding device key pair is out of
        scope.
@@ -558,21 +578,20 @@ Table of Contents
 4.3.  Core Proof
 
    The Holder builds a per-message disclosure map assigning each index
-   in [N, n-1] (where N is as in Section 2.3) one of DISCLOSE, HIDE, or
-   COMMIT:
+   in [0, n-1] one of DISCLOSE, HIDE, or COMMIT:
 
    *  DISCLOSE: the message is revealed and its value MUST match the
       corresponding disclosed Presentation Payload.
    *  COMMIT: a fresh Pedersen commitment to the message is carried in
       the proof.  Every index referenced by a sub-proof (see
       Section 4.4) MUST be marked COMMIT.
-   *  HIDE: all other indices in [N, n-1]
+   *  HIDE: all other indices in [0, n-1]
 
    The Holder generates the core proof by invoking CoreProofGen of
    [I-D.irtf-cfrg-bbs-blind-signatures] with:
 
    *  PK: Issuer public key.
-   *  signature: blind BBS signature from the Issuer Proof.
+   *  signature: BBS signature from the Issuer Proof.
    *  generators: create_generators(n + 1, api_id) (see Section 4.1.1).
    *  header: header_octets.
    *  ph: presentation_header_octets (binds nonce and aud into the
@@ -588,11 +607,10 @@ Table of Contents
    MUST NOT transmit it.  Only proof is carried as the first octet
    string of the Presentation Proof.
 
-   The core proof establishes that the Holder knows a blind BBS
-   signature under the Issuer's public key on a message vector whose
-   disclosed-index values match the disclosed Presentation Payloads, and
-   that each carried C_i commits to the message at index i of that
-   vector.
+   The core proof establishes that the Holder knows a BBS signature
+   under the Issuer's public key on a message vector whose disclosed-
+   index values match the disclosed Presentation Payloads, and that each
+   carried C_i commits to the message at index i of that vector.
 
    The Verifier verifies the core proof with CoreProofVerify, passing
    PK, the core proof, the generators, header_octets,
@@ -719,7 +737,37 @@ Table of Contents
 
    [Editor's Note: describe/reference algorithm]
 
-4.5.  Example Presentation
+4.5.  Presentation Verification
+
+   The Verifier verifies a presentation by:
+
+   1.  Parsing the Presented Form and validating the claims object of
+       the Issuer Header per Section 2.3.  Reject on violation.
+   2.  Confirming that nonce matches the value the Verifier supplied for
+       this presentation and that aud identifies this Verifier.
+   3.  Deriving the disclosed message scalars from the disclosed
+       Presentation Payloads per Section 2.5.  For a scalar = true leaf,
+       the payload MUST be the canonical decimal encoding of an integer
+       in [0, r - 1] (see Section 2.6).  Reject otherwise.
+   4.  Verifying the core proof with CoreProofVerify - see Section 4.3.
+       Reject on failure.  Confirming that the disclosed indices
+       recovered from the proof are exactly the positions of the non-
+       empty Presentation Payloads.
+   5.  If kb is present in the Issuer Header, confirming that exactly
+       one sub-proof with alg equal to the kb value is present.  If kb
+       is absent, confirming that no device-binding sub-proof is
+       present.
+   6.  Verifying every sub-proof per Section 4.4.  Reject if any sub-
+       proof fails to verify or carries an alg the Verifier does not
+       support.
+
+   Whether the disclosed claims and the predicates established by sub-
+   proofs satisfy the Verifier's requirements is an application-level
+   decision and out of scope for this document.  After successful
+   verification, the Verifier reconstructs the JSON payload per
+   Section 4.7.
+
+4.6.  Example Presentation
 
    Continuing the example of Section 2.4, a Verifier requests
    family_name and asks the Holder to prove exp is in the future without
@@ -751,7 +799,7 @@ Table of Contents
    .
    <base64url(Issuer Header)>
    .
-   ~TXVzdGVybWFubg~~~~~~~~~~~~
+   ~Ik11c3Rlcm1hbm4i~~~~~~~~~~~~
    .
    <core proof>~<sigma-range sub-proof>
 
@@ -759,7 +807,7 @@ Table of Contents
    sub-proof against it.  It learns family_name and that the credential
    has not expired.
 
-4.6.  Reconstructed JSON Payload
+4.7.  Reconstructed JSON Payload
 
    After verifying the core proof and any sub-proofs, the Verifier
    SHOULD convey to the application a JSON object reconstructed from the
@@ -769,12 +817,15 @@ Table of Contents
    it MUST be rejected, not reconstructed.  The procedure:
 
    1.  Start from { "vct": <vct from Issuer Header> }.
-   2.  Walk claims.  For each leaf at a disclosed index i, set its value
-       from the corresponding Presentation Payload (per Section 2.5),
-       except when the payload octets are byte-equal to the decoy octets
-       for that leaf's scalar flag (see Section 2.10), in which case
-       omit the leaf.  Hidden and committed-but-not-disclosed leaves are
-       omitted.
+   2.  Walk claims.  For each leaf at a disclosed index i, first compare
+       the Presentation Payload octets to the decoy octets for that
+       leaf's scalar flag (see Section 2.10) - on a byte-equal match,
+       omit the leaf.  Otherwise set the leaf's value by parsing the
+       payload octets as a single JSON text [RFC8259] when scalar is
+       false, or as the integer they denote (see Section 2.6) when
+       scalar is true.  A presentation containing a disclosed payload
+       that fails to parse MUST be rejected.  Hidden and committed-but-
+       not-disclosed leaves are omitted.
    3.  Preserve the object and array structure of claims for surviving
        leaves.  Array entries that were omitted do not appear, so
        reconstructed array indices may differ from those in the claims
@@ -784,7 +835,7 @@ Table of Contents
    values.  The reconstruction procedure MUST NOT populate values for
    hidden or committed-but-not-disclosed leaves.
 
-   For Section 4.5, the reconstructed payload is:
+   For Section 4.6, the reconstructed payload is:
 
    {
      "vct": "https://credentials.example.com/identity_credential",
@@ -944,16 +995,22 @@ Table of Contents
    experts SHOULD verify that each entry pins its underlying group,
    generators, transcript hash, and Fiat-Shamir domain separation, and
    that the sub-proof is bound to a commitment attested by the core
-   proof per Section 4.4.
+   proof per Section 4.4.  For entries with Device Binding set to yes,
+   they SHOULD additionally verify that the reference defines the
+   reserved slot count N and the device-key encoding required by
+   Section 2.8.
 
    Registry fields: Identifier (the alg value of a sub-proof object),
-   Description, Reference, Change Controller.
+   Description, Device Binding (whether the identifier is also a valid
+   kb value - see Section 2.8), Reference, Change Controller.
 
    Initial entries:
 
    *  Identifier: ecdsa-p256-db
 
    *  Description: ECDSA P-256 device-binding sub-proof.
+
+   *  Device Binding: yes.
 
    *  Reference: This document, Section 4.4.2.
 
@@ -964,6 +1021,8 @@ Table of Contents
    *  Description: Sigma-protocol range proof over a committed scalar
       message.
 
+   *  Device Binding: no.
+
    *  Reference: This document, Section 4.4.3.
 
    *  Change Controller: IETF.
@@ -972,6 +1031,8 @@ Table of Contents
 
    *  Description: Schnorr proof of equality between a committed message
       and an external commitment.
+
+   *  Device Binding: no.
 
    *  Reference: This document, Section 4.4.1.
 
@@ -1044,6 +1105,11 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
+   [RFC8259]  Bray, T., Ed., "The JavaScript Object Notation (JSON) Data
+              Interchange Format", STD 90, RFC 8259,
+              DOI 10.17487/RFC8259, December 2017,
+              <https://www.rfc-editor.org/info/rfc8259>.
+
    [RFC9380]  Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
               and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
               DOI 10.17487/RFC9380, August 2023,
@@ -1065,6 +1131,10 @@ Table of Contents
               Modular Framework for Anonymous Credential Systems", IACR
               ePrint 2025/1981, 2025,
               <https://eprint.iacr.org/2025/1981>.
+
+   [RFC7493]  Bray, T., Ed., "The I-JSON Message Format", RFC 7493,
+              DOI 10.17487/RFC7493, March 2015,
+              <https://www.rfc-editor.org/info/rfc7493>.
 
    [RFC9901]  Fett, D., Yasuda, K., and B. Campbell, "Selective
               Disclosure for JSON Web Tokens", RFC 9901,
@@ -1090,6 +1160,17 @@ Appendix B.  Document History
 
    [[ pre Working Group Adoption: ]]
 
+   -02
+
+   *  mandate JSON encoding for scalar = false payloads
+   *  require claims validation
+   *  add Presentation Verification section
+   *  pin issuance signing to CoreSign
+   *  define kb registration via a Device Binding registry field
+   *  define canonical decimal encoding
+   *  remove sigma-range construction, trim and reorder sub-proofs
+   *  align cipher suite text with latest blind BBS draft
+
    -01
 
    *  Fix venue note (was showing JOSE, should've been empty)
@@ -1101,7 +1182,6 @@ Appendix B.  Document History
       CoreProofVerify descriptions
    *  align header parameter registrations with the JWP registry
       template
-   *  remove some parts of the initial sub-proofs
 
    -00
 
