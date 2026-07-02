@@ -155,23 +155,23 @@ Table of Contents
     |                |            +----------------+
     |                |                    |
     |                |                    |
-    |                | ---------> +--------------+       +--------------+
-    |      MMS       |            |  Commitment  | ----> |  Sub-Proof   |
-    |   Signature    |            +--------------+       +--------------+
+    |                | ---------> +--------------+      +--------------+
+    |      MMS       |            |  Commitment  | ---> |  Sub-Proof   |
+    |   Signature    |            +--------------+      +--------------+
     |                |                    |
     |                |                    |
-    |                | ---------> +--------------+       +--------------+
-    |                |            |  Commitment  | ----> |  Sub-Proof   |
-    |                |            +--------------+       +--------------+
+    |                | ---------> +--------------+      +--------------+
+    |                |            |  Commitment  | ---> |  Sub-Proof   |
+    |                |            +--------------+      +--------------+
     |                |                    |
     +----------------+                    |
            |                              |
            |         +-----+------+-------+
            |         |     |      |
            v         v     v      v
-           +-----------------------------------------> +----------------+
-            (revealed + commitment openings feed down) |    Core Proof  |
-                                                       +----------------+
+           +----------------------------------------> +----------------+
+           (revealed + commitment openings feed down) |    Core Proof  |
+                                                      +----------------+
 
 1.1.  Requirements Notation and Conventions
 
@@ -195,7 +195,7 @@ Table of Contents
    This document uses the Issuer-Holder-Verifier model and terminology
    of [I-D.ietf-oauth-sd-jwt-vc].
 
-   Additional terminology used are:
+   Additional terms used are:
 
    Core proof:  A zero-knowledge proof of knowledge of a BBS signature
       on a message vector, where some messages are disclosed and others
@@ -632,10 +632,10 @@ Table of Contents
    [Editor's Note: Decision needed: Need to define a serialization
    scheme for the Sigma proofs - Re-use the existing one from the
    [I-D.irtf-cfrg-sigma-protocols] (although it uses different encodings
-   etc.), or define an optimized one for BLS12_381?. Some of the
+   etc.), or define an optimized one for BLS12-381?  Some of the
    following sub-proofs already propose very concrete choices to make
    the construction more concrete - all of these are open for discussion
-   and will very like see significant changes.]
+   and will very likely see significant changes.]
 
 4.4.1.  ECDSA Device-Binding Sub-Proof
 
