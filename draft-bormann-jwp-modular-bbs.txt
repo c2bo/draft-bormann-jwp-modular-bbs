@@ -239,8 +239,8 @@ Table of Contents
    and MUST NOT alter the header (e.g., re-encode).
 
    The Issued Form is serialized using the Compact Serialization (see
-   Section 7.1).  CBOR Serialization is (currently) out of scope for
-   this document.
+   Section 7.1 of [I-D.ietf-jose-json-web-proof]).  CBOR Serialization
+   is (currently) out of scope for this document.
 
 2.2.  Issuer Header
 
@@ -251,7 +251,7 @@ Table of Contents
       [I-D.ietf-jose-json-web-proof]).  This profile defines the JPA
       value BBS-MOD (see Section 5).
    vct (string, REQUIRED):  The credential type identifier as defined in
-      Section 2.2.2.1.
+      Section 2.2.2.1 of [I-D.ietf-oauth-sd-jwt-vc].
    claims (JSON object, REQUIRED):  The mapping from claim names to
       message-vector positions and per-message encoding - see
       Section 2.3 for more details.
@@ -262,7 +262,7 @@ Table of Contents
    Temporal claims (exp, nbf, iat) MUST NOT appear as Issuer Header
    values - see Section 2.7 for more details.
 
-   The JWP iek, hpk, and hpa Header Parameters (Sections 5.2.5–5.2.7 of
+   The JWP iek, hpk, and hpa Header Parameters (Section 5.2.5-5.2.7 of
    [I-D.ietf-jose-json-web-proof]) MUST NOT appear in the Issuer Header.
 
 2.3.  Claims Mapping
@@ -592,7 +592,8 @@ Table of Contents
 
    *  PK: Issuer public key.
    *  signature: BBS signature from the Issuer Proof.
-   *  generators: create_generators(n + 1, api_id) (see Section 4.1.1).
+   *  generators: create_generators(n + 1, api_id) (see Section 4.1.1 of
+      [I-D.irtf-cfrg-bbs-signatures]).
    *  header: header_octets.
    *  ph: presentation_header_octets (binds nonce and aud into the
       challenge).
@@ -877,8 +878,8 @@ Table of Contents
       domain separation derived from api_id.
    *  *Core proof operations*: CoreProofGen / CoreProofVerify of
       [I-D.irtf-cfrg-bbs-blind-signatures] invoked directly (not via
-      BlindProofGen), so implementations MUST apply the input validity
-      checks of Section 7.1 of that document.
+      BlindProofGen), so implementations MUST apply the commits_indexes
+      and disclosed_indexes checks of CoreProofGen.
    *  *Pedersen commitment generators*: (G, H) = (Y_1, Y_0) where (Y_0,
       Y_1) = BBS.create_generators(2, "COM_DIS_" || api_id).  Every
       committed-index commitment has the form C_i = m_i * G + s_i * H
