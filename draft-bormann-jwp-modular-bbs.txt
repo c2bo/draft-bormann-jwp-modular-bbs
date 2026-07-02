@@ -87,9 +87,9 @@ Table of Contents
      4.2.  Presentation Header
      4.3.  Core Proof
      4.4.  Sub-Proofs
-       4.4.1.  ECDSA Device-Binding Sub-Proof
-       4.4.2.  Range Proof Sub-Proof
-       4.4.3.  Equality Proof Sub-Proof
+       4.4.1.  Equality Proof Sub-Proof
+       4.4.2.  ECDSA Device-Binding Sub-Proof
+       4.4.3.  Range Proof Sub-Proof
      4.5.  Example Presentation
      4.6.  Reconstructed JSON Payload
    5.  Cipher Suite
@@ -285,6 +285,18 @@ Table of Contents
    exactly one annotation in claims.  Indices [0, N-1] MUST NOT appear
    in claims.
 
+   The top-level member names of claims MUST NOT be vct, alg, claims, or
+   kb.  This keeps the reconstructed payload (see Section 4.6) free of
+   collisions with the vct member taken from the Issuer Header and
+   prevents claim values from masquerading as header-derived members.
+
+   Receivers MUST validate claims before use: every leaf is a two-
+   element annotation of a non-negative integer index and a boolean,
+   every index in [N, n-1] appears in exactly one annotation, no other
+   index appears, and the name restrictions above hold.  Holders MUST
+   reject an issued credential and Verifiers MUST reject a presentation
+   that violates any of these constraints.
+
    Payload slots defined by the credential type's structural layout (see
    Section 2.9) but not populated by a given credential MUST carry the
    decoy value defined in Section 2.10.
@@ -347,7 +359,7 @@ Table of Contents
    Indices 0–11 use hash-to-scalar and indices 12–13 carry NumericDate
    integers ([RFC7519]) directly as scalars.  A presentation can then
    mark iat/exp as COMMIT (see Section 4.3) and attach sigma-range sub-
-   proofs (see Section 4.4.2) to prove validity without disclosing the
+   proofs (see Section 4.4.3) to prove validity without disclosing the
    timestamps.
 
    A real deployment would define a structural layout covering all
@@ -492,11 +504,13 @@ Table of Contents
    The Holder verifies an issued credential by:
 
    1.  Parsing the Issued Form.
-   2.  Verifying the blind BBS signature over header_octets and the
+   2.  Validating the claims object per Section 2.3.  Reject on
+       violation.
+   3.  Verifying the blind BBS signature over header_octets and the
        message vector.  Reject on failure.
-   3.  For every scalar = true leaf, confirming the corresponding Issuer
+   4.  For every scalar = true leaf, confirming the corresponding Issuer
        Payload decodes to an integer in [0, r - 1].
-   4.  If kb is present, confirming that the point reconstructed from
+   5.  If kb is present, confirming that the point reconstructed from
        the limb messages matches the Holder's device public key.  How
        the Holder obtains the corresponding device key pair is out of
        scope.
@@ -552,16 +566,14 @@ Table of Contents
    *  COMMIT: a fresh Pedersen commitment to the message is carried in
       the proof.  Every index referenced by a sub-proof (see
       Section 4.4) MUST be marked COMMIT.
-   *  HIDE: all other indices in [N, n-1].  Device-key indices [0, N-1]
-      are implicitly hidden.
+   *  HIDE: all other indices in [N, n-1]
 
    The Holder generates the core proof by invoking CoreProofGen of
    [I-D.irtf-cfrg-bbs-blind-signatures] with:
 
    *  PK: Issuer public key.
    *  signature: blind BBS signature from the Issuer Proof.
-   *  generators: create_generators(n + 1, api_id) (Section 4.1.1 of
-      [I-D.irtf-cfrg-bbs-signatures]).
+   *  generators: create_generators(n + 1, api_id) (see Section 4.1.1).
    *  header: header_octets.
    *  ph: presentation_header_octets (binds nonce and aud into the
       challenge).
@@ -619,7 +631,7 @@ Table of Contents
    material not derived from C_i (for example, the device ECDSA
    signature in ecdsa-p256-db) MUST bind that material to the current
    presentation by other means (ecdsa-p256-db does so via db_msg - see
-   Section 4.4.1).
+   Section 4.4.2).
 
    Sub-proof transcripts use the BBS encoding primitives of
    Section 4.2.4.1 of [I-D.irtf-cfrg-bbs-signatures]:
@@ -637,7 +649,35 @@ Table of Contents
    the construction more concrete - all of these are open for discussion
    and will very likely see significant changes.]
 
-4.4.1.  ECDSA Device-Binding Sub-Proof
+4.4.1.  Equality Proof Sub-Proof
+
+   Algorithm identifier:  schnorr-eq
+
+   Inputs (beyond the base sub-proof fields):
+
+   *  i: a single-element array [idx].
+   *  c_ext: a base64url-encoded BLS12-381 G1 point.
+
+   The sub-proof attests that C_idx (from the core proof) and c_ext open
+   to the same scalar under the generators (G, H) of Section 5.  Cross-
+   group equality is out of scope.
+
+   The construction is a 3-DL Schnorr discrete-logarithm-equality (DLEQ)
+   proof over BLS12-381 G1 with (G, H), with witness (m, s_1, s_2) such
+   that:
+
+   C_idx = m * G + s_1 * H
+   c_ext = m * G + s_2 * H
+
+   The Holder samples fresh random scalars (r_m, r_s1, r_s2) and
+   computes Schnorr commitments T_1 = r_m * G + r_s1 * H and T_2 = r_m *
+   G + r_s2 * H.  The challenge is c = hash_to_scalar(transcript,
+   challenge_dst) with challenge_dst = api_id || "SCHNORR_EQ_CHAL_" and
+   hash_to_scalar the base BBS primitive of Section 5.
+
+   [Editor's Note: describe wire format of proof]
+
+4.4.2.  ECDSA Device-Binding Sub-Proof
 
    This sub-proof MUST be present whenever kb = "ecdsa-p256-db" and MUST
    NOT be present otherwise.  The algorithm identifier deliberately
@@ -668,7 +708,7 @@ Table of Contents
    reference a construction; expectation is that this will be described
    in another IETF draft]
 
-4.4.2.  Range Proof Sub-Proof
+4.4.3.  Range Proof Sub-Proof
 
    Algorithm identifier:  sigma-range
 
@@ -677,60 +717,7 @@ Table of Contents
    sub-proof attests that m_idx, the message committed in the core proof
    at index idx, satisfies l <= m_idx < u.
 
-   l < u, u - l >= 2, and u - l <= 2^64 MUST hold.  The 2^64 ceiling
-   accommodates NumericDate values (Section 4.1 of [RFC7519]).  The
-   lower bound rules out single-value ranges, for which the construction
-   is degenerate.  Implementations MUST parse l and u as bigints.  A
-   deployment profile MAY permit a larger width.
-
-   The construction operates in BLS12-381 G1 against C_idx and follows
-   the sigma-protocol range proof of Section 5.4 of
-   [I-D.ietf-privacypass-arc-crypto]:
-
-   *  Let (base[0], ..., base[k-1]) be the output of ComputeBases(u - l)
-      (Section 5.4 of [I-D.ietf-privacypass-arc-crypto]) and k its
-      length.  The Holder writes m_idx - l as the sum over j in [0, k-1]
-      of b[j] * base[j], with each b[j] constrained to {0, 1}.
-   *  For each j in [0, k-1], the Holder samples blinding scalars s[j]
-      and s2[j] and forms the bit commitment D[j] = b[j] * G + s[j] * H
-      over (G, H) of Section 5.  The Holder then proves, in a single
-      batched Schnorr step, knowledge of (b[j], s[j], s2[j]) such that
-      D[j] = b[j] * G + s[j] * H and D[j] = b[j] * D[j] + s2[j] * H (the
-      linearized bit constraint), producing per-bit Schnorr commitments
-      T1[j] and T2[j] from fresh per-bit random scalars.
-   *  The challenge is c = hash_to_scalar(transcript, challenge_dst)
-      with challenge_dst = api_id || "SIGMA_RANGE_CHAL_" and
-      hash_to_scalar the base BBS primitive of Section 5.
-
-   [Editor's Note: describe wire format of proof]
-
-4.4.3.  Equality Proof Sub-Proof
-
-   Algorithm identifier:  schnorr-eq
-
-   Inputs (beyond the base sub-proof fields):
-
-   *  i: a single-element array [idx].
-   *  c_ext: a base64url-encoded BLS12-381 G1 point.
-
-   The sub-proof attests that C_idx (from the core proof) and c_ext open
-   to the same scalar under the generators (G, H) of Section 5.  Cross-
-   group equality is out of scope.
-
-   The construction is a 3-DL Schnorr discrete-logarithm-equality (DLEQ)
-   proof over BLS12-381 G1 with (G, H), with witness (m, s_1, s_2) such
-   that:
-
-   C_idx = m * G + s_1 * H
-   c_ext = m * G + s_2 * H
-
-   The Holder samples fresh random scalars (r_m, r_s1, r_s2) and
-   computes Schnorr commitments T_1 = r_m * G + r_s1 * H and T_2 = r_m *
-   G + r_s2 * H.  The challenge is c = hash_to_scalar(transcript,
-   challenge_dst) with challenge_dst = api_id || "SCHNORR_EQ_CHAL_" and
-   hash_to_scalar the base BBS primitive of Section 5.
-
-   [Editor's Note: describe wire format of proof]
+   [Editor's Note: describe/reference algorithm]
 
 4.5.  Example Presentation
 
@@ -777,7 +764,9 @@ Table of Contents
    After verifying the core proof and any sub-proofs, the Verifier
    SHOULD convey to the application a JSON object reconstructed from the
    disclosed information, analogous to the Processed SD-JWT Payload of
-   [RFC9901]:
+   [RFC9901].  Reconstruction presupposes that claims passed the
+   validation of Section 2.3 - a presentation whose claims object fails
+   it MUST be rejected, not reconstructed.  The procedure:
 
    1.  Start from { "vct": <vct from Issuer Header> }.
    2.  Walk claims.  For each leaf at a disclosed index i, set its value
@@ -828,9 +817,11 @@ Table of Contents
 5.2.  Parameters
 
    *  *Curve / group*: BLS12-381, G1 subgroup.
-   *  *Underlying BBS ciphersuite*: BLS12-381-SHA-256 (Section 7.2.2 of
-      [I-D.irtf-cfrg-bbs-signatures]) with hash-to-curve SHA-256 SSWU
-      random oracle [RFC9380].
+   *  *BBS ciphersuite*: BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_ -
+      identical to BLS12-381-SHA-256 (Section 7.2.2 of
+      [I-D.irtf-cfrg-bbs-signatures], with hash-to-curve SHA-256 SSWU
+      random oracle [RFC9380]) in all parameters except the ciphersuite
+      identifier.
    *  *Hash-to-scalar*: as in the underlying BBS ciphersuite, with
       domain separation derived from api_id.
    *  *Core proof operations*: CoreProofGen / CoreProofVerify of
@@ -844,12 +835,14 @@ Table of Contents
    *  *Per-message hash-to-scalar bypass*: governed by each leaf's
       scalar flag (see Section 2.3).
 
-   The base BBS KeyGen, Sign, and Verify operations defined by this
-   document use the BBS ciphersuite identifier BBS-
-   MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_. The BBS draft's default api_id =
-   ciphersuite_id || "H2G_HM2S_" is not used.  All base-BBS operations
-   are parameterized by the api_id defined above (carrying the
-   BLIND_H2G_HM2S_ suffix).
+   The api_id above follows the Interface identifier rule of Section 4.2
+   of [I-D.irtf-cfrg-bbs-blind-signatures] - ciphersuite_id ||
+   "BLIND_H2G_HM2S_" - applied to the ciphersuite identifier BBS-
+   MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_. All BBS operations used by this
+   document are the Blind BBS Interface operations, or the core
+   operations they wrap, which that document parameterizes with this
+   api_id.  Key generation uses KeyGen of [I-D.irtf-cfrg-bbs-signatures]
+   with key_dst = api_id || "KEYGEN_DST_".
 
 6.  Security Considerations
 
@@ -962,7 +955,7 @@ Table of Contents
 
    *  Description: ECDSA P-256 device-binding sub-proof.
 
-   *  Reference: This document, Section 4.4.1.
+   *  Reference: This document, Section 4.4.2.
 
    *  Change Controller: IETF.
 
@@ -971,7 +964,7 @@ Table of Contents
    *  Description: Sigma-protocol range proof over a committed scalar
       message.
 
-   *  Reference: This document, Section 4.4.2.
+   *  Reference: This document, Section 4.4.3.
 
    *  Change Controller: IETF.
 
@@ -980,7 +973,7 @@ Table of Contents
    *  Description: Schnorr proof of equality between a committed message
       and an external commitment.
 
-   *  Reference: This document, Section 4.4.3.
+   *  Reference: This document, Section 4.4.1.
 
    *  Change Controller: IETF.
 
@@ -1014,13 +1007,6 @@ Table of Contents
               Progress, Internet-Draft, draft-ietf-oauth-sd-jwt-vc-16,
               24 April 2026, <https://datatracker.ietf.org/doc/html/
               draft-ietf-oauth-sd-jwt-vc-16>.
-
-   [I-D.ietf-privacypass-arc-crypto]
-              Yun, C., Wood, C. A., and A. F. Faz-Hernandez, "Anonymous
-              Rate-Limited Credentials Cryptography", Work in Progress,
-              Internet-Draft, draft-ietf-privacypass-arc-crypto-01, 2
-              March 2026, <https://datatracker.ietf.org/doc/html/draft-
-              ietf-privacypass-arc-crypto-01>.
 
    [I-D.irtf-cfrg-bbs-blind-signatures]
               Kalos, V. and G. M. Bernstein, "Blind BBS Signatures",
@@ -1115,6 +1101,7 @@ Appendix B.  Document History
       CoreProofVerify descriptions
    *  align header parameter registrations with the JWP registry
       template
+   *  remove some parts of the initial sub-proofs
 
    -00
 
