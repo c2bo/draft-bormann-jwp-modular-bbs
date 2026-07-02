@@ -324,10 +324,10 @@ Table of Contents
      "exp": 1786000000
    }
 
-   The vct claim becomes a Header Parameter and the other 14 attributes
+   The vct claim becomes a Header Parameter and the other 11 attributes
    become leaves in claims, with address mirrored as a nested object.
    No device binding is used, so N = 0 and the leaves occupy indices 0
-   through 13.  The temporal claims iat and exp are carried as scalar =
+   through 10.  The temporal claims iat and exp are carried as scalar =
    true leaves (see Section 2.7) to allow range sub-proofs over them.
    The resulting Issuer Header is:
 
@@ -351,11 +351,11 @@ Table of Contents
      }
    }
 
-   Indices 0–7 use hash-to-scalar and indices 8-10 carry NumericDate
-   integers ([RFC7519]) directly as scalars.  A presentation can then
-   mark iat/exp as COMMIT (see Section 4.3) and attach sigma-range sub-
-   proofs (see Section 4.4.3) to prove validity without disclosing the
-   timestamps.
+   Indices 0–7 use hash-to-scalar and indices 8-10 carry their integer
+   values directly as scalars, with iat and exp as NumericDate integers
+   ([RFC7519]).  A presentation can then mark iat/exp as COMMIT (see
+   Section 4.3) and attach sigma-range sub-proofs (see Section 4.4.3) to
+   prove validity without disclosing the timestamps.
 
    A real deployment would define a structural layout covering all
    optional attributes and array slots up to their maximum length, with
@@ -506,12 +506,12 @@ Table of Contents
 
    <base64url(Issuer Header)>
    .
-   <m_0>~<m_1>~ ... ~<m_13>
+   <m_0>~<m_1>~ ... ~<m_10>
    .
    <base64url(BBS signature)>
 
    Each <m_i> is the base64url-encoded Issuer Payload for index i (e.g.,
-   m_1 is "Mustermann" including the quotes, m_13 is 1786000000).  For
+   m_1 is "Mustermann" including the quotes, m_10 is 1786000000).  For
    scalar = true leaves the canonical decimal encoding coincides with
    the JSON serialization of the integer.
 
@@ -778,32 +778,32 @@ Table of Contents
      "aud": "https://verifier.example.com"
    }
 
-   The Holder marks index 1 (family_name) as DISCLOSE, index 13 (exp) as
+   The Holder marks index 1 (family_name) as DISCLOSE, index 10 (exp) as
    COMMIT, and the rest as HIDE.  The core proof then carries a fresh
-   Pedersen commitment to m_13.  The Holder attaches a sigma-range sub-
-   proof over index 13 proving now <= exp < 2^63 (with now =
+   Pedersen commitment to m_10.  The Holder attaches a sigma-range sub-
+   proof over index 10 proving now <= exp < 2^63 (with now =
    1779926400):
 
    {
      "alg": "sigma-range",
-     "input": { "i": [13], "l": 1779926400, "u": 9223372036854775808 },
+     "input": { "i": [10], "l": 1779926400, "u": 9223372036854775808 },
      "proof": "..."
    }
 
    The Compact Serialization concatenates with .: Presentation Header,
    Issuer Header, Presentation Payloads, Presentation Proof.  The
    disclosed family_name at index 1 is the only populated payload and
-   the other thirteen slots are empty:
+   the other ten slots are empty:
 
    <base64url(Presentation Header)>
    .
    <base64url(Issuer Header)>
    .
-   ~Ik11c3Rlcm1hbm4i~~~~~~~~~~~~
+   ~Ik11c3Rlcm1hbm4i~~~~~~~~~
    .
    <core proof>~<sigma-range sub-proof>
 
-   The Verifier verifies the core proof, recovers C_13, and checks the
+   The Verifier verifies the core proof, recovers C_10, and checks the
    sub-proof against it.  It learns family_name and that the credential
    has not expired.
 
@@ -892,8 +892,7 @@ Table of Contents
    MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_. All BBS operations used by this
    document are the Blind BBS Interface operations, or the core
    operations they wrap, which that document parameterizes with this
-   api_id.  Key generation uses KeyGen of [I-D.irtf-cfrg-bbs-signatures]
-   with key_dst = api_id || "KEYGEN_DST_".
+   api_id.
 
 6.  Security Considerations
 
