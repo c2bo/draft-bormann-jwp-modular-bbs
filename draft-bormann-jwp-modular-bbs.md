@@ -107,25 +107,25 @@ A credential exists in two forms: the Issued Form an Issuer transmits to a Holde
 
 ## Issued Credential {#issued-credential}
 
-A credential is issued in the Issued Form (see Section 6.1 of [@!I-D.ietf-jose-json-web-proof]) consisting of:
+A credential is issued in the Issued Form (see [@!I-D.ietf-jose-json-web-proof, section 6.1]) consisting of:
 
-- An Issuer Header (Section 6.1.1 of [@!I-D.ietf-jose-json-web-proof]) with the contents specified in (#issuer-header).
-- `n` Issuer Payloads (Section 6.1.2 of [@!I-D.ietf-jose-json-web-proof]), where `n` is the length of the BBS message vector (see (#claims-mapping)). The Issuer Payload at position `i` is the octet string from which the scalar message `m_i` is derived per (#message-derivation).
-- An Issuer Proof (Section 6.1.3 of [@!I-D.ietf-jose-json-web-proof]) carrying the BBS signature over `header_octets` and the message vector `(m_0, ..., m_(n-1))`.
+- An Issuer Header ([@!I-D.ietf-jose-json-web-proof, section 6.1.1]) with the contents specified in (#issuer-header).
+- `n` Issuer Payloads ([@!I-D.ietf-jose-json-web-proof, section 6.1.2]), where `n` is the length of the BBS message vector (see (#claims-mapping)). The Issuer Payload at position `i` is the octet string from which the scalar message `m_i` is derived per (#message-derivation).
+- An Issuer Proof ([@!I-D.ietf-jose-json-web-proof, section 6.1.3]) carrying the BBS signature over `header_octets` and the message vector `(m_0, ..., m_(n-1))`.
 
 `header_octets` is the Issuer Header as transmitted, i.e., the octets obtained by base64url-decoding the Issuer Header component of the Compact Serialization. All parties MUST use those octets as received and MUST NOT alter the header (e.g., re-encode).
 
-The Issued Form is serialized using the Compact Serialization (see [@!I-D.ietf-jose-json-web-proof, Section 7.1]). CBOR Serialization is (currently) out of scope for this document.
+The Issued Form is serialized using the Compact Serialization (see [@!I-D.ietf-jose-json-web-proof, section 7.1]). CBOR Serialization is (currently) out of scope for this document.
 
 ## Issuer Header {#issuer-header}
 
 The Issuer Header is a JSON object with the following Header Parameters.
 
 `alg` (REQUIRED):
-: The Algorithm Header Parameter (Section 5.2.1 of [@!I-D.ietf-jose-json-web-proof]). This profile defines the JPA value `BBS-MOD` (see (#cipher-suite)).
+: The Algorithm Header Parameter ([@!I-D.ietf-jose-json-web-proof, section 5.2.1]). This profile defines the JPA value `BBS-MOD` (see (#cipher-suite)).
 
 `vct` (string, REQUIRED):
-: The credential type identifier as defined in [@!I-D.ietf-oauth-sd-jwt-vc, Section 2.2.2.1].
+: The credential type identifier as defined in [@!I-D.ietf-oauth-sd-jwt-vc, section 2.2.2.1].
 
 `claims` (JSON object, REQUIRED):
 : The mapping from claim names to message-vector positions and per-message encoding - see (#claims-mapping) for more details.
@@ -135,7 +135,7 @@ The Issuer Header is a JSON object with the following Header Parameters.
 
 Temporal claims (`exp`, `nbf`, `iat`) MUST NOT appear as Issuer Header values - see (#temporal-claims) for more details.
 
-The JWP `iek`, `hpk`, and `hpa` Header Parameters (Sections 5.2.5–5.2.7 of [@!I-D.ietf-jose-json-web-proof]) MUST NOT appear in the Issuer Header.
+The JWP `iek`, `hpk`, and `hpa` Header Parameters ([@!I-D.ietf-jose-json-web-proof, section 5.2.5-5.2.7]) MUST NOT appear in the Issuer Header.
 
 ## Claims Mapping {#claims-mapping}
 
@@ -210,7 +210,7 @@ A real deployment would define a structural layout covering all optional attribu
 For an annotation `[i, false]` with leaf value `v`:
 
 1. `o` is a JSON serialization of `v` - a single JSON text [@!RFC8259] encoded in UTF-8 (e.g., `"Erika"` for a string, `true` for a boolean) - carried as Issuer Payload `i`. The Issuer MAY produce any serialization of `v`, as the payload octets rather than the abstract value are what is mapped to the message scalar. Holders and Verifiers MUST use the received payload octets as-is and MUST NOT re-serialize them.
-1. m_i = `hash_to_scalar(o, map_dst)`, with `map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"` and `api_id` the Interface identifier of (#cipher-suite). This is the per-message derivation of `BBS.messages_to_scalars` (Section 4.1.2 of [@!I-D.irtf-cfrg-bbs-signatures]).
+1. m_i = `hash_to_scalar(o, map_dst)`, with `map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"` and `api_id` the Interface identifier of (#cipher-suite). This is the per-message derivation of `BBS.messages_to_scalars` ([@!I-D.irtf-cfrg-bbs-signatures, section 4.1.2]).
 
 Numeric leaves recovered via JSON parsing are subject to JSON number-precision interoperability limits - Issuers SHOULD keep `scalar = false` number values within the I-JSON [@?RFC7493] range.
 
@@ -227,7 +227,7 @@ The Issuer Payload for such a leaf is the canonical decimal octet encoding of th
 
 ## Temporal Claims {#temporal-claims}
 
-The JWT temporal claims `exp`, `nbf`, and `iat` (Section 4.1 of [@!RFC7519]), when present in a credential, MUST be declared as `scalar = true` leaves in `claims` carrying their NumericDate values. They MUST NOT appear as Issuer Header values.
+The JWT temporal claims `exp`, `nbf`, and `iat` ([@!RFC7519, section 4.1]), when present in a credential, MUST be declared as `scalar = true` leaves in `claims` carrying their NumericDate values. They MUST NOT appear as Issuer Header values.
 
 ## Device Binding Header {#device-binding-header}
 
@@ -275,7 +275,7 @@ A Verifier detects a disclosed decoy by comparing the disclosed Presentation Pay
 
 ## Issuer Key Generation
 
-The Issuer key pair is a BBS key pair (Section 3.4 of [@!I-D.irtf-cfrg-bbs-signatures]) using the cipher suite of (#cipher-suite).
+The Issuer key pair is a BBS key pair ([@!I-D.irtf-cfrg-bbs-signatures, section 3.4]) using the cipher suite of (#cipher-suite).
 
 ## Credential Issuance
 
@@ -283,7 +283,7 @@ To issue a credential, the issuer performs the following steps:
 
 1. Construct the Issuer Header per (#issuer-header) and (#claims-mapping).
 1. Derive the message vector `(m_0, ..., m_(n-1))` per (#message-derivation) and (#device-binding-header), filling decoys per (#decoys).
-1. Compute the signature with `CoreSign` (Section 3.6.1 of [@!I-D.irtf-cfrg-bbs-signatures]) over `generators = create_generators(n + 1, api_id)`, `header_octets`, and the message vector, with `api_id` as in (#cipher-suite). No messages are Holder-committed at issuance, so the `Commit`/`BlindSign` flow of [@!I-D.irtf-cfrg-bbs-blind-signatures] is not used.
+1. Compute the signature with `CoreSign` ([@!I-D.irtf-cfrg-bbs-signatures, section 3.6.1]) over `generators = create_generators(n + 1, api_id)`, `header_octets`, and the message vector, with `api_id` as in (#cipher-suite). No messages are Holder-committed at issuance, so the `Commit`/`BlindSign` flow of [@!I-D.irtf-cfrg-bbs-blind-signatures] is not used.
 1. Assemble and serialize the Issued Form per (#issued-credential).
 
 A non-normative example of the Compact Serialization:
@@ -304,7 +304,7 @@ The Holder verifies an issued credential by:
 
 1. Parsing the Issued Form.
 1. Validating the `claims` object per (#claims-mapping). Reject on violation.
-1. Verifying the signature with `CoreVerify` (Section 3.6.2 of [@!I-D.irtf-cfrg-bbs-signatures]) over the same generators, `header_octets`, and message vector as issuance. Reject on failure.
+1. Verifying the signature with `CoreVerify` ([@!I-D.irtf-cfrg-bbs-signatures, section 3.6.2]) over the same generators, `header_octets`, and message vector as issuance. Reject on failure.
 1. For every `scalar = true` leaf, confirming the corresponding Issuer Payload decodes to an integer in `[0, r - 1]`.
 1. For every `scalar = false` leaf, confirming the corresponding Issuer Payload parses as a single JSON text [@!RFC8259].
 1. If `kb` is present, confirming that the point reconstructed from the limb messages matches the Holder's device public key. How the Holder obtains the corresponding device key pair is out of scope.
@@ -313,22 +313,22 @@ The Holder verifies an issued credential by:
 
 ## Presented Form {#presented-form}
 
-A presentation is a Presented Form (Section 6.2 of [@!I-D.ietf-jose-json-web-proof]) consisting of:
+A presentation is a Presented Form ([@!I-D.ietf-jose-json-web-proof, section 6.2]) consisting of:
 
 1. A Presentation Header as defined in (#presentation-header).
 1. The unmodified Issuer Header.
-1. `n` Presentation Payloads (Section 6.2.2 of [@!I-D.ietf-jose-json-web-proof]): disclosed positions carry the corresponding Issuer Payload and undisclosed positions are omitted (see Section 7.1 of [@!I-D.ietf-jose-json-web-proof]).
-1. A Presentation Proof (Section 6.2.4 of [@!I-D.ietf-jose-json-web-proof]) consisting of one or more octet strings. The first octet string is the encoded core proof (see (#core-proof)). Subsequent optional octet strings are UTF-8 JSON-serialized sub-proof objects (see (#sub-proofs)) and MAY appear in any order. The Compact Serialization base64url-encodes each octet string.
+1. `n` Presentation Payloads ([@!I-D.ietf-jose-json-web-proof, section 6.2.2]): disclosed positions carry the corresponding Issuer Payload and undisclosed positions are omitted (see [@!I-D.ietf-jose-json-web-proof, section 7.1]).
+1. A Presentation Proof ([@!I-D.ietf-jose-json-web-proof, section 6.2.4]) consisting of one or more octet strings. The first octet string is the encoded core proof (see (#core-proof)). Subsequent optional octet strings are UTF-8 JSON-serialized sub-proof objects (see (#sub-proofs)) and MAY appear in any order. The Compact Serialization base64url-encodes each octet string.
 
 ## Presentation Header {#presentation-header}
 
 The Presentation Header is a JSON object with the following Header Parameters.
 
 `nonce` (string, REQUIRED):
-: The Nonce Header Parameter (Section 5.2.10 of [@!I-D.ietf-jose-json-web-proof]).
+: The Nonce Header Parameter ([@!I-D.ietf-jose-json-web-proof, section 5.2.10]).
 
 `aud` (string, REQUIRED):
-: The Audience Header Parameter (Section 5.2.9 of [@!I-D.ietf-jose-json-web-proof]).
+: The Audience Header Parameter ([@!I-D.ietf-jose-json-web-proof, section 5.2.9]).
 
 Additional Header Parameters MAY be present, but their use is out of scope for this document.
 
@@ -346,7 +346,7 @@ The Holder generates the core proof by invoking `CoreProofGen` of [@!I-D.irtf-cf
 
 - `PK`: Issuer public key.
 - `signature`: BBS signature from the Issuer Proof.
-- `generators`: `create_generators(n + 1, api_id)` (see [@!I-D.irtf-cfrg-bbs-signatures, Section 4.1.1]).
+- `generators`: `create_generators(n + 1, api_id)` (see [@!I-D.irtf-cfrg-bbs-signatures, section 4.1.1]).
 - `header`: `header_octets`.
 - `ph`: `presentation_header_octets` (binds `nonce` and `aud` into the challenge).
 - `messages`: `(m_0, ..., m_(n-1))`.
@@ -379,7 +379,7 @@ For each sub-proof, the Verifier MUST confirm that every value in `i` is among t
 
 Sub-proof freshness is inherited from the core proof: every `C_i` is randomized per presentation, and the core proof's challenge binds to `presentation_header_octets`. Sub-proof algorithms that include public material not derived from `C_i` (for example, the device ECDSA signature in `ecdsa-p256-db`) MUST bind that material to the current presentation by other means (`ecdsa-p256-db` does so via `db_msg` - see (#ecdsa-db)).
 
-Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of [@!I-D.irtf-cfrg-bbs-signatures]:
+Sub-proof transcripts use the BBS encoding primitives of [@!I-D.irtf-cfrg-bbs-signatures, section 4.2.4.1]:
 
 - BLS12-381 G1 points are serialized in their compressed form (48 octets)
 - scalars as 32-octet big-endian integers
@@ -524,18 +524,18 @@ Cipher suite identifier (also used as `api_id` for hash-to-scalar, generator der
 BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_
 ~~~
 
-The `BBS-MOD_` prefix separates this profile from both the base BBS JPA (`BBS` of Section 9.1.2.4 of [@!I-D.ietf-jose-json-proof-algorithms]) and the base blind BBS Interface (`BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`). This profile adds committed-message proof generation to that Interface. It also bypasses hash-to-scalar on a per-message basis under the `scalar` flag and attaches sub-proofs as described in (#sub-proofs).
+The `BBS-MOD_` prefix separates this profile from both the base BBS JPA (`BBS` of [@!I-D.ietf-jose-json-proof-algorithms, section 9.1.2.4]) and the base blind BBS Interface (`BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_BLIND_H2G_HM2S_`). This profile adds committed-message proof generation to that Interface. It also bypasses hash-to-scalar on a per-message basis under the `scalar` flag and attaches sub-proofs as described in (#sub-proofs).
 
 ## Parameters
 
 - **Curve / group**: BLS12-381, G1 subgroup.
-- **BBS ciphersuite**: `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_` - identical to `BLS12-381-SHA-256` (Section 7.2.2 of [@!I-D.irtf-cfrg-bbs-signatures], with hash-to-curve SHA-256 SSWU random oracle [@!RFC9380]) in all parameters except the ciphersuite identifier.
+- **BBS ciphersuite**: `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_` - identical to `BLS12-381-SHA-256` ([@!I-D.irtf-cfrg-bbs-signatures, section 7.2.2], with hash-to-curve SHA-256 SSWU random oracle [@!RFC9380]) in all parameters except the ciphersuite identifier.
 - **Hash-to-scalar**: as in the underlying BBS ciphersuite, with domain separation derived from `api_id`.
 - **Core proof operations**: `CoreProofGen` / `CoreProofVerify` of [@!I-D.irtf-cfrg-bbs-blind-signatures] invoked directly (not via `BlindProofGen`), so implementations MUST apply the `commits_indexes` and `disclosed_indexes` checks of `CoreProofGen`.
 - **Pedersen commitment generators**: `(G, H) = (Y_1, Y_0)` where `(Y_0, Y_1) = BBS.create_generators(2, "COM_DIS_" || api_id)`. Every committed-index commitment has the form `C_i = m_i * G + s_i * H` with `s_i` sampled per presentation by `CoreProofGen`.
 - **Per-message hash-to-scalar bypass**: governed by each leaf's `scalar` flag (see (#claims-mapping)).
 
-The `api_id` above follows the Interface identifier rule of Section 4.2 of [@!I-D.irtf-cfrg-bbs-blind-signatures] - `ciphersuite_id || "BLIND_H2G_HM2S_"` - applied to the ciphersuite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_`. All BBS operations used by this document are the Blind BBS Interface operations, or the core operations they wrap, which that document parameterizes with this `api_id`.
+The `api_id` above follows the Interface identifier rule of [@!I-D.irtf-cfrg-bbs-blind-signatures, section 4.2] - `ciphersuite_id || "BLIND_H2G_HM2S_"` - applied to the ciphersuite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_`. All BBS operations used by this document are the Blind BBS Interface operations, or the core operations they wrap, which that document parameterizes with this `api_id`.
 
 # Security Considerations
 
