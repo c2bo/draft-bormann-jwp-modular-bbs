@@ -177,7 +177,7 @@ Starting from an SD-JWT VC-style claim set [@!I-D.ietf-oauth-sd-jwt-vc]:
 }
 ~~~
 
-The `vct` claim becomes a Header Parameter and the other 14 attributes become leaves in `claims`, with `address` mirrored as a nested object. No device binding is used, so `N = 0` and the leaves occupy indices 0 through 13. The temporal claims `iat` and `exp` are carried as `scalar = true` leaves (see (#temporal-claims)) to allow range sub-proofs over them. The resulting Issuer Header is:
+The `vct` claim becomes a Header Parameter and the other 11 attributes become leaves in `claims`, with `address` mirrored as a nested object. No device binding is used, so `N = 0` and the leaves occupy indices 0 through 10. The temporal claims `iat` and `exp` are carried as `scalar = true` leaves (see (#temporal-claims)) to allow range sub-proofs over them. The resulting Issuer Header is:
 
 ~~~ json
 {
@@ -201,7 +201,7 @@ The `vct` claim becomes a Header Parameter and the other 14 attributes become le
 }
 ~~~
 
-Indices 0–7 use hash-to-scalar and indices 8-10 carry NumericDate integers ([@!RFC7519]) directly as scalars. A presentation can then mark `iat`/`exp` as `COMMIT` (see (#core-proof)) and attach `sigma-range` sub-proofs (see (#range-proof)) to prove validity without disclosing the timestamps.
+Indices 0–7 use hash-to-scalar and indices 8-10 carry their integer values directly as scalars, with `iat` and `exp` as NumericDate integers ([@!RFC7519]). A presentation can then mark `iat`/`exp` as `COMMIT` (see (#core-proof)) and attach `sigma-range` sub-proofs (see (#range-proof)) to prove validity without disclosing the timestamps.
 
 A real deployment would define a structural layout covering all optional attributes and array slots up to their maximum length, with absent slots filled by decoys (see (#decoys)).
 
@@ -291,12 +291,12 @@ A non-normative example of the Compact Serialization:
 ~~~
 <base64url(Issuer Header)>
 .
-<m_0>~<m_1>~ ... ~<m_13>
+<m_0>~<m_1>~ ... ~<m_10>
 .
 <base64url(BBS signature)>
 ~~~
 
-Each `<m_i>` is the base64url-encoded Issuer Payload for index `i` (e.g., m_1 is `"Mustermann"` including the quotes, m_13 is `1786000000`). For `scalar = true` leaves the canonical decimal encoding coincides with the JSON serialization of the integer.
+Each `<m_i>` is the base64url-encoded Issuer Payload for index `i` (e.g., m_1 is `"Mustermann"` including the quotes, m_10 is `1786000000`). For `scalar = true` leaves the canonical decimal encoding coincides with the JSON serialization of the integer.
 
 ## Holder Verification
 
@@ -467,29 +467,29 @@ Continuing the example of (#example-issuer-header), a Verifier requests `family_
 }
 ~~~
 
-The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 13 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to m_13. The Holder attaches a `sigma-range` sub-proof over index 13 proving `now <= exp < 2^63` (with `now = 1779926400`):
+The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 10 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to m_10. The Holder attaches a `sigma-range` sub-proof over index 10 proving `now <= exp < 2^63` (with `now = 1779926400`):
 
 ~~~ json
 {
   "alg": "sigma-range",
-  "input": { "i": [13], "l": 1779926400, "u": 9223372036854775808 },
+  "input": { "i": [10], "l": 1779926400, "u": 9223372036854775808 },
   "proof": "..."
 }
 ~~~
 
-The Compact Serialization concatenates with `.`: Presentation Header, Issuer Header, Presentation Payloads, Presentation Proof. The disclosed `family_name` at index 1 is the only populated payload and the other thirteen slots are empty:
+The Compact Serialization concatenates with `.`: Presentation Header, Issuer Header, Presentation Payloads, Presentation Proof. The disclosed `family_name` at index 1 is the only populated payload and the other ten slots are empty:
 
 ~~~
 <base64url(Presentation Header)>
 .
 <base64url(Issuer Header)>
 .
-~Ik11c3Rlcm1hbm4i~~~~~~~~~~~~
+~Ik11c3Rlcm1hbm4i~~~~~~~~~
 .
 <core proof>~<sigma-range sub-proof>
 ~~~
 
-The Verifier verifies the core proof, recovers `C_13`, and checks the sub-proof against it. It learns `family_name` and that the credential has not expired.
+The Verifier verifies the core proof, recovers `C_10`, and checks the sub-proof against it. It learns `family_name` and that the credential has not expired.
 
 ## Reconstructed JSON Payload {#reconstructed-payload}
 
@@ -535,7 +535,7 @@ The `BBS-MOD_` prefix separates this profile from both the base BBS JPA (`BBS` o
 - **Pedersen commitment generators**: `(G, H) = (Y_1, Y_0)` where `(Y_0, Y_1) = BBS.create_generators(2, "COM_DIS_" || api_id)`. Every committed-index commitment has the form `C_i = m_i * G + s_i * H` with `s_i` sampled per presentation by `CoreProofGen`.
 - **Per-message hash-to-scalar bypass**: governed by each leaf's `scalar` flag (see (#claims-mapping)).
 
-The `api_id` above follows the Interface identifier rule of Section 4.2 of [@!I-D.irtf-cfrg-bbs-blind-signatures] - `ciphersuite_id || "BLIND_H2G_HM2S_"` - applied to the ciphersuite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_`. All BBS operations used by this document are the Blind BBS Interface operations, or the core operations they wrap, which that document parameterizes with this `api_id`. Key generation uses `KeyGen` of [@!I-D.irtf-cfrg-bbs-signatures] with `key_dst = api_id || "KEYGEN_DST_"`.
+The `api_id` above follows the Interface identifier rule of Section 4.2 of [@!I-D.irtf-cfrg-bbs-blind-signatures] - `ciphersuite_id || "BLIND_H2G_HM2S_"` - applied to the ciphersuite identifier `BBS-MOD_BLS12381G1_XMD:SHA-256_SSWU_RO_`. All BBS operations used by this document are the Blind BBS Interface operations, or the core operations they wrap, which that document parameterizes with this `api_id`.
 
 # Security Considerations
 
