@@ -24,7 +24,7 @@ organization = "SPRIND GmbH"
 
 .# Abstract
 
-This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs to signed but undisclosed attributes that allow a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keeps hidden. A credential can additionally be bound to an ECDSA P-256 device key. The credential metadata and type model follow SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
+This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to an ECDSA P-256 device key and possession over the key proven without revealing the public key. The credential metadata and type model follow SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
 {mainmatter}
 
@@ -45,29 +45,29 @@ This modular architecture builds on prior work [@TS14] and [@LSZ25], and the cre
 
 ~~~ ascii-art
  +----------------+
- |                | -----------> +----------------+
- |                |              |   Revealed     |
- |                |              |   Attributes   |
- |                |              +----------------+
- |                |                            |
- |                |                            |
- |                | -----------> +--------------+       +--------------+
- |      MMS       |              |  Commitment  | ----> |  Sub-Proof   |
- |   Signature    |              +--------------+       +--------------+
- |                |                            |
- |                |                            |
- |                | -----------> +--------------+       +--------------+
- |                |              |  Commitment  | ----> |  Sub-Proof   |
- |                |              +--------------+       +--------------+
- |                |                      |
- +----------------+                      |
-        |                                |
-        |         +-----+------+---------+
+ |                | ---------> +----------------+
+ |                |            |   Revealed     |
+ |                |            |   Attributes   |
+ |                |            +----------------+
+ |                |                    |
+ |                |                    |
+ |                | ---------> +--------------+       +--------------+
+ |      MMS       |            |  Commitment  | ----> |  Sub-Proof   |
+ |   Signature    |            +--------------+       +--------------+
+ |                |                    |
+ |                |                    |
+ |                | ---------> +--------------+       +--------------+
+ |                |            |  Commitment  | ----> |  Sub-Proof   |
+ |                |            +--------------+       +--------------+
+ |                |                    |
+ +----------------+                    |
+        |                              |
+        |         +-----+------+-------+
         |         |     |      |
         v         v     v      v
-        +------------------------------------------> +----------------+
-         (revealed + commitment openings feed down)  |    Core Proof  |
-                                                     +----------------+
+        +-----------------------------------------> +----------------+
+         (revealed + commitment openings feed down) |    Core Proof  |
+                                                    +----------------+
 ~~~
 
 ## Requirements Notation and Conventions
