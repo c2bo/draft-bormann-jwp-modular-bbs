@@ -4,8 +4,8 @@
 
 TODO Working Group                                            C. Bormann
 Internet-Draft                                               SPRIND GmbH
-Intended status: Standards Track                             1 July 2026
-Expires: 2 January 2027
+Intended status: Standards Track                             2 July 2026
+Expires: 3 January 2027
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -16,12 +16,12 @@ Abstract
    This document defines a digital credential format that uses JSON Web
    Proofs (JWP) as its container format and Blind BBS Signatures as its
    signature scheme combined with a modular framework for attaching
-   zero-knowledge sub-proofs to signed but undisclosed attributes that
-   allow a Holder to reveal some attributes directly while proving
-   predicates such as range or equality over the ones they keeps hidden.
-   A credential can additionally be bound to an ECDSA P-256 device key.
-   The credential metadata and type model follow SD-JWT VC
-   [I-D.ietf-oauth-sd-jwt-vc].
+   zero-knowledge sub-proofs.  This allows a Holder to reveal some
+   attributes directly while proving predicates such as range or
+   equality over the ones they keep hidden.  A credential can
+   additionally be bound to an ECDSA P-256 device key and possession
+   over the key proven without revealing the public key.  The credential
+   metadata and type model follow SD-JWT VC [I-D.ietf-oauth-sd-jwt-vc].
 
 Discussion Venues
 
@@ -45,7 +45,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 January 2027.
+   This Internet-Draft will expire on 3 January 2027.
 
 Copyright Notice
 
@@ -149,29 +149,29 @@ Table of Contents
    [I-D.ietf-oauth-sd-jwt-vc].
 
     +----------------+
-    |                | -----------> +----------------+
-    |                |              |   Revealed     |
-    |                |              |   Attributes   |
-    |                |              +----------------+
-    |                |                            |
-    |                |                            |
-    |                | -----------> +--------------+       +--------------+
-    |      MMS       |              |  Commitment  | ----> |  Sub-Proof   |
-    |   Signature    |              +--------------+       +--------------+
-    |                |                            |
-    |                |                            |
-    |                | -----------> +--------------+       +--------------+
-    |                |              |  Commitment  | ----> |  Sub-Proof   |
-    |                |              +--------------+       +--------------+
-    |                |                      |
-    +----------------+                      |
-           |                                |
-           |         +-----+------+---------+
+    |                | ---------> +----------------+
+    |                |            |   Revealed     |
+    |                |            |   Attributes   |
+    |                |            +----------------+
+    |                |                    |
+    |                |                    |
+    |                | ---------> +--------------+       +--------------+
+    |      MMS       |            |  Commitment  | ----> |  Sub-Proof   |
+    |   Signature    |            +--------------+       +--------------+
+    |                |                    |
+    |                |                    |
+    |                | ---------> +--------------+       +--------------+
+    |                |            |  Commitment  | ----> |  Sub-Proof   |
+    |                |            +--------------+       +--------------+
+    |                |                    |
+    +----------------+                    |
+           |                              |
+           |         +-----+------+-------+
            |         |     |      |
            v         v     v      v
-           +------------------------------------------> +----------------+
-            (revealed + commitment openings feed down)  |    Core Proof  |
-                                                        +----------------+
+           +-----------------------------------------> +----------------+
+            (revealed + commitment openings feed down) |    Core Proof  |
+                                                       +----------------+
 
 1.1.  Requirements Notation and Conventions
 
