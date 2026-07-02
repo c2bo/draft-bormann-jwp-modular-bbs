@@ -128,7 +128,7 @@ Table of Contents
    commitments become public inputs to further proofs over the values
    they hide.
 
-   Building on those core building lbocks, this document defines a
+   Building on those core building blocks, this document defines a
    digital credential format that:
 
    *  Uses JSON Web Proofs [I-D.ietf-jose-json-web-proof] as the
@@ -141,7 +141,7 @@ Table of Contents
       commitments to selected messages as public inputs for sub-proofs.
    *  Defines a sub-proof container carrying optional sub-proofs, each
       bound to the core proof via a Pedersen commitment.
-   *  Optionally bind a credential to an ECDSA P-256 device key by
+   *  Optionally binds a credential to an ECDSA P-256 device key by
       encoding that key as messages in the BBS signature vector.
 
    This modular architecture builds on prior work [TS14] and [LSZ25],
@@ -281,9 +281,9 @@ Table of Contents
 
    Let n be the length of the message vector, and N the number of
    payload slots reserved for the device-key encoding (see Section 2.8),
-   with N = 0 when kb is absent).  Every index in [N, n-1] MUST appear
-   in exactly one annotation in claims.  Indices [0, N-1] MUST NOT
-   appear in claims.
+   with N = 0 when kb is absent.  Every index in [N, n-1] MUST appear in
+   exactly one annotation in claims.  Indices [0, N-1] MUST NOT appear
+   in claims.
 
    Payload slots defined by the credential type's structural layout (see
    Section 2.9) but not populated by a given credential MUST carry the
@@ -517,7 +517,7 @@ Table of Contents
    4.  A Presentation Proof (Section 6.2.4 of
        [I-D.ietf-jose-json-web-proof]) consisting of one or more octet
        strings.  The first octet string is the encoded core proof (see
-       Section 4.3).  Subsequent optional octet strings, are UTF-8 JSON-
+       Section 4.3).  Subsequent optional octet strings are UTF-8 JSON-
        serialized sub-proof objects (see Section 4.4) and MAY appear in
        any order.  The Compact Serialization base64url-encodes each
        octet string.
@@ -560,6 +560,8 @@ Table of Contents
 
    *  PK: Issuer public key.
    *  signature: blind BBS signature from the Issuer Proof.
+   *  generators: create_generators(n + 1, api_id) (Section 4.1.1 of
+      [I-D.irtf-cfrg-bbs-signatures]).
    *  header: header_octets.
    *  ph: presentation_header_octets (binds nonce and aud into the
       challenge).
@@ -581,12 +583,13 @@ Table of Contents
    vector.
 
    The Verifier verifies the core proof with CoreProofVerify, passing
-   PK, the core proof, header_octets, presentation_header_octets, the
-   disclosed scalar messages, and api_id.  The disclosed and committed
-   indices are recovered from the proof octets, not passed separately.
-   On success, the Verifier recovers the committed indices and the
-   corresponding C_i from the proof octets which are used in the sub-
-   proof verification (see Section 4.4).
+   PK, the core proof, the generators, header_octets,
+   presentation_header_octets, the disclosed scalar messages, and
+   api_id.  The disclosed and committed indices are recovered from the
+   proof octets, not passed separately.  On success, the Verifier
+   recovers the committed indices and the corresponding C_i from the
+   proof octets which are used in the sub-proof verification (see
+   Section 4.4).
 
 4.4.  Sub-Proofs
 
@@ -681,14 +684,13 @@ Table of Contents
    deployment profile MAY permit a larger width.
 
    The construction operates in BLS12-381 G1 against C_idx and follows
-   the sigma-protocol range proof of Section 5.5 of
+   the sigma-protocol range proof of Section 5.4 of
    [I-D.ietf-privacypass-arc-crypto]:
 
-   *  Let k and (base[0], ..., base[k-1]) be the outputs of
-      ComputeBases(u - l) (Section 5.5 of
-      [I-D.ietf-privacypass-arc-crypto]).  The Holder writes m_idx - l
-      as the sum over j in [0, k-1] of b[j] * base[j], with each b[j]
-      constrained to {0, 1}.
+   *  Let (base[0], ..., base[k-1]) be the output of ComputeBases(u - l)
+      (Section 5.4 of [I-D.ietf-privacypass-arc-crypto]) and k its
+      length.  The Holder writes m_idx - l as the sum over j in [0, k-1]
+      of b[j] * base[j], with each b[j] constrained to {0, 1}.
    *  For each j in [0, k-1], the Holder samples blinding scalars s[j]
       and s2[j] and forms the bit commitment D[j] = b[j] * G + s[j] * H
       over (G, H) of Section 5.  The Holder then proves, in a single
@@ -917,11 +919,11 @@ Table of Contents
    "JSON Web Proof Header Parameters" registry established by
    [I-D.ietf-jose-json-web-proof]:
 
-   *  Header Parameter Name: claims
+   *  Header Parameter Name: Claims Mapping
 
-   *  Header Parameter Description: Mapping from credential attribute
-      names to their position in the BBS message vector and whether each
-      is hashed to a scalar or supplied directly as a scalar.
+   *  Header Parameter JSON Label: claims
+
+   *  Header Parameter CBOR Label: (to be assigned by IANA)
 
    *  Header Parameter Usage Location(s): Issued, Presented
 
@@ -929,10 +931,11 @@ Table of Contents
 
    *  Specification Document(s): Section 2.3 of this document.
 
-   *  Header Parameter Name: kb
+   *  Header Parameter Name: Device Key Binding
 
-   *  Header Parameter Description: Identifier for the device public-key
-      type and its encoding layout in the BBS message vector.
+   *  Header Parameter JSON Label: kb
+
+   *  Header Parameter CBOR Label: (to be assigned by IANA)
 
    *  Header Parameter Usage Location(s): Issued, Presented
 
@@ -1106,6 +1109,12 @@ Appendix B.  Document History
    *  Fix venue note (was showing JOSE, should've been empty)
    *  Add ASCII Art overview
    *  some tweaks for sub-proof text
+   *  update range proof reference to adopted draft-ietf-privacypass-
+      arc-crypto (section moved to 5.4)
+   *  add missing generators input to the CoreProofGen and
+      CoreProofVerify descriptions
+   *  align header parameter registrations with the JWP registry
+      template
 
    -00
 
