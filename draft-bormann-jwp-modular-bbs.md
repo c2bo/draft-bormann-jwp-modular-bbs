@@ -148,6 +148,10 @@ The JWP `iek`, `hpk`, and `hpa` Header Parameters (Sections 5.2.5–5.2.7 of [@!
 
 Let `n` be the length of the message vector, and `N` the number of payload slots reserved for the device-key encoding (see (#device-binding-header)), with `N = 0` when `kb` is absent. Every index in `[N, n-1]` MUST appear in exactly one annotation in `claims`. Indices `[0, N-1]` MUST NOT appear in `claims`.
 
+The top-level member names of `claims` MUST NOT be `vct`, `alg`, `claims`, or `kb`. This keeps the reconstructed payload (see (#reconstructed-payload)) free of collisions with the `vct` member taken from the Issuer Header and prevents claim values from masquerading as header-derived members.
+
+Receivers MUST validate `claims` before use: every leaf is a two-element annotation of a non-negative integer index and a boolean, every index in `[N, n-1]` appears in exactly one annotation, no other index appears, and the name restrictions above hold. Holders MUST reject an issued credential and Verifiers MUST reject a presentation that violates any of these constraints.
+
 Payload slots defined by the credential type's structural layout (see (#layout)) but not populated by a given credential MUST carry the decoy value defined in (#decoys).
 
 ## Example: Issuance {#example-issuer-header}
@@ -303,6 +307,7 @@ Each `<m_i>` is the base64url-encoded Issuer Payload for index `i` (e.g., m_1 is
 The Holder verifies an issued credential by:
 
 1. Parsing the Issued Form.
+1. Validating the `claims` object per (#claims-mapping). Reject on violation.
 1. Verifying the blind BBS signature over `header_octets` and the message vector. Reject on failure.
 1. For every `scalar = true` leaf, confirming the corresponding Issuer Payload decodes to an integer in `[0, r - 1]`.
 1. If `kb` is present, confirming that the point reconstructed from the limb messages matches the Holder's device public key. How the Holder obtains the corresponding device key pair is out of scope.
@@ -338,13 +343,13 @@ The Holder builds a per-message disclosure map assigning each index in `[N, n-1]
 
 - `DISCLOSE`: the message is revealed and its value MUST match the corresponding disclosed Presentation Payload.
 - `COMMIT`: a fresh Pedersen commitment to the message is carried in the proof. Every index referenced by a sub-proof (see (#sub-proofs)) MUST be marked `COMMIT`.
-- `HIDE`: all other indices in `[N, n-1]`. Device-key indices `[0, N-1]` are implicitly hidden.
+- `HIDE`: all other indices in `[N, n-1]`
 
 The Holder generates the core proof by invoking `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures] with:
 
 - `PK`: Issuer public key.
 - `signature`: blind BBS signature from the Issuer Proof.
-- `generators`: `create_generators(n + 1, api_id)` (Section 4.1.1 of [@!I-D.irtf-cfrg-bbs-signatures]).
+- `generators`: `create_generators(n + 1, api_id)` (see [@!I-D.irtf-cfrg-bbs-signatures, Section 4.1.1]).
 - `header`: `header_octets`.
 - `ph`: `presentation_header_octets` (binds `nonce` and `aud` into the challenge).
 - `messages`: `(m_0, ..., m_(n-1))`.
@@ -385,6 +390,29 @@ Sub-proof transcripts use the BBS encoding primitives of Section 4.2.4.1 of [@!I
 
 \[Editor's Note: Decision needed: Need to define a serialization scheme for the Sigma proofs - Re-use the existing one from the [@?I-D.irtf-cfrg-sigma-protocols] (although it uses different encodings etc.), or define an optimized one for BLS12-381? Some of the following sub-proofs already propose very concrete choices to make the construction more concrete - all of these are open for discussion and will very likely see significant changes.]
 
+### Equality Proof Sub-Proof {#equality-proof}
+
+Algorithm identifier:
+: `schnorr-eq`
+
+Inputs (beyond the base sub-proof fields):
+
+- `i`: a single-element array `[idx]`.
+- `c_ext`: a base64url-encoded BLS12-381 G1 point.
+
+The sub-proof attests that `C_idx` (from the core proof) and `c_ext` open to the same scalar under the generators `(G, H)` of (#cipher-suite). Cross-group equality is out of scope.
+
+The construction is a 3-DL Schnorr discrete-logarithm-equality (DLEQ) proof over BLS12-381 G1 with `(G, H)`, with witness `(m, s_1, s_2)` such that:
+
+~~~
+C_idx = m * G + s_1 * H
+c_ext = m * G + s_2 * H
+~~~
+
+The Holder samples fresh random scalars `(r_m, r_s1, r_s2)` and computes Schnorr commitments `T_1 = r_m * G + r_s1 * H` and `T_2 = r_m * G + r_s2 * H`. The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SCHNORR_EQ_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite).
+
+\[Editor's Note: describe wire format of proof]
+
 ### ECDSA Device-Binding Sub-Proof {#ecdsa-db}
 
 This sub-proof MUST be present whenever `kb = "ecdsa-p256-db"` and MUST NOT be present otherwise. The algorithm identifier deliberately matches the `kb` value it verifies (see (#device-binding-header)).
@@ -416,38 +444,7 @@ Algorithm identifier:
 
 Inputs (beyond the base sub-proof fields): bounds `l` and `u` as JSON integers. The `i` field MUST be a single-element array `[idx]`. The sub-proof attests that m_idx, the message committed in the core proof at index `idx`, satisfies `l <= m_idx < u`.
 
-`l < u`, `u - l >= 2`, and `u - l <= 2^64` MUST hold. The `2^64` ceiling accommodates NumericDate values (Section 4.1 of [@!RFC7519]). The lower bound rules out single-value ranges, for which the construction is degenerate. Implementations MUST parse `l` and `u` as bigints. A deployment profile MAY permit a larger width.
-
-The construction operates in BLS12-381 G1 against `C_idx` and follows the sigma-protocol range proof of Section 5.4 of [@!I-D.ietf-privacypass-arc-crypto]:
-
-- Let `(base[0], ..., base[k-1])` be the output of `ComputeBases(u - l)` (Section 5.4 of [@!I-D.ietf-privacypass-arc-crypto]) and `k` its length. The Holder writes `m_idx - l` as the sum over j in `[0, k-1]` of `b[j] * base[j]`, with each `b[j]` constrained to `{0, 1}`.
-- For each `j` in `[0, k-1]`, the Holder samples blinding scalars `s[j]` and `s2[j]` and forms the bit commitment `D[j] = b[j] * G + s[j] * H` over `(G, H)` of (#cipher-suite). The Holder then proves, in a single batched Schnorr step, knowledge of `(b[j], s[j], s2[j])` such that `D[j] = b[j] * G + s[j] * H` and `D[j] = b[j] * D[j] + s2[j] * H` (the linearized bit constraint), producing per-bit Schnorr commitments `T1[j]` and `T2[j]` from fresh per-bit random scalars.
-- The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SIGMA_RANGE_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite).
-
-\[Editor's Note: describe wire format of proof]
-
-### Equality Proof Sub-Proof {#equality-proof}
-
-Algorithm identifier:
-: `schnorr-eq`
-
-Inputs (beyond the base sub-proof fields):
-
-- `i`: a single-element array `[idx]`.
-- `c_ext`: a base64url-encoded BLS12-381 G1 point.
-
-The sub-proof attests that `C_idx` (from the core proof) and `c_ext` open to the same scalar under the generators `(G, H)` of (#cipher-suite). Cross-group equality is out of scope.
-
-The construction is a 3-DL Schnorr discrete-logarithm-equality (DLEQ) proof over BLS12-381 G1 with `(G, H)`, with witness `(m, s_1, s_2)` such that:
-
-~~~
-C_idx = m * G + s_1 * H
-c_ext = m * G + s_2 * H
-~~~
-
-The Holder samples fresh random scalars `(r_m, r_s1, r_s2)` and computes Schnorr commitments `T_1 = r_m * G + r_s1 * H` and `T_2 = r_m * G + r_s2 * H`. The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SCHNORR_EQ_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite).
-
-\[Editor's Note: describe wire format of proof]
+\[Editor's Note: describe/reference algorithm]
 
 ## Example Presentation {#example-presentation}
 
@@ -486,7 +483,7 @@ The Verifier verifies the core proof, recovers `C_13`, and checks the sub-proof 
 
 ## Reconstructed JSON Payload {#reconstructed-payload}
 
-After verifying the core proof and any sub-proofs, the Verifier SHOULD convey to the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of [@RFC9901]:
+After verifying the core proof and any sub-proofs, the Verifier SHOULD convey to the application a JSON object reconstructed from the disclosed information, analogous to the Processed SD-JWT Payload of [@RFC9901]. Reconstruction presupposes that `claims` passed the validation of (#claims-mapping) - a presentation whose `claims` object fails it MUST be rejected, not reconstructed. The procedure:
 
 1. Start from `{ "vct": <vct from Issuer Header> }`.
 1. Walk `claims`. For each leaf at a disclosed index `i`, set its value from the corresponding Presentation Payload (per (#message-derivation)), except when the payload octets are byte-equal to the decoy octets for that leaf's `scalar` flag (see (#decoys)), in which case omit the leaf. Hidden and committed-but-not-disclosed leaves are omitted.
@@ -679,6 +676,7 @@ This document rests on the work captured in [@TS14] by the EUDI Wallet expert gr
 * update range proof reference to adopted draft-ietf-privacypass-arc-crypto (section moved to 5.4)
 * add missing generators input to the CoreProofGen and CoreProofVerify descriptions
 * align header parameter registrations with the JWP registry template
+* remove some parts of the initial sub-proofs
 
 -00
 
