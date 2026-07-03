@@ -2,10 +2,10 @@
 
 
 
-TODO Working Group                                            C. Bormann
+JOSE                                                          C. Bormann
 Internet-Draft                                               SPRIND GmbH
-Intended status: Standards Track                             2 July 2026
-Expires: 3 January 2027
+Intended status: Standards Track                             3 July 2026
+Expires: 4 January 2027
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -19,9 +19,10 @@ Abstract
    zero-knowledge sub-proofs.  This allows a Holder to reveal some
    attributes directly while proving predicates such as range or
    equality over the ones they keep hidden.  A credential can
-   additionally be bound to an ECDSA P-256 device key and possession
-   over the key proven without revealing the public key.  The credential
-   metadata and type model follow SD-JWT VC [I-D.ietf-oauth-sd-jwt-vc].
+   additionally be bound to an ECDSA P-256 device key, with possession
+   of the key proven in every presentation without revealing the public
+   key.  The credential type definition and data model follows SD-JWT VC
+   [I-D.ietf-oauth-sd-jwt-vc].
 
 Discussion Venues
 
@@ -45,7 +46,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 January 2027.
+   This Internet-Draft will expire on 4 January 2027.
 
 Copyright Notice
 
@@ -99,6 +100,9 @@ Table of Contents
    6.  Security Considerations
      6.1.  Random Number Generation
      6.2.  Hash-to-Scalar Bypass
+     6.3.  Replay and Presentation Freshness
+     6.4.  Holder Binding
+     6.5.  Unlinkability Scope
    7.  Privacy Considerations
      7.1.  Issuer Header Correlation
      7.2.  Cipher Suite and Algorithm Identifiers
@@ -146,7 +150,7 @@ Table of Contents
       encoding that key as messages in the BBS signature vector.
 
    This modular architecture builds on prior work [TS14] and [LSZ25],
-   and the credential type and metadata model are reused from SD-JWT VC
+   and the credential type model is reused from SD-JWT VC
    [I-D.ietf-oauth-sd-jwt-vc].
 
     +----------------+
@@ -252,7 +256,7 @@ Table of Contents
       value BBS-MOD (see Section 5).
    vct (string, REQUIRED):  The credential type identifier as defined in
       Section 2.2.2.1 of [I-D.ietf-oauth-sd-jwt-vc].
-   claims (JSON object, REQUIRED):  The mapping from claim names to
+   cmap (JSON object, REQUIRED):  The mapping from claim names to
       message-vector positions and per-message encoding - see
       Section 2.3 for more details.
    kb (string, OPTIONAL):  The device-binding identifier - see
@@ -262,12 +266,13 @@ Table of Contents
    Temporal claims (exp, nbf, iat) MUST NOT appear as Issuer Header
    values - see Section 2.7 for more details.
 
-   The JWP iek, hpk, and hpa Header Parameters (Section 5.2.5-5.2.7 of
-   [I-D.ietf-jose-json-web-proof]) MUST NOT appear in the Issuer Header.
+   The JWP iek, hpk, and hpa Header Parameters (Sections 5.2.5, 5.2.6,
+   and 5.2.7 of [I-D.ietf-jose-json-web-proof]) MUST NOT appear in the
+   Issuer Header.
 
 2.3.  Claims Mapping
 
-   claims mirrors the credential's JSON tree structurally.  Each leaf is
+   cmap mirrors the credential's JSON tree structurally.  Each leaf is
    replaced by an index annotation: a two-element JSON array [i,
    scalar], where:
 
@@ -283,20 +288,20 @@ Table of Contents
    Let n be the length of the message vector, and N the number of
    payload slots reserved for the device-key encoding (see Section 2.8),
    with N = 0 when kb is absent.  Every index in [N, n-1] MUST appear in
-   exactly one annotation in claims.  Indices [0, N-1] MUST NOT appear
-   in claims.
+   exactly one annotation in cmap.  Indices [0, N-1] MUST NOT appear in
+   cmap.
 
-   The top-level member names of claims MUST NOT be vct, alg, claims, or
-   kb.  This keeps the reconstructed payload (see Section 4.7) free of
+   The top-level member names of cmap MUST NOT be vct, alg, cmap, or kb.
+   This keeps the reconstructed payload (see Section 4.7) free of
    collisions with the vct member taken from the Issuer Header and
    prevents claim values from masquerading as header-derived members.
 
-   Receivers MUST validate claims before use: every leaf is a two-
-   element annotation of a non-negative integer index and a boolean,
-   every index in [N, n-1] appears in exactly one annotation, no other
-   index appears, and the name restrictions above hold.  Holders MUST
-   reject an issued credential and Verifiers MUST reject a presentation
-   that violates any of these constraints.
+   Receivers MUST validate cmap before use: every leaf is a two-element
+   annotation of a non-negative integer index and a boolean, every index
+   in [N, n-1] appears in exactly one annotation, no other index
+   appears, and the name restrictions above hold.  Holders MUST reject
+   an issued credential and Verifiers MUST reject a presentation that
+   violates any of these constraints.
 
    Payload slots defined by the credential type's structural layout (see
    Section 2.9) but not populated by a given credential MUST carry the
@@ -319,14 +324,14 @@ Table of Contents
        "region": "Nordrhein-Westfalen",
        "country": "DE"
      },
-     "birthdate": "19630812",
+     "birthdate": 19630812,
      "iat": 1683000000,
      "exp": 1786000000
    }
 
    The vct claim becomes a Header Parameter and the other 11 attributes
-   become leaves in claims, with address mirrored as a nested object.
-   No device binding is used, so N = 0 and the leaves occupy indices 0
+   become leaves in cmap, with address mirrored as a nested object.  No
+   device binding is used, so N = 0 and the leaves occupy indices 0
    through 10.  The temporal claims iat and exp are carried as scalar =
    true leaves (see Section 2.7) to allow range sub-proofs over them.
    The resulting Issuer Header is:
@@ -334,7 +339,7 @@ Table of Contents
    {
      "alg": "BBS-MOD",
      "vct": "https://credentials.example.com/identity_credential",
-     "claims": {
+     "cmap": {
        "given_name": [0, false],
        "family_name": [1, false],
        "email": [2, false],
@@ -351,7 +356,7 @@ Table of Contents
      }
    }
 
-   Indices 0–7 use hash-to-scalar and indices 8-10 carry their integer
+   Indices 0–7 use hash-to-scalar and indices 8–10 carry their integer
    values directly as scalars, with iat and exp as NumericDate integers
    ([RFC7519]).  A presentation can then mark iat/exp as COMMIT (see
    Section 4.3) and attach sigma-range sub-proofs (see Section 4.4.3) to
@@ -405,7 +410,7 @@ Table of Contents
 
    The JWT temporal claims exp, nbf, and iat (Section 4.1 of [RFC7519]),
    when present in a credential, MUST be declared as scalar = true
-   leaves in claims carrying their NumericDate values.  They MUST NOT
+   leaves in cmap carrying their NumericDate values.  They MUST NOT
    appear as Issuer Header values.
 
 2.8.  Device Binding Header
@@ -440,24 +445,24 @@ Table of Contents
 2.9.  Structural Layout
 
    For claims containing objects, the Issuer either mirrors the object
-   structure within claims or treats the JSON-encoded object as a single
+   structure within cmap or treats the JSON-encoded object as a single
    leaf.  This is a policy decision by the Issuer and allows some
    objects to be discloseable only as one object containing all values
    or not at all.
 
-   For bounded-length array claims, claims contains a JSON array of
-   index annotations sized to the credential type's maximum array
-   length.  All entries in such an array SHOULD share the same scalar
-   flag to guarantee a single decoy encoding (see Section 2.10).
+   For bounded-length array claims, cmap contains a JSON array of index
+   annotations sized to the credential type's maximum array length.  All
+   entries in such an array SHOULD share the same scalar flag to
+   guarantee a single decoy encoding (see Section 2.10).
 
-   For optional claims, claims MUST contain the index entry regardless
-   of whether the attribute is present in a given credential.
+   For optional claims, cmap MUST contain the index entry regardless of
+   whether the attribute is present in a given credential.
 
 2.10.  Decoys
 
    Decoys fill payload slots that the credential type's layout defines,
    but a specific credential does not populate.  They keep the message-
-   vector length and claims identical across all credentials of a given
+   vector length and cmap identical across all credentials of a given
    vct to avoid correlation.
 
    Every decoy slot carries the same fixed scalar:
@@ -489,7 +494,7 @@ Table of Contents
 
 3.2.  Credential Issuance
 
-   To issue a credential, the issuer performs the following steps:
+   To issue a credential, the Issuer performs the following steps:
 
    1.  Construct the Issuer Header per Section 2.2 and Section 2.3.
    2.  Derive the message vector (m_0, ..., m_(n-1)) per Section 2.5 and
@@ -520,8 +525,7 @@ Table of Contents
    The Holder verifies an issued credential by:
 
    1.  Parsing the Issued Form.
-   2.  Validating the claims object per Section 2.3.  Reject on
-       violation.
+   2.  Validating the cmap object per Section 2.3.  Reject on violation.
    3.  Verifying the signature with CoreVerify (Section 3.6.2 of
        [I-D.irtf-cfrg-bbs-signatures]) over the same generators,
        header_octets, and message vector as issuance.  Reject on
@@ -529,7 +533,8 @@ Table of Contents
    4.  For every scalar = true leaf, confirming the corresponding Issuer
        Payload decodes to an integer in [0, r - 1].
    5.  For every scalar = false leaf, confirming the corresponding
-       Issuer Payload parses as a single JSON text [RFC8259].
+       Issuer Payload either is byte-equal to the decoy octets (see
+       Section 2.10) or parses as a single JSON text [RFC8259].
    6.  If kb is present, confirming that the point reconstructed from
        the limb messages matches the Holder's device public key.  How
        the Holder obtains the corresponding device key pair is out of
@@ -561,6 +566,9 @@ Table of Contents
    The Presentation Header is a JSON object with the following Header
    Parameters.
 
+   alg (REQUIRED):  The Algorithm Header Parameter (Section 5.2.1 of
+      [I-D.ietf-jose-json-web-proof]).  MUST be identical to the alg
+      value of the Issuer Header.
    nonce (string, REQUIRED):  The Nonce Header Parameter (Section 5.2.10
       of [I-D.ietf-jose-json-web-proof]).
    aud (string, REQUIRED):  The Audience Header Parameter (Section 5.2.9
@@ -660,6 +668,10 @@ Table of Contents
    *  scalars as 32-octet big-endian integers
    *  integer lengths are encoded as I2OSP(int, 8)
 
+   A Verifier MUST reject a sub-proof carrying an encoded group element
+   (in input or proof) that does not decode to a valid non-identity
+   point of the G1 subgroup.
+
    [Editor's Note: Decision needed: Need to define a serialization
    scheme for the Sigma proofs - Re-use the existing one from the
    [I-D.irtf-cfrg-sigma-protocols] (although it uses different encodings
@@ -672,9 +684,10 @@ Table of Contents
 
    Algorithm identifier:  schnorr-eq
 
+   The i field MUST be a single-element array [idx].
+
    Inputs (beyond the base sub-proof fields):
 
-   *  i: a single-element array [idx].
    *  c_ext: a base64url-encoded BLS12-381 G1 point.
 
    The sub-proof attests that C_idx (from the core proof) and c_ext open
@@ -704,9 +717,10 @@ Table of Contents
 
    Algorithm identifier:  ecdsa-p256-db
 
-   Inputs (beyond the base sub-proof fields): none.  The i field MUST be
-   [0, 1, 2, 3], naming the four indices that carry the device public-
-   key limbs (see Section 2.8).
+   The i field MUST be [0, 1, 2, 3], naming the four indices that carry
+   the device public-key limbs (see Section 2.8).
+
+   Inputs (beyond the base sub-proof fields): none.
 
    The device-signed message is not transmitted, it is recomputed as:
 
@@ -731,10 +745,11 @@ Table of Contents
 
    Algorithm identifier:  sigma-range
 
+   The i field MUST be a single-element array [idx].
+
    Inputs (beyond the base sub-proof fields): bounds l and u as JSON
-   integers.  The i field MUST be a single-element array [idx].  The
-   sub-proof attests that m_idx, the message committed in the core proof
-   at index idx, satisfies l <= m_idx < u.
+   integers.  The sub-proof attests that m_idx, the message committed in
+   the core proof at index idx, satisfies l <= m_idx < u.
 
    [Editor's Note: describe/reference algorithm]
 
@@ -742,10 +757,11 @@ Table of Contents
 
    The Verifier verifies a presentation by:
 
-   1.  Parsing the Presented Form and validating the claims object of
-       the Issuer Header per Section 2.3.  Reject on violation.
-   2.  Confirming that nonce matches the value the Verifier supplied for
-       this presentation and that aud identifies this Verifier.
+   1.  Parsing the Presented Form and validating the cmap object of the
+       Issuer Header per Section 2.3.  Reject on violation.
+   2.  Confirming that the Presentation Header alg equals the Issuer
+       Header alg, that nonce matches the value the Verifier supplied
+       for this presentation, and that aud identifies this Verifier.
    3.  Deriving the disclosed message scalars from the disclosed
        Presentation Payloads per Section 2.5.  For a scalar = true leaf,
        the payload MUST be the canonical decimal encoding of an integer
@@ -775,6 +791,7 @@ Table of Contents
    disclosing it.  The Presentation Header:
 
    {
+     "alg": "BBS-MOD",
      "nonce": "f4Oa3wT0r8m2Vn1pQ7sKdA",
      "aud": "https://verifier.example.com"
    }
@@ -813,12 +830,12 @@ Table of Contents
    After verifying the core proof and any sub-proofs, the Verifier
    SHOULD convey to the application a JSON object reconstructed from the
    disclosed information, analogous to the Processed SD-JWT Payload of
-   [RFC9901].  Reconstruction presupposes that claims passed the
-   validation of Section 2.3 - a presentation whose claims object fails
-   it MUST be rejected, not reconstructed.  The procedure:
+   [RFC9901].  Reconstruction presupposes that cmap passed the
+   validation of Section 2.3 - a presentation whose cmap object fails it
+   MUST be rejected, not reconstructed.  The procedure:
 
    1.  Start from { "vct": <vct from Issuer Header> }.
-   2.  Walk claims.  For each leaf at a disclosed index i, first compare
+   2.  Walk cmap.  For each leaf at a disclosed index i, first compare
        the Presentation Payload octets to the decoy octets for that
        leaf's scalar flag (see Section 2.10) - on a byte-equal match,
        omit the leaf.  Otherwise set the leaf's value by parsing the
@@ -827,9 +844,9 @@ Table of Contents
        scalar is true.  A presentation containing a disclosed payload
        that fails to parse MUST be rejected.  Hidden and committed-but-
        not-disclosed leaves are omitted.
-   3.  Preserve the object and array structure of claims for surviving
+   3.  Preserve the object and array structure of cmap for surviving
        leaves.  Array entries that were omitted do not appear, so
-       reconstructed array indices may differ from those in the claims
+       reconstructed array indices may differ from those in the cmap
        annotations.
 
    Predicates established by sub-proofs are not represented as leaf
@@ -861,10 +878,11 @@ Table of Contents
    The BBS-MOD_ prefix separates this profile from both the base BBS JPA
    (BBS of Section 9.1.2.4 of [I-D.ietf-jose-json-proof-algorithms]) and
    the base blind BBS Interface (BBS_BLS12381G1_XMD:SHA-
-   256_SSWU_RO_BLIND_H2G_HM2S_).  This profile adds committed-message
-   proof generation to that Interface.  It also bypasses hash-to-scalar
-   on a per-message basis under the scalar flag and attaches sub-proofs
-   as described in Section 4.4.
+   256_SSWU_RO_BLIND_H2G_HM2S_).  This profile invokes the core proof
+   operations of that Interface directly to expose committed-message
+   proofs - see Section 4.3.  It also bypasses hash-to-scalar on a per-
+   message basis under the scalar flag and attaches sub-proofs as
+   described in Section 4.4.
 
 5.2.  Parameters
 
@@ -909,6 +927,31 @@ Table of Contents
    [Editor's Note: TODO - Check what exactly the attack scenarios are /
    if there are some]
 
+6.3.  Replay and Presentation Freshness
+
+   Freshness relies on the Verifier-supplied nonce.  Verifiers MUST
+   generate nonces with enough entropy to make them unpredictable and
+   MUST NOT accept a presentation carrying a nonce they did not supply
+   for that transaction - see Section 4.5.  The aud binding limits a
+   captured presentation to its intended Verifier.
+
+6.4.  Holder Binding
+
+   Without device binding (kb absent), possession of the Issued Form is
+   sufficient to derive presentations, so anyone who obtains the
+   credential in its Issued Form can present it.  Deployments that need
+   resistance against credential theft or pooling SHOULD use device
+   binding - see Section 2.8.
+
+6.5.  Unlinkability Scope
+
+   The core proof hides everything except the disclosed messages, the
+   carried commitments, and the sub-proof predicates.  Parties observing
+   multiple presentations (including colluding Verifiers, or an Issuer
+   colluding with a Verifier) can still correlate them through disclosed
+   attribute values, sub-proof predicate parameters, or transport-level
+   metadata.
+
 7.  Privacy Considerations
 
 7.1.  Issuer Header Correlation
@@ -919,7 +962,7 @@ Table of Contents
    Implementations SHOULD make the Issuer Header byte-identical across
    the entire population of a vct, by:
 
-   *  Fixing the claims layout (including all optional attributes and
+   *  Fixing the cmap layout (including all optional attributes and
       maximum-length array slots) with a constant serialization.
    *  Filling unused slots with decoys per Section 2.10.
    *  Carrying per-credential metadata (issuance time, expiry,
@@ -946,7 +989,7 @@ Table of Contents
 
    *  Algorithm Name: BBS-MOD using SHA-256
    *  Algorithm JSON Label: BBS-MOD
-   *  Algorithm CBOR Label: (to be assigned by IANA)
+   *  Algorithm CBOR Label: TBD (requested assignment 11)
    *  Algorithm Description: Blind BBS over BLS12-381 with CoreProofGen-
       based committed-message proofs, the per-message scalar flag, and
       the sub-proof attachment mechanism of Section 4.4.  Cipher suite
@@ -965,11 +1008,11 @@ Table of Contents
 
    *  Header Parameter Name: Claims Mapping
 
-   *  Header Parameter JSON Label: claims
+   *  Header Parameter JSON Label: cmap
 
-   *  Header Parameter CBOR Label: (to be assigned by IANA)
+   *  Header Parameter CBOR Label: TBD (requested assignment 11)
 
-   *  Header Parameter Usage Location(s): Issued, Presented
+   *  Header Parameter Usage Location(s): Issued
 
    *  Change Controller: IETF
 
@@ -979,9 +1022,9 @@ Table of Contents
 
    *  Header Parameter JSON Label: kb
 
-   *  Header Parameter CBOR Label: (to be assigned by IANA)
+   *  Header Parameter CBOR Label: TBD (requested assignment 12)
 
-   *  Header Parameter Usage Location(s): Issued, Presented
+   *  Header Parameter Usage Location(s): Issued
 
    *  Change Controller: IETF
 
@@ -1118,8 +1161,8 @@ Table of Contents
 9.2.  Informative References
 
    [CT25]     Chairattana-Apirom, R. and S. Tessaro, "On the Concrete
-              Security of BBS/BBS+ Signatures", 2025,
-              <https://eprint.iacr.org/2025/1093>.
+              Security of BBS/BBS+ Signatures", IACR ePrint 2025/1093,
+              2025, <https://eprint.iacr.org/2025/1093>.
 
    [I-D.irtf-cfrg-sigma-protocols]
               Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
@@ -1162,6 +1205,12 @@ Appendix B.  Document History
 
    -02
 
+   *  rename the claims Header Parameter to cmap to avoid the JPT claims
+      parameter
+   *  add alg to the Presentation Header
+   *  add more security considerations
+   *  align IANA registrations with the registry templates (usage
+      locations, requested CBOR labels)
    *  mandate JSON encoding for scalar = false payloads
    *  require claims validation
    *  add Presentation Verification section
