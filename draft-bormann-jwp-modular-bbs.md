@@ -20,6 +20,14 @@ organization = "SPRIND GmbH"
   [author.address]
   email = "chris.bormann@gmx.de"
 
+[[author]]
+initials = "B."
+surname = "Zundel"
+fullname = "Brent Zundel"
+organization = "Yubico"
+  [author.address]
+  email = "brent.zundel@gmail.com"
+
 %%%
 
 .# Abstract
