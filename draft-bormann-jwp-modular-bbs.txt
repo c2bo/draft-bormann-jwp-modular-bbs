@@ -4,8 +4,9 @@
 
 JOSE                                                          C. Bormann
 Internet-Draft                                               SPRIND GmbH
-Intended status: Standards Track                             3 July 2026
-Expires: 4 January 2027
+Intended status: Standards Track                               B. Zundel
+Expires: 22 February 2027                                         Yubico
+                                                          21 August 2026
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -46,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 January 2027.
+   This Internet-Draft will expire on 22 February 2027.
 
 Copyright Notice
 
@@ -115,7 +116,7 @@ Table of Contents
      9.2.  Informative References
    Appendix A.  Acknowledgments
    Appendix B.  Document History
-   Author's Address
+   Authors' Addresses
 
 1.  Introduction
 
@@ -1094,23 +1095,23 @@ Table of Contents
    [I-D.ietf-jose-json-proof-algorithms]
               Jones, M. B., Waite, D., and J. Miller, "JSON Proof
               Algorithms", Work in Progress, Internet-Draft, draft-ietf-
-              jose-json-proof-algorithms-13, 2 March 2026,
+              jose-json-proof-algorithms-14, 20 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-jose-
-              json-proof-algorithms-13>.
+              json-proof-algorithms-14>.
 
    [I-D.ietf-jose-json-web-proof]
               Waite, D., Jones, M. B., and J. Miller, "JSON Web Proof",
               Work in Progress, Internet-Draft, draft-ietf-jose-json-
-              web-proof-13, 2 March 2026,
+              web-proof-14, 20 July 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-jose-
-              json-web-proof-13>.
+              json-web-proof-14>.
 
    [I-D.ietf-oauth-sd-jwt-vc]
               Terbu, O., Fett, D., and B. Campbell, "SD-JWT-based
               Verifiable Digital Credentials (SD-JWT VC)", Work in
-              Progress, Internet-Draft, draft-ietf-oauth-sd-jwt-vc-16,
-              24 April 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-oauth-sd-jwt-vc-16>.
+              Progress, Internet-Draft, draft-ietf-oauth-sd-jwt-vc-18, 3
+              August 2026, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-oauth-sd-jwt-vc-18>.
 
    [I-D.irtf-cfrg-bbs-blind-signatures]
               Kalos, V. and G. M. Bernstein, "Blind BBS Signatures",
@@ -1165,10 +1166,11 @@ Table of Contents
               2025, <https://eprint.iacr.org/2025/1093>.
 
    [I-D.irtf-cfrg-sigma-protocols]
-              Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
-              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
-              02, 2 March 2026, <https://datatracker.ietf.org/doc/html/
-              draft-irtf-cfrg-sigma-protocols-02>.
+              Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
+              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
+              protocols-03, 16 August 2026,
+              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
+              sigma-protocols-03>.
 
    [LSZ25]    Lehmann, A., Sidorenko, A., and A. Zacharakis, "Vision: A
               Modular Framework for Anonymous Credential Systems", IACR
@@ -1236,8 +1238,13 @@ Appendix B.  Document History
 
    *  Initial Version
 
-Author's Address
+Authors' Addresses
 
    Christian Bormann
    SPRIND GmbH
    Email: chris.bormann@gmx.de
+
+
+   Brent Zundel
+   Yubico
+   Email: brent.zundel@gmail.com
