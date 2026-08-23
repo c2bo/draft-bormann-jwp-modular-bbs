@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-20T00:19:20.343064+00:00",
+  "timestamp": "2026-08-23T00:21:06.478206+00:00",
   "repo": "c2bo/draft-bormann-jwp-modular-bbs",
   "labels": [
     {
@@ -50,5 +50,34 @@
     }
   ],
   "issues": [],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOSlF_gM8AAAABAdoJDA",
+      "title": "add myself as author",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/pull/1",
+      "state": "MERGED",
+      "author": "brentzundel",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-08-20T19:39:35Z",
+      "updatedAt": "2026-08-21T17:52:27Z",
+      "baseRepository": "c2bo/draft-bormann-jwp-modular-bbs",
+      "baseRefName": "main",
+      "baseRefOid": "a62cd9488d01515463ccd28ca81109be09ac0658",
+      "headRepository": "brentzundel/draft-bormann-jwp-modular-bbs",
+      "headRefName": "add-author",
+      "headRefOid": "7cada4206810549584c0bc66b65b8b447cbc7e04",
+      "closedAt": "2026-08-21T17:52:27Z",
+      "mergedAt": "2026-08-21T17:52:27Z",
+      "mergedBy": "c2bo",
+      "mergeCommit": {
+        "oid": "3f25cfedc2e8962739f2b9c73c6f611f73a5c222"
+      },
+      "comments": [],
+      "reviews": []
+    }
+  ]
 }
