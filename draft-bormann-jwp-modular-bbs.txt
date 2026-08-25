@@ -5,8 +5,8 @@
 JOSE                                                          C. Bormann
 Internet-Draft                                               SPRIND GmbH
 Intended status: Standards Track                               B. Zundel
-Expires: 22 February 2027                                         Yubico
-                                                          21 August 2026
+Expires: 26 February 2027                                         Yubico
+                                                          25 August 2026
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -47,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 February 2027.
+   This Internet-Draft will expire on 26 February 2027.
 
 Copyright Notice
 
