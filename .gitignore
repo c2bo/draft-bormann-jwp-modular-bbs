@@ -22,3 +22,5 @@ draft-bormann-jwp-modular-bbs.xml
 package-lock.json
 report.xml
 !requirements.txt
+.DS_Store
+.claude
