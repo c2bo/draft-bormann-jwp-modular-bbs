@@ -2,7 +2,7 @@
 
 # BBS and Modular Sub-proofs with JSON Web Proofs
 
-This is the working area for the individual Internet-Draft, "JSON Web Proofs with BBS and Optional ECDSA Key Binding".
+This is the working area for the individual Internet-Draft, "BBS and Modular Sub-proofs with JSON Web Proofs".
 
 * [Editor's Copy](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-bormann-jwp-modular-bbs.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-bormann-jwp-modular-bbs)
