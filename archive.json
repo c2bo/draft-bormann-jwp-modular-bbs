@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-25T00:19:40.365040+00:00",
+  "timestamp": "2026-08-27T01:49:02.372647+00:00",
   "repo": "c2bo/draft-bormann-jwp-modular-bbs",
   "labels": [
     {
@@ -75,6 +75,34 @@
       "mergedBy": "c2bo",
       "mergeCommit": {
         "oid": "3f25cfedc2e8962739f2b9c73c6f611f73a5c222"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDOSlF_gM8AAAABA6X8TQ",
+      "title": "Update tooling",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/pull/2",
+      "state": "MERGED",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-08-25T09:04:38Z",
+      "updatedAt": "2026-08-25T09:06:40Z",
+      "baseRepository": "c2bo/draft-bormann-jwp-modular-bbs",
+      "baseRefName": "main",
+      "baseRefOid": "3f25cfedc2e8962739f2b9c73c6f611f73a5c222",
+      "headRepository": "c2bo/draft-bormann-jwp-modular-bbs",
+      "headRefName": "update-tooling",
+      "headRefOid": "b57cfd58f20d7875e1bed48cdc271425279f101e",
+      "closedAt": "2026-08-25T09:06:40Z",
+      "mergedAt": "2026-08-25T09:06:40Z",
+      "mergedBy": "c2bo",
+      "mergeCommit": {
+        "oid": "bd068e9dae7a09c6d236a7d4818d80b2c6f6a250"
       },
       "comments": [],
       "reviews": []
