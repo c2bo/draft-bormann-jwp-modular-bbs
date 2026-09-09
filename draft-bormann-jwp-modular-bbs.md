@@ -32,7 +32,7 @@ organization = "Yubico"
 
 .# Abstract
 
-This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to an ECDSA P-256 device key, with possession of the key proven in every presentation without revealing the public key. The credential type definition and data model follow SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
+This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
 {mainmatter}
 
@@ -47,7 +47,7 @@ Building on those core building blocks, this document defines a digital credenti
 - Uses JSON Web Proofs [@!I-D.ietf-jose-json-web-proof] as the serialization/container format for both issuance and presentation, and defines a JSON Proof Algorithm [@!I-D.ietf-jose-json-proof-algorithms] profile based on Blind BBS Signatures.
 - Builds its core proof on `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures], exposing fresh Pedersen commitments to selected messages as public inputs for sub-proofs.
 - Defines a sub-proof container carrying optional sub-proofs, each bound to the core proof via a Pedersen commitment.
-- Optionally binds a credential to an ECDSA P-256 device key by encoding that key as messages in the BBS signature vector.
+- Optionally binds a credential to a Holder-held device key by encoding that key as messages in the BBS signature vector
 
 This modular architecture builds on prior work [@?TS14] and [@?LSZ25], and the credential type model is reused from SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
@@ -147,7 +147,7 @@ The JWP `iek`, `hpk`, and `hpa` Header Parameters (Sections 5.2.5, 5.2.6, and 5.
 
 ## Claims Mapping {#claims-mapping}
 
-`cmap` mirrors the credential's JSON tree structurally. Each leaf is replaced by an index annotation: a two-element JSON array `[i, scalar]`, where:
+`cmap` mirrors the credential's JSON tree structurally. Each leaf is replaced by an index annotation: a two-element array `[i, scalar]`, where:
 
 - `i` is the 0-based index of the leaf value in the message vector.
 - `scalar` is a boolean selecting how the leaf becomes the BBS message m_i:
@@ -209,7 +209,7 @@ The `vct` claim becomes a Header Parameter and the other 11 attributes become le
 }
 ~~~
 
-Indices 0–7 use hash-to-scalar and indices 8–10 carry their integer values directly as scalars, with `iat` and `exp` as NumericDate integers ([@!RFC7519]). A presentation can then mark `iat`/`exp` as `COMMIT` (see (#core-proof)) and attach `sigma-range` sub-proofs (see (#range-proof)) to prove validity without disclosing the timestamps.
+Indices 0–7 use hash-to-scalar and indices 8–10 carry their integer values directly as scalars, with `iat` and `exp` as NumericDate integers ([@!RFC7519]). A presentation can then mark `iat`/`exp` as `COMMIT` (see (#core-proof)) and attach range sub-proofs (see (#sub-proofs)) to prove validity without disclosing the timestamps.
 
 A real deployment would define a structural layout covering all optional attributes and array slots up to their maximum length, with absent slots filled by decoys (see (#decoys)).
 
@@ -233,30 +233,29 @@ A leaf with `scalar = true` MUST be a JSON integer in `[0, r - 1]`, where `r` is
 
 The Issuer Payload for such a leaf is the canonical decimal octet encoding of the integer: ASCII digits without sign or leading zeros, with `0` represented as the single digit `0`. Future extensions MAY define additional scalar encodings provided they deterministically map a JSON value to an element of `[0, r - 1]`.
 
+\[Editor's Note: The whole scalar = true construction might be solved by the blind bbs draft and be removed from this draft]
+
 ## Temporal Claims {#temporal-claims}
 
 The JWT temporal claims `exp`, `nbf`, and `iat` ([@!RFC7519, section 4.1]), when present in a credential, MUST be declared as `scalar = true` leaves in `cmap` carrying their NumericDate values. They MUST NOT appear as Issuer Header values.
 
 ## Device Binding Header {#device-binding-header}
 
-When present, the `kb` Header Parameter is a string identifier selecting both the device public key type and its encoding into the BBS message vector. The reserved slots are always indices `[0, N-1]`, where `N` depends on the `kb` value. If `kb` is not present, no slots are reserved. This document defines a single value for `kb`: `ecdsa-p256-db`.
+When present, the `kb` Header Parameter is a string identifier selecting both the device public key type and its encoding into the BBS message vector. The reserved slots are always indices `[0, N-1]`, where `N` depends on the `kb` value. If `kb` is not present, no slots are reserved.
 
-A `kb` value and its matching device-binding sub-proof algorithm (see (#sub-proofs)) share the same algorithm identifier string. Valid `kb` values are the entries of the Sub-Proof Algorithms registry whose Device Binding field is `yes` - see (#iana). The specification defining such an entry MUST define the number of reserved slots `N`, the encoding of the device public key into indices `[0, N-1]`, and the matching device-binding sub-proof.
+A `kb` value and its matching device-binding sub-proof algorithm (see (#sub-proofs)) share the same algorithm identifier string. Valid `kb` values are the entries of the Sub-Proof Algorithms registry whose Device Binding field is `yes` - see (#iana). The specification defining such an entry MUST define the number of reserved slots `N`, the encoding of the device public key into the messages and Issuer Payloads at indices `[0, N-1]`, any validation the Issuer performs on the key before computing the message vector, and the matching device-binding sub-proof.
 
-For `kb = "ecdsa-p256-db"`, `N = 4` and:
+This document does not define any `kb` value.
 
-- m_0..m_1 encode the x-coordinate of the device public key as two 128-bit little-endian limbs (m_0 least significant).
-- m_2..m_3 encode the y-coordinate the same way.
+\[Editor's Note: A device binding based on ECDSA P-256 keys (encoding the affine coordinates as 128-bit limbs and proving possession via a signature on a message derived from `presentation_header_octets`) is expected to be defined in a companion document.]
 
-Each limb is encoded as if `scalar = true`: the Issuer Payload is its canonical decimal octet encoding (see (#scalar-encoding)).
-
-The Issuer MUST make sure that `(x, y)` is a valid non-identity P-256 point [@!FIPS186-5] before computing the message vector.
+\[Editor's Note: Discuss an alternative design that would allow every claim to point to an array of indices (messages in bbs). This would allow us to get rid of the special kb treatment and instead move the relevant information into normal claims.]
 
 ## Structural Layout {#layout}
 
 For claims containing objects, the Issuer either mirrors the object structure within `cmap` or treats the JSON-encoded object as a single leaf. This is a policy decision by the Issuer and allows some objects to be discloseable only as one object containing all values or not at all.
 
-For bounded-length array claims, `cmap` contains a JSON array of index annotations sized to the credential type's maximum array length. All entries in such an array SHOULD share the same `scalar` flag to guarantee a single decoy encoding (see (#decoys)).
+For bounded-length array claims, `cmap` contains an array of index annotations sized to the credential type's maximum array length. All entries in such an array SHOULD share the same `scalar` flag to guarantee a single decoy encoding (see (#decoys)).
 
 For optional claims, `cmap` MUST contain the index entry regardless of whether the attribute is present in a given credential.
 
@@ -315,7 +314,7 @@ The Holder verifies an issued credential by:
 1. Verifying the signature with `CoreVerify` ([@!I-D.irtf-cfrg-bbs-signatures, section 3.6.2]) over the same generators, `header_octets`, and message vector as issuance. Reject on failure.
 1. For every `scalar = true` leaf, confirming the corresponding Issuer Payload decodes to an integer in `[0, r - 1]`.
 1. For every `scalar = false` leaf, confirming the corresponding Issuer Payload either is byte-equal to the decoy octets (see (#decoys)) or parses as a single JSON text [@!RFC8259].
-1. If `kb` is present, confirming that the point reconstructed from the limb messages matches the Holder's device public key. How the Holder obtains the corresponding device key pair is out of scope.
+1. If `kb` is present, confirming that the device public key decoded from the reserved slots per the `kb` definition matches the Holder's device public key.
 
 # Presentation
 
@@ -381,14 +380,14 @@ A sub-proof is a JSON object carried as an additional octet string of the Presen
 `input` (JSON object, REQUIRED):
 : Public inputs to the sub-proof. MUST contain `i` and MAY contain algorithm-specific members.
 
-  `i` is a non-empty JSON array of message-vector indices, each of which MUST be a `COMMIT`-marked index of the core proof. Each algorithm fixes the length of `i` and the role of its entries.
+  `i` is a non-empty array of message-vector indices, each of which MUST be a `COMMIT`-marked index of the core proof. Each algorithm fixes the length of `i` and the role of its entries.
 
 `proof` (string, REQUIRED):
 : The base64url [@!RFC4648] encoding of the sub-proof bytes specified by `alg`.
 
 For each sub-proof, the Verifier MUST confirm that every value in `i` is among the committed indices recovered from the core proof, and MUST then run the algorithm-specific verification routine against the corresponding `C_i`, `input`, and `proof`.
 
-Sub-proof freshness is inherited from the core proof: every `C_i` is randomized per presentation, and the core proof's challenge binds to `presentation_header_octets`. Sub-proof algorithms that include public material not derived from `C_i` (for example, the device ECDSA signature in `ecdsa-p256-db`) MUST bind that material to the current presentation by other means (`ecdsa-p256-db` does so via `db_msg` - see (#ecdsa-db)).
+Sub-proof freshness is inherited from the core proof: every `C_i` is randomized per presentation, and the core proof's challenge binds to `presentation_header_octets`. Sub-proof algorithms that include public material not derived from `C_i` (for example, a device signature in a device-binding sub-proof) MUST bind that material to the current presentation by other means, such as including `presentation_header_octets` in the signed message.
 
 Sub-proof transcripts use the BBS encoding primitives of [@!I-D.irtf-cfrg-bbs-signatures, section 4.2.4.1]:
 
@@ -398,68 +397,13 @@ Sub-proof transcripts use the BBS encoding primitives of [@!I-D.irtf-cfrg-bbs-si
 
 A Verifier MUST reject a sub-proof carrying an encoded group element (in `input` or `proof`) that does not decode to a valid non-identity point of the G1 subgroup.
 
-\[Editor's Note: Decision needed: Need to define a serialization scheme for the Sigma proofs - Re-use the existing one from the [@?I-D.irtf-cfrg-sigma-protocols] (although it uses different encodings etc.), or define an optimized one for BLS12-381? Some of the following sub-proofs already propose very concrete choices to make the construction more concrete - all of these are open for discussion and will very likely see significant changes.]
+This document does not define any sub-proof algorithm. A specification registering a sub-proof algorithm (see (#iana)) MUST define:
 
-### Equality Proof Sub-Proof {#equality-proof}
-
-Algorithm identifier:
-: `schnorr-eq`
-
-The `i` field MUST be a single-element array `[idx]`.
-
-Inputs (beyond the base sub-proof fields):
-
-- `c_ext`: a base64url-encoded BLS12-381 G1 point.
-
-The sub-proof attests that `C_idx` (from the core proof) and `c_ext` open to the same scalar under the generators `(G, H)` of (#cipher-suite). Cross-group equality is out of scope.
-
-The construction is a 3-DL Schnorr discrete-logarithm-equality (DLEQ) proof over BLS12-381 G1 with `(G, H)`, with witness `(m, s_1, s_2)` such that:
-
-~~~
-C_idx = m * G + s_1 * H
-c_ext = m * G + s_2 * H
-~~~
-
-The Holder samples fresh random scalars `(r_m, r_s1, r_s2)` and computes Schnorr commitments `T_1 = r_m * G + r_s1 * H` and `T_2 = r_m * G + r_s2 * H`. The challenge is `c = hash_to_scalar(transcript, challenge_dst)` with `challenge_dst = api_id || "SCHNORR_EQ_CHAL_"` and `hash_to_scalar` the base BBS primitive of (#cipher-suite).
-
-\[Editor's Note: describe wire format of proof]
-
-### ECDSA Device-Binding Sub-Proof {#ecdsa-db}
-
-This sub-proof MUST be present whenever `kb = "ecdsa-p256-db"` and MUST NOT be present otherwise. The algorithm identifier deliberately matches the `kb` value it verifies (see (#device-binding-header)).
-
-Algorithm identifier:
-: `ecdsa-p256-db`
-
-The `i` field MUST be `[0, 1, 2, 3]`, naming the four indices that carry the device public-key limbs (see (#device-binding-header)).
-
-Inputs (beyond the base sub-proof fields): none.
-
-The device-signed message is not transmitted, it is recomputed as:
-
-~~~
-db_msg = "JWP-BBS-DB-CHAL" || presentation_header_octets
-~~~
-
-where `"JWP-BBS-DB-CHAL"` is the literal ASCII string. Binding `db_msg` to `presentation_header_octets` carries `nonce` and `aud` and is therefore sufficient for freshness.
-
-The proof bytes encode a non-interactive zero-knowledge proof of knowledge of `(dpk, (r, s))` such that:
-
-1. The 4 commitments at the indices in `i` open to the 128-bit limbs of `dpk` (in the layout of `kb`) under `(G, H)` (see (#cipher-suite)).
-1. `(r, s)` is a valid ECDSA P-256 signature on `db_msg` under `dpk`.
-
-\[Editor's Note: TODO - This is currently a placeholder until we can reference a construction; expectation is that this will be described in another IETF draft]
-
-### Range Proof Sub-Proof {#range-proof}
-
-Algorithm identifier:
-: `sigma-range`
-
-The `i` field MUST be a single-element array `[idx]`.
-
-Inputs (beyond the base sub-proof fields): bounds `l` and `u` as JSON integers. The sub-proof attests that m_idx, the message committed in the core proof at index `idx`, satisfies `l <= m_idx < u`.
-
-\[Editor's Note: describe/reference algorithm]
+- the length of `i` and the role of each of its entries,
+- any additional members of `input` and their encoding,
+- the layout of the proof bytes carried in `proof`,
+- the verification routine, taking the commitments `C_i`, `input`, and `proof` as inputs, and
+- how any public material not derived from `C_i` is bound to the current presentation.
 
 ## Presentation Verification {#presentation-verification}
 
@@ -486,11 +430,11 @@ Continuing the example of (#example-issuer-header), a Verifier requests `family_
 }
 ~~~
 
-The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 10 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to m_10. The Holder attaches a `sigma-range` sub-proof over index 10 proving `now <= exp < 2^63` (with `now = 1779926400`):
+The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 10 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to m_10. The Holder attaches a range sub-proof over index 10 proving `now <= exp < 2^63` (with `now = 1779926400`).
 
 ~~~ json
 {
-  "alg": "sigma-range",
+  "alg": "<range sub-proof identifier>",
   "input": { "i": [10], "l": 1779926400, "u": 9223372036854775808 },
   "proof": "..."
 }
@@ -505,7 +449,7 @@ The Compact Serialization concatenates with `.`: Presentation Header, Issuer Hea
 .
 ~Ik11c3Rlcm1hbm4i~~~~~~~~~
 .
-<core proof>~<sigma-range sub-proof>
+<core proof>~<range sub-proof>
 ~~~
 
 The Verifier verifies the core proof, recovers `C_10`, and checks the sub-proof against it. It learns `family_name` and that the credential has not expired.
@@ -560,11 +504,7 @@ The `api_id` above follows the Interface identifier rule of [@!I-D.irtf-cfrg-bbs
 
 ## Random Number Generation {#random}
 
-All randomness used by this document MUST be generated using a cryptographically secure random number generator. Reuse or predictability of a blinding scalar or proof nonce can break unlinkability or soundness, or even leak the signing key.
-
-## Hash-to-Scalar Bypass
-
-\[Editor's Note: TODO - Check what exactly the attack scenarios are / if there are some]
+All randomness used by this document MUST be generated using a cryptographically secure random number generator. Reuse or predictability of a blinding scalar or proof nonce could break unlinkability or soundness, or even leak the signing key.
 
 ## Replay and Presentation Freshness
 
@@ -573,10 +513,6 @@ Freshness relies on the Verifier-supplied `nonce`. Verifiers MUST generate nonce
 ## Holder Binding
 
 Without device binding (`kb` absent), possession of the Issued Form is sufficient to derive presentations, so anyone who obtains the credential in its Issued Form can present it. Deployments that need resistance against credential theft or pooling SHOULD use device binding - see (#device-binding-header).
-
-## Unlinkability Scope
-
-The core proof hides everything except the disclosed messages, the carried commitments, and the sub-proof predicates. Parties observing multiple presentations (including colluding Verifiers, or an Issuer colluding with a Verifier) can still correlate them through disclosed attribute values, sub-proof predicate parameters, or transport-level metadata.
 
 # Privacy Considerations
 
@@ -592,7 +528,11 @@ Implementations SHOULD make the Issuer Header byte-identical across the entire p
 
 ## Cipher Suite and Algorithm Identifiers
 
-`alg` and `kb` likewise split the anonymity set when they vary across the population of a `vct`. Implementations SHOULD use a single `alg` and a single `kb` value (or omit `kb` entirely) across all credentials of a `vct`, and SHOULD NOT mix device-bound and non-device-bound credentials under the same `vct`.
+`alg` and `kb` likewise split the anonymity set when they vary across the population of a `vct`. Implementations SHOULD use a single `alg` and a single `kb` type across all credentials of a `vct`, and SHOULD NOT mix device-bound and non-device-bound credentials under the same `vct`.
+
+## Unlinkability Scope
+
+The core proof hides everything except the disclosed messages, the carried commitments, and the sub-proof predicates. Parties observing multiple presentations (including colluding Verifiers, or an Issuer colluding with a Verifier) can still correlate them through disclosed attribute values, sub-proof predicate parameters, or transport-level metadata.
 
 # IANA Considerations {#iana}
 
@@ -634,29 +574,17 @@ IANA is requested to register the following Header Parameters in the "JSON Web P
 
 IANA is requested to create a new "Sub-Proof Algorithms" registry.
 
-Allocation policy: Specification Required ([@!RFC8126]). Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and Fiat-Shamir domain separation, and that the sub-proof is bound to a commitment attested by the core proof per (#sub-proofs). For entries with Device Binding set to `yes`, they SHOULD additionally verify that the reference defines the reserved slot count `N` and the device-key encoding required by (#device-binding-header).
+Allocation policy: Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and that the sub-proof is bound to a commitment attested by the core proof per (#sub-proofs). For entries with Device Binding set to `yes`, they SHOULD additionally verify that the reference defines the reserved slot count `N` and the device-key encoding required by (#device-binding-header).
 
-Registry fields: Identifier (the `alg` value of a sub-proof object), Description, Device Binding (whether the identifier is also a valid `kb` value - see (#device-binding-header)), Reference, Change Controller.
+Registry fields:
 
-Initial entries:
+- Identifier (the `alg` value of a sub-proof object)
+- Description
+- Device Binding (whether the identifier is also a valid `kb` value - see (#device-binding-header))
+- Reference
+- Change Controller
 
-- Identifier: `ecdsa-p256-db`
-- Description: ECDSA P-256 device-binding sub-proof.
-- Device Binding: yes.
-- Reference: This document, (#ecdsa-db).
-- Change Controller: IETF.
-
-- Identifier: `sigma-range`
-- Description: Sigma-protocol range proof over a committed scalar message.
-- Device Binding: no.
-- Reference: This document, (#range-proof).
-- Change Controller: IETF.
-
-- Identifier: `schnorr-eq`
-- Description: Schnorr proof of equality between a committed message and an external commitment.
-- Device Binding: no.
-- Reference: This document, (#equality-proof).
-- Change Controller: IETF.
+Initial entries: none. Concrete sub-proof algorithms are expected to be registered by companion documents.
 
 {backmatter}
 
@@ -683,18 +611,6 @@ Initial entries:
   <seriesInfo name="IACR ePrint" value="2025/1981"/>
 </reference>
 
-<reference anchor="FIPS186-5" target="https://doi.org/10.6028/NIST.FIPS.186-5">
-  <front>
-    <title>Digital Signature Standard (DSS)</title>
-    <author>
-      <organization>National Institute of Standards and Technology</organization>
-    </author>
-    <date year="2023" month="February"/>
-  </front>
-  <seriesInfo name="FIPS PUB" value="186-5"/>
-  <seriesInfo name="DOI" value="10.6028/NIST.FIPS.186-5"/>
-</reference>
-
 <reference anchor="CT25" target="https://eprint.iacr.org/2025/1093">
   <front>
     <title>On the Concrete Security of BBS/BBS+ Signatures</title>
@@ -712,6 +628,11 @@ This document rests on the work captured in [@?TS14] by the EUDI Wallet expert g
 # Document History
 
 [[ pre Working Group Adoption: ]]
+
+-03
+
+* editorial fixes
+* Remove the concrete sub-proof constructions - the document now only defines the sub-proof container and its serialization
 
 -02
 
