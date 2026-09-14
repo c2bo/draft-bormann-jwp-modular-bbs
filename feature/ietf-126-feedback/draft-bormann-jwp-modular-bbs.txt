@@ -24,8 +24,7 @@ Abstract
    the key proven in every presentation without revealing the public key
    or signature.  Concrete sub-proof and device-binding constructions
    are not defined in this document, only the core serialization.  The
-   credential type definition and data model follow SD-JWT VC
-   [I-D.ietf-oauth-sd-jwt-vc].
+   credential type definition and data model follow SD-JWT VC.
 
 Discussion Venues
 
@@ -472,12 +471,15 @@ Table of Contents
 
    m_decoy = hash_to_scalar("JWP-BBS-DECOY", map_dst)
 
-   with hash_to_scalar and map_dst as defined in Section 2.5.
+   with hash_to_scalar and map_dst as defined in Section 2.5, and "JWP-
+   BBS-DECOY" denoting the 13 ASCII octets of that string (without
+   quotation marks).
 
    The Issuer Payload for a decoy slot depends on the slot's scalar
    flag:
 
-   *  scalar = false: the ASCII octets of "JWP-BBS-DECOY".
+   *  scalar = false: the 13 ASCII octets JWP-BBS-DECOY (without
+      quotation marks).
    *  scalar = true: the canonical decimal octet encoding of m_decoy
       (see Section 2.6).
 
@@ -682,7 +684,8 @@ Table of Contents
    *  any additional members of input and their encoding,
    *  the layout of the proof bytes carried in proof,
    *  the verification routine, taking the commitments C_i, input, and
-      proof as inputs, and
+      proof as inputs, interpreting each C_i as a Pedersen commitment
+      under the generators (G, H) of Section 5, and
    *  how any public material not derived from C_i is bound to the
       current presentation.
 
@@ -960,12 +963,13 @@ Table of Contents
 
    IANA is requested to create a new "Sub-Proof Algorithms" registry.
 
-   Allocation policy: Designated experts SHOULD verify that each entry
-   pins its underlying group, generators, transcript hash, and that the
-   sub-proof is bound to a commitment attested by the core proof per
-   Section 4.4.  For entries with Device Binding set to yes, they SHOULD
-   additionally verify that the reference defines the reserved slot
-   count N and the device-key encoding required by Section 2.8.
+   Allocation policy: Specification Required ([RFC8126]).  Designated
+   experts SHOULD verify that each entry pins its underlying group,
+   generators, transcript hash, and that the sub-proof is bound to a
+   commitment attested by the core proof per Section 4.4.  For entries
+   with Device Binding set to yes, they SHOULD additionally verify that
+   the reference defines the reserved slot count N and the device-key
+   encoding required by Section 2.8.
 
    Registry fields:
 
@@ -1030,6 +1034,11 @@ Table of Contents
    [RFC7519]  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
               (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
               <https://www.rfc-editor.org/info/rfc7519>.
+
+   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+              Writing an IANA Considerations Section in RFCs", BCP 26,
+              RFC 8126, DOI 10.17487/RFC8126, June 2017,
+              <https://www.rfc-editor.org/info/rfc8126>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,

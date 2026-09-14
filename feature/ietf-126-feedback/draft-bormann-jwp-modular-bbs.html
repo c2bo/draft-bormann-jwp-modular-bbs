@@ -8,7 +8,7 @@
 <meta content="Christian Bormann" name="author">
 <meta content="Brent Zundel" name="author">
 <meta content="
-       This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC  . 
+       This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="zero-knowledge proofs" name="keyword">
@@ -1084,7 +1084,7 @@ svg {
 <h1 id="title">BBS and Modular Sub-proofs with JSON Web Proofs</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC <span>[<a href="#I-D.ietf-oauth-sd-jwt-vc" class="cite xref">I-D.ietf-oauth-sd-jwt-vc</a>]</span>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1619,11 +1619,11 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 
 </pre><a href="#section-2.10-3" class="pilcrow">¶</a>
 </div>
-<p id="section-2.10-4">with <code>hash_to_scalar</code> and <code>map_dst</code> as defined in <a href="#message-derivation" class="auto internal xref">Section 2.5</a>.<a href="#section-2.10-4" class="pilcrow">¶</a></p>
+<p id="section-2.10-4">with <code>hash_to_scalar</code> and <code>map_dst</code> as defined in <a href="#message-derivation" class="auto internal xref">Section 2.5</a>, and <code>"JWP-BBS-DECOY"</code> denoting the 13 ASCII octets of that string (without quotation marks).<a href="#section-2.10-4" class="pilcrow">¶</a></p>
 <p id="section-2.10-5">The Issuer Payload for a decoy slot depends on the slot's <code>scalar</code> flag:<a href="#section-2.10-5" class="pilcrow">¶</a></p>
 <ul class="compact">
 <li class="compact" id="section-2.10-6.1">
-            <code>scalar = false</code>: the ASCII octets of <code>"JWP-BBS-DECOY"</code>.<a href="#section-2.10-6.1" class="pilcrow">¶</a>
+            <code>scalar = false</code>: the 13 ASCII octets <code>JWP-BBS-DECOY</code> (without quotation marks).<a href="#section-2.10-6.1" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-2.10-6.2">
             <code>scalar = true</code>: the canonical decimal octet encoding of <code>m_decoy</code> (see <a href="#scalar-encoding" class="auto internal xref">Section 2.6</a>).<a href="#section-2.10-6.2" class="pilcrow">¶</a>
@@ -1849,7 +1849,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 </li>
           <li class="compact" id="section-4.4-11.3">the layout of the proof bytes carried in <code>proof</code>,<a href="#section-4.4-11.3" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-4.4-11.4">the verification routine, taking the commitments <code>C_i</code>, <code>input</code>, and <code>proof</code> as inputs, and<a href="#section-4.4-11.4" class="pilcrow">¶</a>
+          <li class="compact" id="section-4.4-11.4">the verification routine, taking the commitments <code>C_i</code>, <code>input</code>, and <code>proof</code> as inputs, interpreting each <code>C_i</code> as a Pedersen commitment under the generators <code>(G, H)</code> of <a href="#cipher-suite" class="auto internal xref">Section 5</a>, and<a href="#section-4.4-11.4" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-4.4-11.5">how any public material not derived from <code>C_i</code> is bound to the current presentation.<a href="#section-4.4-11.5" class="pilcrow">¶</a>
 </li>
@@ -2150,7 +2150,7 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 <a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-sub-proof-algorithms-regist" class="section-name selfRef">Sub-Proof Algorithms Registry</a>
         </h3>
 <p id="section-8.3-1">IANA is requested to create a new "Sub-Proof Algorithms" registry.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.3-2">Allocation policy: Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and that the sub-proof is bound to a commitment attested by the core proof per <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>. For entries with Device Binding set to <code>yes</code>, they SHOULD additionally verify that the reference defines the reserved slot count <code>N</code> and the device-key encoding required by <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
+<p id="section-8.3-2">Allocation policy: Specification Required (<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>). Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and that the sub-proof is bound to a commitment attested by the core proof per <a href="#sub-proofs" class="auto internal xref">Section 4.4</a>. For entries with Device Binding set to <code>yes</code>, they SHOULD additionally verify that the reference defines the reserved slot count <code>N</code> and the device-key encoding required by <a href="#device-binding-header" class="auto internal xref">Section 2.8</a>.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.3-3">Registry fields:<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 <ul class="compact">
 <li class="compact" id="section-8.3-4.1">Identifier (the <code>alg</code> value of a sub-proof object)<a href="#section-8.3-4.1" class="pilcrow">¶</a>
@@ -2209,6 +2209,10 @@ when, and only when, they appear in all capitals, as shown here.<a href="#sectio
 <dt id="RFC7519">[RFC7519]</dt>
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7519">https://www.rfc-editor.org/info/rfc7519</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8126">https://www.rfc-editor.org/info/rfc8126</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
