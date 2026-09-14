@@ -32,7 +32,7 @@ organization = "Yubico"
 
 .# Abstract
 
-This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
+This document defines a digital credential format that uses JSON Web Proofs (JWP) as its container format and Blind BBS Signatures as its signature scheme combined with a modular framework for attaching zero-knowledge sub-proofs. This allows a Holder to reveal some attributes directly while proving predicates such as range or equality over the ones they keep hidden. A credential can additionally be bound to a Holder-held device key, with possession of the key proven in every presentation without revealing the public key or signature. Concrete sub-proof and device-binding constructions are not defined in this document, only the core serialization. The credential type definition and data model follow SD-JWT VC.
 
 {mainmatter}
 
@@ -269,11 +269,11 @@ Every decoy slot carries the same fixed scalar:
 m_decoy = hash_to_scalar("JWP-BBS-DECOY", map_dst)
 ~~~
 
-with `hash_to_scalar` and `map_dst` as defined in (#message-derivation).
+with `hash_to_scalar` and `map_dst` as defined in (#message-derivation), and `"JWP-BBS-DECOY"` denoting the 13 ASCII octets of that string (without quotation marks).
 
 The Issuer Payload for a decoy slot depends on the slot's `scalar` flag:
 
-- `scalar = false`: the ASCII octets of `"JWP-BBS-DECOY"`.
+- `scalar = false`: the 13 ASCII octets `JWP-BBS-DECOY` (without quotation marks).
 - `scalar = true`: the canonical decimal octet encoding of `m_decoy` (see (#scalar-encoding)).
 
 A Verifier detects a disclosed decoy by comparing the disclosed Presentation Payload octets to the fixed decoy octets defined above. The `scalar = false` decoy octets are deliberately not a valid JSON text, so no payload produced per (#message-derivation) can collide with them. Decoys SHOULD NOT be disclosed unless required by the use case (for example, a proof over all members of a bounded-length array).
@@ -402,7 +402,7 @@ This document does not define any sub-proof algorithm. A specification registeri
 - the length of `i` and the role of each of its entries,
 - any additional members of `input` and their encoding,
 - the layout of the proof bytes carried in `proof`,
-- the verification routine, taking the commitments `C_i`, `input`, and `proof` as inputs, and
+- the verification routine, taking the commitments `C_i`, `input`, and `proof` as inputs, interpreting each `C_i` as a Pedersen commitment under the generators `(G, H)` of (#cipher-suite), and
 - how any public material not derived from `C_i` is bound to the current presentation.
 
 ## Presentation Verification {#presentation-verification}
@@ -574,7 +574,7 @@ IANA is requested to register the following Header Parameters in the "JSON Web P
 
 IANA is requested to create a new "Sub-Proof Algorithms" registry.
 
-Allocation policy: Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and that the sub-proof is bound to a commitment attested by the core proof per (#sub-proofs). For entries with Device Binding set to `yes`, they SHOULD additionally verify that the reference defines the reserved slot count `N` and the device-key encoding required by (#device-binding-header).
+Allocation policy: Specification Required ([@!RFC8126]). Designated experts SHOULD verify that each entry pins its underlying group, generators, transcript hash, and that the sub-proof is bound to a commitment attested by the core proof per (#sub-proofs). For entries with Device Binding set to `yes`, they SHOULD additionally verify that the reference defines the reserved slot count `N` and the device-key encoding required by (#device-binding-header).
 
 Registry fields:
 
