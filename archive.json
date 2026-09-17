@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-15T00:46:08.699938+00:00",
+  "timestamp": "2026-09-17T00:44:42.816103+00:00",
   "repo": "c2bo/draft-bormann-jwp-modular-bbs",
   "labels": [
     {
@@ -112,24 +112,26 @@
       "id": "PR_kwDOSlF_gM8AAAABDbhmnw",
       "title": "Incorporate IETF 126 Feedback",
       "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/pull/3",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "c2bo",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "- remove concrete sub-proof instanciations\r\n- editorial fixes",
       "createdAt": "2026-09-14T10:00:31Z",
-      "updatedAt": "2026-09-14T21:37:30Z",
+      "updatedAt": "2026-09-15T07:34:05Z",
       "baseRepository": "c2bo/draft-bormann-jwp-modular-bbs",
       "baseRefName": "main",
       "baseRefOid": "bd068e9dae7a09c6d236a7d4818d80b2c6f6a250",
       "headRepository": "c2bo/draft-bormann-jwp-modular-bbs",
       "headRefName": "feature/ietf-126-feedback",
       "headRefOid": "cc517b7d4cc75f3da7612711b90c5397808da7aa",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-09-15T07:34:05Z",
+      "mergedAt": "2026-09-15T07:34:05Z",
+      "mergedBy": "c2bo",
+      "mergeCommit": {
+        "oid": "a711d25a85483d774c498c61c257aa7488c0733b"
+      },
       "comments": [],
       "reviews": [
         {
