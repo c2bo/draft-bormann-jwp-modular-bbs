@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-27T00:52:20.502846+00:00",
+  "timestamp": "2026-09-29T00:48:46.737152+00:00",
   "repo": "c2bo/draft-bormann-jwp-modular-bbs",
   "labels": [
     {
@@ -49,7 +49,88 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 4,
+      "id": "I_kwDOSlF_gM8AAAABTth-vw",
+      "title": "Key Resolution",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/4",
+      "state": "OPEN",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "We probably want to put key resolution out of scope, but if we want existing ecosystems to adopt this work easily, we should probably spend some time to at least think about and make sure the required building blocks exist.\n\nVery concretely: It might be worthwhile to define an X.509 Key representation for BLS12-381 to enable x509 issuer PKI (that binds to a subject key of type BLS12-381) unless this is already happening elsewhere that I am unaware of.",
+      "createdAt": "2026-09-28T16:20:30Z",
+      "updatedAt": "2026-09-28T16:20:30Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 5,
+      "id": "I_kwDOSlF_gM8AAAABTtjUyw",
+      "title": "Scalar representation - update after blind BBS signature draft update",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/5",
+      "state": "OPEN",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "We currently signal scalar encoding with a special flag. Example issuer headers currently look like this:\n\n```json\n{\n  \"alg\": \"BBS-MOD\",\n  \"vct\": \"https://credentials.example.com/identity_credential\",\n  \"cmap\": {\n    \"given_name\": [0, false],\n    \"family_name\": [1, false],\n    \"email\": [2, false],\n    \"phone_number\": [3, false],\n    \"address\": {\n      \"street_address\": [4, false],\n      \"locality\": [5, false],\n      \"region\": [6, false],\n      \"country\": [7, false]\n    },\n    \"birthdate\": [8, true],\n    \"iat\": [9, true],\n    \"exp\": [10, true]\n  }\n}\n```\n\nIt is currently an open topic if this raw scalar representation might be moved into the signature scheme (i.e., not require the flag for us). This would allow us to redesign the header.",
+      "createdAt": "2026-09-28T16:22:14Z",
+      "updatedAt": "2026-09-28T16:22:14Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOSlF_gM8AAAABTtnUkQ",
+      "title": "Key Binding messages - generalize?",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/6",
+      "state": "OPEN",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "We currently define a special rule to convey a public device binding key. Could we generalize this and allow claims to point to an array of messages instead of a single message? Something like this:\n\n```json\n{\n  \"alg\": \"BBS-MOD\",\n  \"vct\": \"https://credentials.example.com/identity_credential\",\n  \"cmap\": {\n    \"given_name\": [0, false],\n    \"family_name\": [1, false],\n    \"email\": [2, false],\n    \"phone_number\": [3, false],\n    \"address\": {\n      \"street_address\": [4, false],\n      \"locality\": [5, false],\n      \"region\": [6, false],\n      \"country\": [7, false]\n    },\n    \"birthdate\": [8, true],\n    \"iat\": [9, true],\n    \"exp\": [10, true]\n    \"cnf\": {\n      \"bls12-381\": [[11,12,13,14], true]\n    }\n  }\n}\n```\n\nThis contains a (simplified) cnf claim that conveys the public key (4 limbs, 2 per x/y value) of the device binding key.  This would allow us to remove any special parsing rules for the `kb` header fields and make the mechanism more future-proof. If the scalar raw encoding goes into the blind bbs signature draft, it would become especially nice (removing the boolean flag for our data structure) - see #5 :\n\n```json\n{\n  \"alg\": \"BBS-MOD\",\n  \"vct\": \"https://credentials.example.com/identity_credential\",\n  \"cmap\": {\n    \"given_name\": [0],\n    \"family_name\": [1],\n    \"email\": [2],\n    \"phone_number\": [3],\n    \"address\": {\n      \"street_address\": [4],\n      \"locality\": [5],\n      \"region\": [6],\n      \"country\": [7]\n    },\n    \"birthdate\": [8],\n    \"iat\": [9],\n    \"exp\": [10]\n    \"cnf\": {\n      \"bls12-381\": [11,12,13,14]\n    }\n  }\n}\n```",
+      "createdAt": "2026-09-28T16:27:16Z",
+      "updatedAt": "2026-09-28T16:27:16Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 7,
+      "id": "I_kwDOSlF_gM8AAAABTtpcFA",
+      "title": "Alignment with JPT?",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/7",
+      "state": "OPEN",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "https://datatracker.ietf.org/doc/draft-ietf-jose-json-proof-token/ defines a different data format and makes different choices. Question if these 2 should align stronger or be seen as different solutions solving different problems.\n\nI am currently leaning more towards keeping these separate and treat JPT as a token created explicitly for JWP and BBS, whereas this draft aims to make transition as easy as possible for existing SD-JWT VC systems and stay close to that ecosystem.",
+      "createdAt": "2026-09-28T16:29:59Z",
+      "updatedAt": "2026-09-28T16:29:59Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 8,
+      "id": "I_kwDOSlF_gM8AAAABTtqEdA",
+      "title": "CBOR Serialization",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/8",
+      "state": "OPEN",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Add optional CBOR serialization support? the draft currently only defines JSON (and leans heavily on SD-JWT VC). Should we also define CBOR serialization?",
+      "createdAt": "2026-09-28T16:30:48Z",
+      "updatedAt": "2026-09-28T16:30:48Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": [
     {
       "number": 1,
