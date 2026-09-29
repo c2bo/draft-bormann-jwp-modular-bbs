@@ -47,7 +47,7 @@ Building on those core building blocks, this document defines a digital credenti
 - Uses JSON Web Proofs [@!I-D.ietf-jose-json-web-proof] as the serialization/container format for both issuance and presentation, and defines a JSON Proof Algorithm [@!I-D.ietf-jose-json-proof-algorithms] profile based on Blind BBS Signatures.
 - Builds its core proof on `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures], exposing fresh Pedersen commitments to selected messages as public inputs for sub-proofs.
 - Defines a sub-proof container carrying optional sub-proofs, each bound to the core proof via a Pedersen commitment.
-- Optionally binds a credential to a Holder-held device key by encoding that key as messages in the BBS signature vector
+- Optionally binds a credential to a Holder-held device key by encoding that key as messages in the BBS signature vector.
 
 This modular architecture builds on prior work [@?TS14] and [@?LSZ25], and the credential type model is reused from SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
