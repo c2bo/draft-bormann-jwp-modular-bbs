@@ -38,7 +38,7 @@ This document defines a digital credential format that uses JSON Web Proofs (JWP
 
 # Introduction {#introduction}
 
-The BBS signature scheme [@!I-D.irtf-cfrg-bbs-signatures] is a multi-message signature (MMS) scheme where the signer produces a single signature over a vector of messages m_0 through m_(n-1), and the Holder can prove knowledge of the signature in zero knowledge while disclosing only a chosen subset of those messages.
+The BBS signature scheme [@!I-D.irtf-cfrg-bbs-signatures] is a multi-message signature (MMS) scheme where the signer produces a single signature over a vector of messages `m_0` through `m_(n-1)`, and the Holder can prove knowledge of the signature in zero knowledge while disclosing only a chosen subset of those messages.
 
 The Blind BBS Signatures extension [@!I-D.irtf-cfrg-bbs-blind-signatures] adds Pedersen commitments to the scheme that allow the Holder to mark each message as disclosed, hidden, or committed at proof time, and the resulting proof carries a fresh Pedersen commitment for every committed message. Those commitments become public inputs to further proofs over the values they hide.
 
@@ -47,7 +47,7 @@ Building on those core building blocks, this document defines a digital credenti
 - Uses JSON Web Proofs [@!I-D.ietf-jose-json-web-proof] as the serialization/container format for both issuance and presentation, and defines a JSON Proof Algorithm [@!I-D.ietf-jose-json-proof-algorithms] profile based on Blind BBS Signatures.
 - Builds its core proof on `CoreProofGen` of [@!I-D.irtf-cfrg-bbs-blind-signatures], exposing fresh Pedersen commitments to selected messages as public inputs for sub-proofs.
 - Defines a sub-proof container carrying optional sub-proofs, each bound to the core proof via a Pedersen commitment.
-- Optionally binds a credential to a Holder-held device key by encoding that key as messages in the BBS signature vector
+- Optionally binds a credential to a Holder-held device key by encoding that key as messages in the BBS signature vector.
 
 This modular architecture builds on prior work [@?TS14] and [@?LSZ25], and the credential type model is reused from SD-JWT VC [@!I-D.ietf-oauth-sd-jwt-vc].
 
@@ -150,9 +150,9 @@ The JWP `iek`, `hpk`, and `hpa` Header Parameters (Sections 5.2.5, 5.2.6, and 5.
 `cmap` mirrors the credential's JSON tree structurally. Each leaf is replaced by an index annotation: a two-element array `[i, scalar]`, where:
 
 - `i` is the 0-based index of the leaf value in the message vector.
-- `scalar` is a boolean selecting how the leaf becomes the BBS message m_i:
+- `scalar` is a boolean selecting how the leaf becomes the BBS message `m_i`:
   - `false`: the leaf is encoded as octets and mapped to a scalar via the cipher suite's hash-to-scalar primitive (see (#message-derivation)).
-  - `true`: the leaf MUST be a JSON integer in `[0, r - 1]` (where `r` is the order of the BBS scalar field) and is used directly as m_i (see (#scalar-encoding)).
+  - `true`: the leaf MUST be a JSON integer in `[0, r - 1]` (where `r` is the order of the BBS scalar field) and is used directly as `m_i` (see (#scalar-encoding)).
 
 Let `n` be the length of the message vector, and `N` the number of payload slots reserved for the device-key encoding (see (#device-binding-header)), with `N = 0` when `kb` is absent. Every index in `[N, n-1]` MUST appear in exactly one annotation in `cmap`. Indices `[0, N-1]` MUST NOT appear in `cmap`.
 
@@ -218,14 +218,14 @@ A real deployment would define a structural layout covering all optional attribu
 For an annotation `[i, false]` with leaf value `v`:
 
 1. `o` is a JSON serialization of `v` - a single JSON text [@!RFC8259] encoded in UTF-8 (e.g., `"Erika"` for a string, `true` for a boolean) - carried as Issuer Payload `i`. The Issuer MAY produce any serialization of `v`, as the payload octets rather than the abstract value are what is mapped to the message scalar. Holders and Verifiers MUST use the received payload octets as-is and MUST NOT re-serialize them.
-1. m_i = `hash_to_scalar(o, map_dst)`, with `map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"` and `api_id` the Interface identifier of (#cipher-suite). This is the per-message derivation of `BBS.messages_to_scalars` ([@!I-D.irtf-cfrg-bbs-signatures, section 4.1.2]).
+1. `m_i` = `hash_to_scalar(o, map_dst)`, with `map_dst = api_id || "MAP_MSG_TO_SCALAR_AS_HASH_"` and `api_id` the Interface identifier of (#cipher-suite). This is the per-message derivation of `BBS.messages_to_scalars` ([@!I-D.irtf-cfrg-bbs-signatures, section 4.1.2]).
 
 Numeric leaves recovered via JSON parsing are subject to JSON number-precision interoperability limits - Issuers SHOULD keep `scalar = false` number values within the I-JSON [@?RFC7493] range.
 
 For an annotation `[i, true]` with leaf value `v`:
 
 1. `o` is the canonical decimal octet encoding of `v` (see (#scalar-encoding)), carried as Issuer Payload `i`.
-1. m_i is the integer denoted by `o`, interpreted as an element of the BBS scalar field.
+1. `m_i` is the integer denoted by `o`, interpreted as an element of the BBS scalar field.
 
 ## Scalar Encoding {#scalar-encoding}
 
@@ -303,7 +303,7 @@ A non-normative example of the Compact Serialization:
 <base64url(BBS signature)>
 ~~~
 
-Each `<m_i>` is the base64url-encoded Issuer Payload for index `i` (e.g., m_1 is `"Mustermann"` including the quotes, m_10 is `1786000000`). For `scalar = true` leaves the canonical decimal encoding coincides with the JSON serialization of the integer.
+Each `<m_i>` is the base64url-encoded Issuer Payload for index `i` (e.g., `m_1` is `"Mustermann"` including the quotes, `m_10` is `1786000000`). For `scalar = true` leaves the canonical decimal encoding coincides with the JSON serialization of the integer.
 
 ## Holder Verification
 
@@ -430,7 +430,7 @@ Continuing the example of (#example-issuer-header), a Verifier requests `family_
 }
 ~~~
 
-The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 10 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to m_10. The Holder attaches a range sub-proof over index 10 proving `now <= exp < 2^63` (with `now = 1779926400`).
+The Holder marks index 1 (`family_name`) as `DISCLOSE`, index 10 (`exp`) as `COMMIT`, and the rest as `HIDE`. The core proof then carries a fresh Pedersen commitment to `m_10`. The Holder attaches a range sub-proof over index 10 proving `now <= exp < 2^63` (with `now = 1779926400`).
 
 ~~~ json
 {
