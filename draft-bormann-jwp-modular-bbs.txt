@@ -5,8 +5,8 @@
 JOSE                                                          C. Bormann
 Internet-Draft                                               SPRIND GmbH
 Intended status: Standards Track                               B. Zundel
-Expires: 19 March 2027                                            Yubico
-                                                       15 September 2026
+Expires: 3 April 2027                                             Yubico
+                                                       30 September 2026
 
 
             BBS and Modular Sub-proofs with JSON Web Proofs
@@ -48,7 +48,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 March 2027.
+   This Internet-Draft will expire on 3 April 2027.
 
 Copyright Notice
 
@@ -145,7 +145,7 @@ Table of Contents
    *  Defines a sub-proof container carrying optional sub-proofs, each
       bound to the core proof via a Pedersen commitment.
    *  Optionally binds a credential to a Holder-held device key by
-      encoding that key as messages in the BBS signature vector
+      encoding that key as messages in the BBS signature vector.
 
    This modular architecture builds on prior work [TS14] and [LSZ25],
    and the credential type model is reused from SD-JWT VC
@@ -1016,11 +1016,12 @@ Table of Contents
               bbs-blind-signatures-03>.
 
    [I-D.irtf-cfrg-bbs-signatures]
-              Looker, T., Kalos, V., Whitehead, A., and M. Lodder, "The
-              BBS Signature Scheme", Work in Progress, Internet-Draft,
-              draft-irtf-cfrg-bbs-signatures-10, 8 January 2026,
+              Looker, T., Kalos, V., Whitehead, A., Lodder, M., and G.
+              M. Bernstein, "The BBS Signature Scheme", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-bbs-signatures-
+              12, 28 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
-              bbs-signatures-10>.
+              bbs-signatures-12>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
