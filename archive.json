@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-29T00:48:46.737152+00:00",
+  "timestamp": "2026-10-01T00:56:23.200611+00:00",
   "repo": "c2bo/draft-bormann-jwp-modular-bbs",
   "labels": [
     {
@@ -129,6 +129,22 @@
       "updatedAt": "2026-09-28T16:30:48Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDOSlF_gM8AAAABUPSOTg",
+      "title": "Adoption Call Feedback (Emil)",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/10",
+      "state": "OPEN",
+      "author": "c2bo",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "> - [2.3. Claims Mapping](https://www.ietf.org/archive/id/draft-bormann-jwp-modular-bbs-03.html#name-claims-mapping)\n> \n> Just a thought: instead of a pair array, have we considered using something like negative indices (or even more strange: non-integer values) for `scalar: true`? (This is probably not a better idea than the pair array format, but just in case.)\n> \n> The main advantage would be that it would simplify the parsing procedure. With pair arrays, the parser needs to \"step out\" one level when it encounters an integer, instead of inserting a leaf value at the current position in the tree. That is because there may also be structural arrays in the cmap, so the parser needs to descend recursively into arrays (or look ahead one level into arrays before descending) before it can detect whether the array represents a leaf value. If leaves were always and only directly indicated by single scalar values, there would be no need to back out one level before inserting the leaf.\n\nYeah, I don\u2019t really like the current design and am hoping to simplify it if the scalar encoding goes into the bbs blind signature draft itself. That would also allow us to simplify the key binding handling a lot and make the sub-proof mechanism a bit more powerful.\nI have an example of what that could look like (with simplified key binding) here: https://github.com/c2bo/draft-bormann-jwp-modular-bbs/issues/6 (second example) \n\n> - [2.3. Claims Mapping](https://www.ietf.org/archive/id/draft-bormann-jwp-modular-bbs-03.html#name-claims-mapping)\n> \n> \"Receivers MUST validate cmap before use [...]\"\n> Should/could we also make it a hard requirement that cmap (and indeed the whole issuer header) is in a canonical encoding (i.e., canonical ordering of cmap keys, and canonical ordering of payload indices)? That would enable Holders to independently verify the absence of a correlation handle in this encoding, without need for any trusted third party (e.g., a trusted registry of specific allowed issuer headers per issuer).\n> \n\nI was contemplating around that topic a bit but decided against it (at least initially) since canonical JSON encoding is always a problematic topic and it felt overkill in the initial example text I drafted. Happy to discuss that and see if people have better ideas than I had.\n\n> - [3.2. Credential Issuance](https://www.ietf.org/archive/id/draft-bormann-jwp-modular-bbs-03.html#name-credential-issuance)\n> \n> \"A non-normative example of the Compact Serialization:\"\n> This isn't really an example of a compact serialization, rather an outline of its structure. Consider reformulating as someting like:\n> \"For example, the Compact Serialization of a credential with 11 messages would have the following structure:\"\n> \"Each <m_i> is the base64url-encoded Issuer Payload for index i (e.g., m_1 is \"Mustermann\" including the quotes, m_10 is 1786000000).\"\n> The examples are arguably contradictory: it's rather something like '(e.g., `m_1` is base64url(`\"Mustermann\"` including the quotes), `m_10` is base64url(`1786000000`))'. I'm not sure how one would neatly write that out without weighing down the text too much, though.\n\nFair point, I had planned to also add properly serialised examples there but haven\u2019t come around to generating them yet and adding them to draft. Wording there should definitely be adjusted.\n\n> - [4.5. Presentation Verification](https://www.ietf.org/archive/id/draft-bormann-jwp-modular-bbs-03.html#name-presentation-verification)\n> \n> \"4. [...] Confirming that the disclosed indices recovered from the proof are exactly the positions of the non-empty Presentation Payloads.\"\n> I think the core BBS verification procedure does this internally (assuming the verifier passes every non-empty presentation payload in the messages argument): it verifies that the proof contains the expected number of scalars for the given number of disclosures, and that the positions of those disclosures line up with the correct generators for the proof to be valid.\n> It might not hurt to have this as an explicit additional step, but I think it's probably unnecessary.\n\nI might have overlooked that in the signature draft - might still be worthwhile to keep it here?\n\n> - [4.6. Example Presentation](https://www.ietf.org/archive/id/draft-bormann-jwp-modular-bbs-03.html#name-example-presentation)\n> \n> \"[...] The Holder attaches a range sub-proof over index 10 proving now <= exp < 2^63 [...]\"\n> \n> Section 2.5 recommends that \"Issuers SHOULD keep scalar = false number values within the I-JSON [RFC7493] range\", which seems to be [-(2^53)+1, (2^53)-1]) as far as I can tell. Was this example meant to be `exp < 2^53`?\n> Oh, on the other hand I suppose the proof is not necessarily limited to the I-JSON range (unless it itself represents numbers in JSON), only the transmission of the actual `exp` value from Issuer to Holder. Perhaps that's a distinction worth pointing out somewhere.\n\nI think that is a residue from me changing the limit from a higher number I had chosen initially to the JSON range. Will fix it to a different value.\n\n> - [7.1. Issuer Header Correlation](https://www.ietf.org/archive/id/draft-bormann-jwp-modular-bbs-03.html#name-issuer-header-correlation)\n> \n> \"Fixing the cmap layout (including all optional attributes and maximum-length array slots) with a constant serialization.\"\n> (Repeat of comment above) Should this be a hard requirement (so that Holders, and in particular general-purpose JWP libraries, can verify it without need of a trusted external monitoring/certification party)?\n\nWe would still need to have a trusted scheme to make sure there is no additional tracking information in there wouldn\u2019t we? I don\u2019t think we can easily fully solve that problem without some sort of alignment on a credential scheme for a specific type / a registry of schemes of some sort?\n\nI am probably a bit biased here with my work in the context of eIDAS where we are expecting credential rulebooks to be defined and published (that define the scheme among other things). Happy to discuss and figure out if we can find a better/easier solution!",
+      "createdAt": "2026-09-30T21:18:43Z",
+      "updatedAt": "2026-09-30T21:18:43Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -226,6 +242,61 @@
           "body": "",
           "createdAt": "2026-09-14T21:37:30Z",
           "updatedAt": "2026-09-14T21:37:30Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "id": "PR_kwDOSlF_gM8AAAABFrI1ug",
+      "title": "Minor editorial fixes",
+      "url": "https://github.com/c2bo/draft-bormann-jwp-modular-bbs/pull/9",
+      "state": "MERGED",
+      "author": "emlun",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- [Use consistent monospace for m_i](https://github.com/c2bo/draft-bormann-jwp-modular-bbs/commit/425f5b49d9c6c4b71b648b24bf1b572b7ac1715a) \r\n\r\n  The first occurrence \"m_0 through m_(n-1)\" renders in HTML as `m<i>0 through m</i>(n-1)`. The rest (currently) render correctly, but there are also monospace occurrences of them inconsistently throughout the document. This change formats all occurrences consistently as monospace, and prevents future issues with the HTML rendering.\r\n\r\n- [Add missing period](https://github.com/c2bo/draft-bormann-jwp-modular-bbs/commit/3c5f3bdd226162af90e28e4b34c0ab79e545c0ae)\r\n\r\n  All other items of the list end with a period.",
+      "createdAt": "2026-09-29T10:14:18Z",
+      "updatedAt": "2026-09-30T21:16:49Z",
+      "baseRepository": "c2bo/draft-bormann-jwp-modular-bbs",
+      "baseRefName": "main",
+      "baseRefOid": "a711d25a85483d774c498c61c257aa7488c0733b",
+      "headRepository": "emlun/draft-bormann-jwp-modular-bbs",
+      "headRefName": "emlun-minor-fixes",
+      "headRefOid": "3c5f3bdd226162af90e28e4b34c0ab79e545c0ae",
+      "closedAt": "2026-09-30T21:16:49Z",
+      "mergedAt": "2026-09-30T21:16:48Z",
+      "mergedBy": "c2bo",
+      "mergeCommit": {
+        "oid": "a8ddf488a8118b39e4ce91206da7f278dc0a857f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSlF_gM8AAAABPvkdEA",
+          "commit": {
+            "abbreviatedOid": "3c5f3bd"
+          },
+          "author": "c2bo",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-29T10:58:50Z",
+          "updatedAt": "2026-09-29T10:58:50Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSlF_gM8AAAABPzwg6A",
+          "commit": {
+            "abbreviatedOid": "3c5f3bd"
+          },
+          "author": "brentzundel",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-29T17:03:03Z",
+          "updatedAt": "2026-09-29T17:03:03Z",
           "comments": []
         }
       ]
