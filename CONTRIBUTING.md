@@ -42,7 +42,7 @@ and might be willing to help you through the process. Email them and ask.
 
 ## Working Group Information
 
-Discussion of this work occurs on the [JSON Web Proofs
+Discussion of this work occurs on the [Javascript Object Signing and Encryption
 Working Group mailing list](mailto:jose@ietf.org)
 ([archive](https://mailarchive.ietf.org/arch/browse/jose/),
 [subscribe](https://www.ietf.org/mailman/listinfo/jose)).
@@ -53,4 +53,4 @@ discussions there.
 technical issues needs to occur on the mailing list.
 
 You might also like to familiarize yourself with other
-[Working Group documents](https://datatracker.ietf.org/wg/jwp/documents/).
+[Working Group documents](https://datatracker.ietf.org/wg/jose/documents/).

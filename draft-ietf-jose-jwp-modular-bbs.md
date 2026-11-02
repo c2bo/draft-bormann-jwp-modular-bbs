@@ -5,10 +5,11 @@ ipr = "trust200902"
 area = "Security"
 workgroup = "JOSE"
 keyword = ["zero-knowledge proofs", "multi-message signatures", "BBS", "JWP"]
+consensus = true
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-bormann-jwp-modular-bbs-latest"
+value = "draft-ietf-jose-jwp-modular-bbs-latest"
 stream = "IETF"
 status = "standard"
 
@@ -626,6 +627,10 @@ Initial entries: none. Concrete sub-proof algorithms are expected to be register
 This document rests on the work captured in [@?TS14] by the EUDI Wallet expert group. The committed-message core proof builds on [@!I-D.irtf-cfrg-bbs-blind-signatures], and the modular committed-disclosure framework draws on [@?LSZ25].
 
 # Document History
+
+-00
+
+* Initial Working Group version, adopted from draft-bormann-jwp-modular-bbs-03
 
 [[ pre Working Group Adoption: ]]
 

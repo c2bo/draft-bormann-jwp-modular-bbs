@@ -2,12 +2,12 @@
 
 # BBS and Modular Sub-proofs with JSON Web Proofs
 
-This is the working area for the individual Internet-Draft, "BBS and Modular Sub-proofs with JSON Web Proofs".
+This is the working area for the IETF [JOSE Working Group](https://datatracker.ietf.org/group/jose/documents/) Internet-Draft, "BBS and Modular Sub-proofs with JSON Web Proofs".
 
-* [Editor's Copy](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-bormann-jwp-modular-bbs.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-bormann-jwp-modular-bbs)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-bormann-jwp-modular-bbs)
-* [Compare Editor's Copy to Individual Draft](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-bormann-jwp-modular-bbs.diff)
+* [Editor's Copy](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-ietf-jose-jwp-modular-bbs.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-jose-jwp-modular-bbs)
+* [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-ietf-jose-jwp-modular-bbs)
+* [Compare Editor's Copy to Working Group Draft](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-ietf-jose-jwp-modular-bbs.diff)
 
 
 ## Contributing

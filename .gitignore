@@ -19,7 +19,7 @@
 /node_modules/
 /versioned/
 archive.json
-draft-bormann-jwp-modular-bbs.xml
+draft-ietf-jose-jwp-modular-bbs.xml
 Gemfile.lock
 package-lock.json
 report.xml
