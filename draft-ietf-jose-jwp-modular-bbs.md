@@ -5,6 +5,7 @@ ipr = "trust200902"
 area = "Security"
 workgroup = "JOSE"
 keyword = ["zero-knowledge proofs", "multi-message signatures", "BBS", "JWP"]
+consensus = true
 
 [seriesInfo]
 name = "Internet-Draft"
