@@ -4,16 +4,16 @@
 
 This is the working area for the IETF [JOSE Working Group](https://datatracker.ietf.org/group/jose/documents/) Internet-Draft, "BBS and Modular Sub-proofs with JSON Web Proofs".
 
-* [Editor's Copy](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-ietf-jose-jwp-modular-bbs.html)
+* [Editor's Copy](https://ietf-wg-jose.github.io/draft-ietf-jose-jwp-modular-bbs/#go.draft-ietf-jose-jwp-modular-bbs.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-jose-jwp-modular-bbs)
 * [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-ietf-jose-jwp-modular-bbs)
-* [Compare Editor's Copy to Working Group Draft](https://c2bo.github.io/draft-bormann-jwp-modular-bbs/#go.draft-ietf-jose-jwp-modular-bbs.diff)
+* [Compare Editor's Copy to Working Group Draft](https://ietf-wg-jose.github.io/draft-ietf-jose-jwp-modular-bbs/#go.draft-ietf-jose-jwp-modular-bbs.diff)
 
 
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/c2bo/draft-bormann-jwp-modular-bbs/blob/main/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/ietf-wg-jose/draft-ietf-jose-jwp-modular-bbs/blob/main/CONTRIBUTING.md).
 
 The contributing file also has tips on how to make contributions, if you
 don't already know how to do that.

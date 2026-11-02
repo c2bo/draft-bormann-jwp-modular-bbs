@@ -3,5 +3,5 @@
     Javascript Object Signing and Encryption Working Group mailing list (jose@ietf.org),
     which is archived at <eref target="https://mailarchive.ietf.org/arch/browse/jose/"/>.</t>
 <t>Source for this draft and an issue tracker can be found at
-    <eref target="https://github.com/c2bo/draft-bormann-jwp-modular-bbs"/>.</t>
+    <eref target="https://github.com/ietf-wg-jose/draft-ietf-jose-jwp-modular-bbs"/>.</t>
 </note>
