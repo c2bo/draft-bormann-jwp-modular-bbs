@@ -42,7 +42,7 @@ and might be willing to help you through the process. Email them and ask.
 
 ## Working Group Information
 
-Discussion of this work occurs on the [JOSE
+Discussion of this work occurs on the [Javascript Object Signing and Encryption
 Working Group mailing list](mailto:jose@ietf.org)
 ([archive](https://mailarchive.ietf.org/arch/browse/jose/),
 [subscribe](https://www.ietf.org/mailman/listinfo/jose)).
